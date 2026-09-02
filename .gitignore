@@ -6,3 +6,12 @@ __pycache__/
 venv/
 node_modules/
 *.log
+CLAUDE.local.md
+runs/
+*.sqlite
+*.db
+.pytest_cache/
+.ruff_cache/
+web/dist/
+.idea/
+.cache/
