@@ -1,0 +1,368 @@
+BEGIN:VCALENDAR
+VERSION:2.0
+PRODID:-//OpenAI//AI Product Hack 2026//RU
+CALSCALE:GREGORIAN
+METHOD:PUBLISH
+X-WR-CALNAME:AI Product Hack 2026
+X-WR-TIMEZONE:Europe/Moscow
+BEGIN:VTIMEZONE
+TZID:Europe/Moscow
+X-LIC-LOCATION:Europe/Moscow
+BEGIN:STANDARD
+TZOFFSETFROM:+0300
+TZOFFSETTO:+0300
+TZNAME:MSK
+DTSTART:19700101T000000
+END:STANDARD
+END:VTIMEZONE
+BEGIN:VEVENT
+UID:289c163e-34ea-4689-8594-c4d3cdc63c59@ai-product-hack-2026
+DTSTAMP:20260831T182320Z
+DTSTART;TZID=Europe/Moscow:20260901T120000
+DTEND;TZID=Europe/Moscow:20260901T123000
+SUMMARY:Регистрация + встреча с ОП
+DESCRIPTION:AI Product Hack 2026. Время — Europe/Moscow. Событие заканчивается к началу следующего события в этот день; последнее событие дня длится 1 час.
+STATUS:CONFIRMED
+TRANSP:OPAQUE
+END:VEVENT
+BEGIN:VEVENT
+UID:c7794e03-8cac-4e78-a444-625f7717a748@ai-product-hack-2026
+DTSTAMP:20260831T182320Z
+DTSTART;TZID=Europe/Moscow:20260901T123000
+DTEND;TZID=Europe/Moscow:20260901T133000
+SUMMARY:Онбординг в хакатон
+DESCRIPTION:AI Product Hack 2026. Время — Europe/Moscow. Событие заканчивается к началу следующего события в этот день; последнее событие дня длится 1 час.
+STATUS:CONFIRMED
+TRANSP:OPAQUE
+END:VEVENT
+BEGIN:VEVENT
+UID:8adb24dd-f897-4306-a084-fe9f238f79d3@ai-product-hack-2026
+DTSTAMP:20260831T182320Z
+DTSTART;TZID=Europe/Moscow:20260901T133000
+DTEND;TZID=Europe/Moscow:20260901T141500
+SUMMARY:Презентация кейсов
+DESCRIPTION:AI Product Hack 2026. Время — Europe/Moscow. Событие заканчивается к началу следующего события в этот день; последнее событие дня длится 1 час.
+STATUS:CONFIRMED
+TRANSP:OPAQUE
+END:VEVENT
+BEGIN:VEVENT
+UID:c4070209-d564-40f5-b419-7a26aab79da8@ai-product-hack-2026
+DTSTAMP:20260831T182320Z
+DTSTART;TZID=Europe/Moscow:20260901T141500
+DTEND;TZID=Europe/Moscow:20260901T180000
+SUMMARY:Speed dating
+DESCRIPTION:AI Product Hack 2026. Время — Europe/Moscow. Событие заканчивается к началу следующего события в этот день; последнее событие дня длится 1 час.
+STATUS:CONFIRMED
+TRANSP:OPAQUE
+END:VEVENT
+BEGIN:VEVENT
+UID:30fda717-cdf7-4f2d-8383-1a2f184bfc9b@ai-product-hack-2026
+DTSTAMP:20260831T182320Z
+DTSTART;TZID=Europe/Moscow:20260901T180000
+DTEND;TZID=Europe/Moscow:20260901T190000
+SUMMARY:AI Talent Bar
+DESCRIPTION:AI Product Hack 2026. Время — Europe/Moscow. Событие заканчивается к началу следующего события в этот день; последнее событие дня длится 1 час.
+STATUS:CONFIRMED
+TRANSP:OPAQUE
+END:VEVENT
+BEGIN:VEVENT
+UID:089edd99-a89d-4081-b99e-908d5599b037@ai-product-hack-2026
+DTSTAMP:20260831T182320Z
+DTSTART;TZID=Europe/Moscow:20260902T100000
+DTEND;TZID=Europe/Moscow:20260902T113000
+SUMMARY:Финализация команды и кейса
+DESCRIPTION:AI Product Hack 2026. Время — Europe/Moscow. Событие заканчивается к началу следующего события в этот день; последнее событие дня длится 1 час.
+STATUS:CONFIRMED
+TRANSP:OPAQUE
+END:VEVENT
+BEGIN:VEVENT
+UID:84d89ea0-3728-40fc-9e34-32b9c4f2097b@ai-product-hack-2026
+DTSTAMP:20260831T182320Z
+DTSTART;TZID=Europe/Moscow:20260902T113000
+DTEND;TZID=Europe/Moscow:20260902T130000
+SUMMARY:Установка + воркшоп «CustDev с ИИ и без»
+DESCRIPTION:AI Product Hack 2026. Время — Europe/Moscow. Событие заканчивается к началу следующего события в этот день; последнее событие дня длится 1 час.
+STATUS:CONFIRMED
+TRANSP:OPAQUE
+END:VEVENT
+BEGIN:VEVENT
+UID:469604b2-a71f-412d-9800-9ebee95c0b62@ai-product-hack-2026
+DTSTAMP:20260831T182320Z
+DTSTART;TZID=Europe/Moscow:20260902T130000
+DTEND;TZID=Europe/Moscow:20260902T163000
+SUMMARY:Работа над кейсом
+DESCRIPTION:AI Product Hack 2026. Время — Europe/Moscow. Событие заканчивается к началу следующего события в этот день; последнее событие дня длится 1 час.
+STATUS:CONFIRMED
+TRANSP:OPAQUE
+END:VEVENT
+BEGIN:VEVENT
+UID:2c79e795-f390-41ad-a2e5-bb73b6ed7021@ai-product-hack-2026
+DTSTAMP:20260831T182320Z
+DTSTART;TZID=Europe/Moscow:20260902T163000
+DTEND;TZID=Europe/Moscow:20260902T183000
+SUMMARY:QA-сессия с кейсодателями
+DESCRIPTION:AI Product Hack 2026. Время — Europe/Moscow. Событие заканчивается к началу следующего события в этот день; последнее событие дня длится 1 час.
+STATUS:CONFIRMED
+TRANSP:OPAQUE
+END:VEVENT
+BEGIN:VEVENT
+UID:7f3c9ed3-3bee-4c70-9fb0-0933501a83d7@ai-product-hack-2026
+DTSTAMP:20260831T182320Z
+DTSTART;TZID=Europe/Moscow:20260902T183000
+DTEND;TZID=Europe/Moscow:20260902T193000
+SUMMARY:Рефлексия
+DESCRIPTION:AI Product Hack 2026. Время — Europe/Moscow. Событие заканчивается к началу следующего события в этот день; последнее событие дня длится 1 час.
+STATUS:CONFIRMED
+TRANSP:OPAQUE
+END:VEVENT
+BEGIN:VEVENT
+UID:3dde4493-d9f0-494b-bedc-865b4aa2c2c5@ai-product-hack-2026
+DTSTAMP:20260831T182320Z
+DTSTART;TZID=Europe/Moscow:20260903T100000
+DTEND;TZID=Europe/Moscow:20260903T113000
+SUMMARY:Работа над кейсом
+DESCRIPTION:AI Product Hack 2026. Время — Europe/Moscow. Событие заканчивается к началу следующего события в этот день; последнее событие дня длится 1 час.
+STATUS:CONFIRMED
+TRANSP:OPAQUE
+END:VEVENT
+BEGIN:VEVENT
+UID:4c6396d7-c974-41ab-ae1d-f336a2fae7a6@ai-product-hack-2026
+DTSTAMP:20260831T182320Z
+DTSTART;TZID=Europe/Moscow:20260903T113000
+DTEND;TZID=Europe/Moscow:20260903T130000
+SUMMARY:Установка + воркшоп «Разработка с ИИ»
+DESCRIPTION:AI Product Hack 2026. Время — Europe/Moscow. Событие заканчивается к началу следующего события в этот день; последнее событие дня длится 1 час.
+STATUS:CONFIRMED
+TRANSP:OPAQUE
+END:VEVENT
+BEGIN:VEVENT
+UID:56412bab-ab8d-4728-b806-1f6e35c543c2@ai-product-hack-2026
+DTSTAMP:20260831T182320Z
+DTSTART;TZID=Europe/Moscow:20260903T130000
+DTEND;TZID=Europe/Moscow:20260903T183000
+SUMMARY:Работа над кейсом
+DESCRIPTION:AI Product Hack 2026. Время — Europe/Moscow. Событие заканчивается к началу следующего события в этот день; последнее событие дня длится 1 час.
+STATUS:CONFIRMED
+TRANSP:OPAQUE
+END:VEVENT
+BEGIN:VEVENT
+UID:d38c0858-100e-4970-a256-5c8dc50acfe0@ai-product-hack-2026
+DTSTAMP:20260831T182320Z
+DTSTART;TZID=Europe/Moscow:20260903T183000
+DTEND;TZID=Europe/Moscow:20260903T193000
+SUMMARY:Рефлексия
+DESCRIPTION:AI Product Hack 2026. Время — Europe/Moscow. Событие заканчивается к началу следующего события в этот день; последнее событие дня длится 1 час.
+STATUS:CONFIRMED
+TRANSP:OPAQUE
+END:VEVENT
+BEGIN:VEVENT
+UID:90e481c5-2edf-4998-9076-96d600dadd00@ai-product-hack-2026
+DTSTAMP:20260831T182320Z
+DTSTART;TZID=Europe/Moscow:20260904T100000
+DTEND;TZID=Europe/Moscow:20260904T113000
+SUMMARY:Работа над кейсом
+DESCRIPTION:AI Product Hack 2026. Время — Europe/Moscow. Событие заканчивается к началу следующего события в этот день; последнее событие дня длится 1 час.
+STATUS:CONFIRMED
+TRANSP:OPAQUE
+END:VEVENT
+BEGIN:VEVENT
+UID:ccc45c65-d14e-44c3-9097-513a55c5f36b@ai-product-hack-2026
+DTSTAMP:20260831T182320Z
+DTSTART;TZID=Europe/Moscow:20260904T113000
+DTEND;TZID=Europe/Moscow:20260904T130000
+SUMMARY:Установка + воркшоп «Eval»
+DESCRIPTION:AI Product Hack 2026. Время — Europe/Moscow. Событие заканчивается к началу следующего события в этот день; последнее событие дня длится 1 час.
+STATUS:CONFIRMED
+TRANSP:OPAQUE
+END:VEVENT
+BEGIN:VEVENT
+UID:711e0b56-28f6-4e9e-ad46-12aef3d07e0b@ai-product-hack-2026
+DTSTAMP:20260831T182320Z
+DTSTART;TZID=Europe/Moscow:20260904T130000
+DTEND;TZID=Europe/Moscow:20260904T150000
+SUMMARY:Работа над кейсом
+DESCRIPTION:AI Product Hack 2026. Время — Europe/Moscow. Событие заканчивается к началу следующего события в этот день; последнее событие дня длится 1 час.
+STATUS:CONFIRMED
+TRANSP:OPAQUE
+END:VEVENT
+BEGIN:VEVENT
+UID:5e272a98-4292-498c-81cf-e93d910e8e77@ai-product-hack-2026
+DTSTAMP:20260831T182320Z
+DTSTART;TZID=Europe/Moscow:20260904T150000
+DTEND;TZID=Europe/Moscow:20260904T170000
+SUMMARY:Чек-поинты с кейсодателями
+DESCRIPTION:AI Product Hack 2026. Время — Europe/Moscow. Событие заканчивается к началу следующего события в этот день; последнее событие дня длится 1 час.
+STATUS:CONFIRMED
+TRANSP:OPAQUE
+END:VEVENT
+BEGIN:VEVENT
+UID:0eab2783-76df-4333-8aa4-832b52585aed@ai-product-hack-2026
+DTSTAMP:20260831T182320Z
+DTSTART;TZID=Europe/Moscow:20260904T170000
+DTEND;TZID=Europe/Moscow:20260904T183000
+SUMMARY:Работа над кейсом
+DESCRIPTION:AI Product Hack 2026. Время — Europe/Moscow. Событие заканчивается к началу следующего события в этот день; последнее событие дня длится 1 час.
+STATUS:CONFIRMED
+TRANSP:OPAQUE
+END:VEVENT
+BEGIN:VEVENT
+UID:aa6b5765-01d6-42da-a47a-f8506c426146@ai-product-hack-2026
+DTSTAMP:20260831T182320Z
+DTSTART;TZID=Europe/Moscow:20260904T183000
+DTEND;TZID=Europe/Moscow:20260904T193000
+SUMMARY:Рефлексия
+DESCRIPTION:AI Product Hack 2026. Время — Europe/Moscow. Событие заканчивается к началу следующего события в этот день; последнее событие дня длится 1 час.
+STATUS:CONFIRMED
+TRANSP:OPAQUE
+END:VEVENT
+BEGIN:VEVENT
+UID:09f6fd66-5510-45a3-9de7-d959af4296f2@ai-product-hack-2026
+DTSTAMP:20260831T182320Z
+DTSTART;TZID=Europe/Moscow:20260905T100000
+DTEND;TZID=Europe/Moscow:20260905T110000
+SUMMARY:Работа над проектом
+DESCRIPTION:AI Product Hack 2026. Время — Europe/Moscow. Событие заканчивается к началу следующего события в этот день; последнее событие дня длится 1 час.
+STATUS:CONFIRMED
+TRANSP:OPAQUE
+END:VEVENT
+BEGIN:VEVENT
+UID:aacdb035-748a-4268-ac95-6b80cb78bdec@ai-product-hack-2026
+DTSTAMP:20260831T182320Z
+DTSTART;TZID=Europe/Moscow:20260905T110000
+DTEND;TZID=Europe/Moscow:20260905T113000
+SUMMARY:МК по публичным выступлениям
+DESCRIPTION:AI Product Hack 2026. Время — Europe/Moscow. Событие заканчивается к началу следующего события в этот день; последнее событие дня длится 1 час.
+STATUS:CONFIRMED
+TRANSP:OPAQUE
+END:VEVENT
+BEGIN:VEVENT
+UID:f6cab92b-1c56-40af-96cd-dc03c4c29f59@ai-product-hack-2026
+DTSTAMP:20260831T182320Z
+DTSTART;TZID=Europe/Moscow:20260905T113000
+DTEND;TZID=Europe/Moscow:20260905T120000
+SUMMARY:Установка на день
+DESCRIPTION:AI Product Hack 2026. Время — Europe/Moscow. Событие заканчивается к началу следующего события в этот день; последнее событие дня длится 1 час.
+STATUS:CONFIRMED
+TRANSP:OPAQUE
+END:VEVENT
+BEGIN:VEVENT
+UID:3950aff8-d181-49fd-abc3-09ef1c6f9011@ai-product-hack-2026
+DTSTAMP:20260831T182320Z
+DTSTART;TZID=Europe/Moscow:20260905T120000
+DTEND;TZID=Europe/Moscow:20260905T133000
+SUMMARY:Работа над кейсом
+DESCRIPTION:AI Product Hack 2026. Время — Europe/Moscow. Событие заканчивается к началу следующего события в этот день; последнее событие дня длится 1 час.
+STATUS:CONFIRMED
+TRANSP:OPAQUE
+END:VEVENT
+BEGIN:VEVENT
+UID:9b5b39aa-0821-487f-98d1-6abe42ca4909@ai-product-hack-2026
+DTSTAMP:20260831T182320Z
+DTSTART;TZID=Europe/Moscow:20260905T133000
+DTEND;TZID=Europe/Moscow:20260905T163000
+SUMMARY:Доработка питчей после ОС
+DESCRIPTION:AI Product Hack 2026. Время — Europe/Moscow. Событие заканчивается к началу следующего события в этот день; последнее событие дня длится 1 час.
+STATUS:CONFIRMED
+TRANSP:OPAQUE
+END:VEVENT
+BEGIN:VEVENT
+UID:4f92e466-5b3e-4b38-981d-3044df2e3dc1@ai-product-hack-2026
+DTSTAMP:20260831T182320Z
+DTSTART;TZID=Europe/Moscow:20260905T163000
+DTEND;TZID=Europe/Moscow:20260905T183000
+SUMMARY:OpenMic
+DESCRIPTION:AI Product Hack 2026. Время — Europe/Moscow. Событие заканчивается к началу следующего события в этот день; последнее событие дня длится 1 час.
+STATUS:CONFIRMED
+TRANSP:OPAQUE
+END:VEVENT
+BEGIN:VEVENT
+UID:d18a38be-1111-489b-8479-629b307fe72a@ai-product-hack-2026
+DTSTAMP:20260831T182320Z
+DTSTART;TZID=Europe/Moscow:20260905T183000
+DTEND;TZID=Europe/Moscow:20260905T193000
+SUMMARY:Рефлексия
+DESCRIPTION:AI Product Hack 2026. Время — Europe/Moscow. Событие заканчивается к началу следующего события в этот день; последнее событие дня длится 1 час.
+STATUS:CONFIRMED
+TRANSP:OPAQUE
+END:VEVENT
+BEGIN:VEVENT
+UID:6f251b42-2fd2-4219-b452-99b3dbf11327@ai-product-hack-2026
+DTSTAMP:20260831T182320Z
+DTSTART;TZID=Europe/Moscow:20260906T100000
+DTEND;TZID=Europe/Moscow:20260906T120000
+SUMMARY:Работа над кейсом
+DESCRIPTION:AI Product Hack 2026. Время — Europe/Moscow. Событие заканчивается к началу следующего события в этот день; последнее событие дня длится 1 час.
+STATUS:CONFIRMED
+TRANSP:OPAQUE
+END:VEVENT
+BEGIN:VEVENT
+UID:0fe34f6a-63d9-4df6-829d-da989bcdad2b@ai-product-hack-2026
+DTSTAMP:20260831T182320Z
+DTSTART;TZID=Europe/Moscow:20260906T120000
+DTEND;TZID=Europe/Moscow:20260906T160000
+SUMMARY:Peer-to-peer review · 1 раунд
+DESCRIPTION:AI Product Hack 2026. Время — Europe/Moscow. Событие заканчивается к началу следующего события в этот день; последнее событие дня длится 1 час.
+STATUS:CONFIRMED
+TRANSP:OPAQUE
+END:VEVENT
+BEGIN:VEVENT
+UID:313aed15-a5f0-4915-a470-1dcfa0c0a141@ai-product-hack-2026
+DTSTAMP:20260831T182320Z
+DTSTART;TZID=Europe/Moscow:20260906T160000
+DTEND;TZID=Europe/Moscow:20260906T173000
+SUMMARY:Peer-to-peer review · 2 раунд
+DESCRIPTION:AI Product Hack 2026. Время — Europe/Moscow. Событие заканчивается к началу следующего события в этот день; последнее событие дня длится 1 час.
+STATUS:CONFIRMED
+TRANSP:OPAQUE
+END:VEVENT
+BEGIN:VEVENT
+UID:44bca338-9632-4fd5-8cab-0f756eae150d@ai-product-hack-2026
+DTSTAMP:20260831T182320Z
+DTSTART;TZID=Europe/Moscow:20260906T173000
+DTEND;TZID=Europe/Moscow:20260906T183000
+SUMMARY:Доработка финальной презентации
+DESCRIPTION:AI Product Hack 2026. Время — Europe/Moscow. Событие заканчивается к началу следующего события в этот день; последнее событие дня длится 1 час.
+STATUS:CONFIRMED
+TRANSP:OPAQUE
+END:VEVENT
+BEGIN:VEVENT
+UID:97409710-e659-4376-a6df-810453cd346d@ai-product-hack-2026
+DTSTAMP:20260831T182320Z
+DTSTART;TZID=Europe/Moscow:20260906T183000
+DTEND;TZID=Europe/Moscow:20260906T193000
+SUMMARY:Рефлексия
+DESCRIPTION:AI Product Hack 2026. Время — Europe/Moscow. Событие заканчивается к началу следующего события в этот день; последнее событие дня длится 1 час.
+STATUS:CONFIRMED
+TRANSP:OPAQUE
+END:VEVENT
+BEGIN:VEVENT
+UID:2708efd9-fd75-408d-8560-9980bfe69383@ai-product-hack-2026
+DTSTAMP:20260831T182320Z
+DTSTART;TZID=Europe/Moscow:20260907T100000
+DTEND;TZID=Europe/Moscow:20260907T120000
+SUMMARY:Дедлайн загрузки артефактов
+DESCRIPTION:AI Product Hack 2026. Время — Europe/Moscow. Событие заканчивается к началу следующего события в этот день; последнее событие дня длится 1 час.
+STATUS:CONFIRMED
+TRANSP:OPAQUE
+END:VEVENT
+BEGIN:VEVENT
+UID:78402a76-e1e3-4ce3-b5c5-6a812a8c35e9@ai-product-hack-2026
+DTSTAMP:20260831T182320Z
+DTSTART;TZID=Europe/Moscow:20260907T120000
+DTEND;TZID=Europe/Moscow:20260907T150000
+SUMMARY:Demo Day
+DESCRIPTION:AI Product Hack 2026. Время — Europe/Moscow. Событие заканчивается к началу следующего события в этот день; последнее событие дня длится 1 час.
+STATUS:CONFIRMED
+TRANSP:OPAQUE
+END:VEVENT
+BEGIN:VEVENT
+UID:b04922ba-0103-48a2-93c0-567df7ae616d@ai-product-hack-2026
+DTSTAMP:20260831T182320Z
+DTSTART;TZID=Europe/Moscow:20260907T150000
+DTEND;TZID=Europe/Moscow:20260907T160000
+SUMMARY:Церемония награждения
+DESCRIPTION:AI Product Hack 2026. Время — Europe/Moscow. Событие заканчивается к началу следующего события в этот день; последнее событие дня длится 1 час.
+STATUS:CONFIRMED
+TRANSP:OPAQUE
+END:VEVENT
+END:VCALENDAR
