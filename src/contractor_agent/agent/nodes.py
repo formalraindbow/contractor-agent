@@ -60,12 +60,13 @@ def make_nodes(llm: LLM, tools: list[Any], source: ReportSource) -> dict[str, No
             payload = _parse(msg.content)
             available = payload.get("available") if isinstance(payload, dict) else None
             reason = payload.get("reason") if isinstance(payload, dict) else None
+            item_dates = _item_dates(payload)  # compare_companies: дата у каждой компании своя
             for inn in _inns_from_args(args):
                 if inn not in inns:
                     inns.append(inn)
                 report_date = payload.get("report_date") if isinstance(payload, dict) else None
-                if report_date:
-                    dates[inn] = report_date
+                if item_dates.get(inn) or report_date:
+                    dates[inn] = item_dates.get(inn) or report_date
             trace.append(
                 ToolCallTrace(
                     name=name,
@@ -228,6 +229,19 @@ def _parse(content: Any) -> Any:
         except ValueError:
             return content
     return content
+
+
+def _item_dates(payload: Any) -> dict[str, str]:
+    """ИНН → дата отчёта из списка компаний в данных инструмента (сравнение)."""
+    data = payload.get("data") if isinstance(payload, dict) else None
+    items = data.get("items") if isinstance(data, dict) else None
+    if not isinstance(items, list):
+        return {}
+    return {
+        str(i["inn"]): str(i["report_date"])
+        for i in items
+        if isinstance(i, dict) and i.get("inn") and i.get("report_date")
+    }
 
 
 def _inns_from_args(args: dict[str, Any]) -> list[str]:
