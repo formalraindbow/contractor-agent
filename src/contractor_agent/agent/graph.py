@@ -20,8 +20,10 @@ Prebuilt ``create_agent`` делает внутри ровно то же для 
 
 from __future__ import annotations
 
+from collections.abc import Sequence
 from typing import Any
 
+from langchain_core.messages import BaseMessage
 from langgraph.checkpoint.base import BaseCheckpointSaver
 from langgraph.checkpoint.memory import InMemorySaver
 from langgraph.checkpoint.serde.jsonplus import JsonPlusSerializer
@@ -69,11 +71,12 @@ def memory_saver() -> InMemorySaver:
     return InMemorySaver(serde=JsonPlusSerializer(allowed_msgpack_modules=ALLOWED_STATE_TYPES))
 
 
-def initial_state(question: str) -> dict[str, Any]:
+def initial_state(question: str, history: Sequence[BaseMessage] = ()) -> dict[str, Any]:
+    """Вход графа: вопрос плюс, при необходимости, предыдущие реплики (память сессии в эвалах)."""
     from langchain_core.messages import HumanMessage
 
     return {
-        "messages": [HumanMessage(content=question)],
+        "messages": [*history, HumanMessage(content=question)],
         "selected_inns": [],
         "report_dates": {},
         "trace": [],

@@ -9,6 +9,7 @@
 from __future__ import annotations
 
 import asyncio
+import datetime
 import json
 import re
 import time
@@ -16,14 +17,14 @@ from collections.abc import Sequence
 from pathlib import Path
 from typing import Any
 
-from langchain_core.messages import ToolMessage
+from langchain_core.messages import AIMessage, BaseMessage, HumanMessage, ToolMessage
 from pydantic import BaseModel, Field
 
 from contractor_agent.agent.llm import LLM
 from contractor_agent.agent.runtime import AgentRuntime
 from contractor_agent.agent.schema import Answer
 from evals.checks import CheckResult, check
-from evals.gold import Gold, GoldQuestion
+from evals.gold import Gold, GoldCard, GoldQuestion
 from evals.judge import JudgeVerdict, judge
 
 TOOL_OUTPUT_LIMIT = 20_000
@@ -128,8 +129,10 @@ class EvalRunner:
         thread_id = f"eval-{question.id}-{repeat}"
         started = time.perf_counter()
         try:
+            history = follow_up_history(self.gold.card(question.inn)) if question.follow_up else ()
             answer = await asyncio.wait_for(
-                self.runtime.ask(question.question, thread_id=thread_id), self.agent_timeout_s
+                self.runtime.ask(question.question, thread_id=thread_id, history=history),
+                self.agent_timeout_s,
             )
             state = await self.runtime.graph.aget_state({"configurable": {"thread_id": thread_id}})
             values = state.values or {}
@@ -149,6 +152,19 @@ class EvalRunner:
             record.error = f"{type(e).__name__}: {e}"  # проверки, если успели, остаются как есть
         record.duration_s = round(time.perf_counter() - started, 1)
         return record
+
+
+def follow_up_history(card: GoldCard) -> list[BaseMessage]:
+    """Предыдущий обмен в той же сессии — без вызова модели: проверяем, что агент помнит,
+    о какой компании речь, а не заставляем его отвечать на два вопроса."""
+    date = datetime.date.fromisoformat(card.report_date).strftime("%d.%m.%Y")
+    return [
+        HumanMessage(content=f"Проверь {card.company}, ИНН {card.inn}."),
+        AIMessage(
+            content=f"Смотрю отчёт по {card.company} (ИНН {card.inn}) от {date}. "
+            "Могу рассказать про статус, суды, долги у приставов, финансы и проверки."
+        ),
+    ]
 
 
 def _tool_outputs(messages: list) -> str:
