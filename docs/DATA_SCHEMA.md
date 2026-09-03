@@ -62,7 +62,7 @@ JSON» — это другие компании.**
 | `baseInfo` | объект | ИНН, ОГРН, ОКПО, названия, адрес, КПП, дата регистрации, `riskLevel`, размер, email, сайт |
 | `kindsOfActivityInfo` | объект | основной ОКВЭД + список дополнительных (до 120 штук) |
 | `status` | объект | `status` (у всех `CURRENT`), `date`, **`reasonName`** |
-| `zskRiskLevel` | строка | вторая метка риска: `GREEN` / `YELLOW` / `RED` |
+| `zskRiskLevel` | строка | уровень по Платформе ЗСК Банка России (115-ФЗ, риск подозрительных операций): `GREEN` / `YELLOW` / `RED` = низкий / средний / высокий; по спецификации отчёта в интерфейс выводится Green / grey / grey |
 | `reputationalRisks` | объект | `negative[]` и `positive[]` — готовые тексты с рекомендациями; `negative` пуст у 42 |
 | `phones` | список | у 71 из 100 — `[]` |
 | `arbitrationByStatus` | объект | агрегат по арбитражу; ключ есть всегда, но у 52 нет `commonCount`/`commonAmount` — только пустые вложенные словари |
@@ -135,7 +135,7 @@ report
 └── phones[] { phoneCode, phoneNumber }
 ```
 
-Обрати внимание на опечатку в исходной схеме: **`defandantArbitration`**, а не
+В исходной схеме опечатка: **`defandantArbitration`**, а не
 `defendant`. В `arbitrationCases` при этом правильное `defendantCount`.
 В коде легко промахнуться.
 
@@ -300,7 +300,7 @@ report.relatedCompanies[2].parentOrganizations[0]
 
 ## Спецификация полей от кейсодателя (3.09)
 
-Таблица «поле → значение» из Google Doc кейсодателя переложена в `case_owner/field_spec.md`,
+Таблица «поле → значение» из Google Doc кейсодателя переложена в `raw/case_owner/field_spec.md`,
 определения меток — там же. Что она добавляет к разбору выше:
 
 - **Метки.** `baseInfo.riskLevel` — «Светофор», внутренний скоринг банка (LOW / MEDIUM / HIGH;
@@ -328,3 +328,26 @@ report.relatedCompanies[2].parentOrganizations[0]
 - **`finReports[].liabilities.totalLiabilities`** — «всего пассивов», итог баланса, не долг.
 - Чего в спецификации нет: расшифровки кодов `reputationalRisks`, порога `massOkved`, единиц
   денег (по данным — рубли).
+
+---
+
+## Две метки риска — что каждая значит (уточнено 3.09)
+
+По спецификации отчёта (`GetFullReportResponse`) и публичной странице Банка России:
+
+| Поле | Шкала | Что измеряет | Источник |
+|---|---|---|---|
+| `baseInfo.riskLevel` | `LOW` / `MEDIUM` / `HIGH` / `UNKNOWN` | надёжность как контрагента — собственная оценка банка на СПАРК, госданных и транзакциях | кейсодатель, QA [53:23] |
+| `zskRiskLevel` | `GREEN` / `YELLOW` / `RED` = низкий / средний / высокий | риск совершения подозрительных операций (115-ФЗ) — Платформа ЗСК «Знай своего клиента» Банка России | https://www.cbr.ru/counteraction_m_ter/platform_zsk/proverka-po-inn/ |
+
+Кросс-таблица по JSON-набору (100): LOW×GREEN 66 · LOW×YELLOW 12 · MEDIUM×GREEN 10 ·
+MEDIUM×YELLOW 5 · HIGH×GREEN 2 · HIGH×YELLOW 1 · HIGH×RED 1 · UNKNOWN×GREEN 3.
+Расхождение по цвету — не ошибка данных: две шкалы отвечают на разные вопросы.
+
+Из той же спецификации: `status.status` — `CURRENT` / `CLOSED` (в обоих наборах
+все `CURRENT`); `executionProceedings[].active` — признак активности (в JSON:
+производства у 53, активные хотя бы одно — у 18); `reputationalRisks.*[].chapter` —
+раздел фактора: `arbitr`, `execproc`, `finance`, `manager`, `okved`, `reestrs`,
+`filials`, `license`, `relatedComp`, `site`; `licenses[].status` — `ACTIVE` /
+`EXPIRED` / `INDEFINITE`; `inspections[].inspectionStatus` — предстоящая /
+без нарушений / с нарушениями / результат неизвестен / отменена.
