@@ -43,8 +43,21 @@ def _has(text: str, needle: str) -> bool:
     )
 
 
+_REFUSAL_RE = re.compile(
+    r"(оценить|сказать|определить|посчитать|рассчитать)[^.\n]{0,60}(нельзя|невозможно)"
+    r"|не указан|не раскрыт|пробел в данных|невозможно оценить",
+    re.I,
+)
+
+
 def is_refusal(answer: Answer) -> bool:
-    return answer.kind == "refusal" or any(_has(answer.text_md, m) for m in REFUSAL_MARKERS)
+    """Отказ — вид ответа «refusal» или формулировка об отсутствии сведений в тексте."""
+    text = answer.text_md
+    return (
+        answer.kind == "refusal"
+        or any(_has(text, m) for m in REFUSAL_MARKERS)
+        or bool(_REFUSAL_RE.search(text))
+    )
 
 
 def mentions_report_date(answer: Answer, report_date: str) -> bool:

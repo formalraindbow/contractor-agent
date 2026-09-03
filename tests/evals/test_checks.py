@@ -143,3 +143,16 @@ def test_verdict_in_text_falls_back_to_phrase():
         == "not_recommended"
     )
     assert verdict_in_text("ничего про исход") is None
+
+
+def test_refusal_detected_with_words_between():
+    from evals.checks import is_refusal
+
+    from contractor_agent.agent.schema import Answer
+
+    a = Answer(
+        kind="answer",
+        text_md="Сумма долга в отчёте не указана — оценить размер задолженности нельзя.",
+    )
+    assert is_refusal(a)
+    assert not is_refusal(Answer(kind="answer", text_md="Долг 4 млн ₽ по 54 производствам."))
