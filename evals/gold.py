@@ -55,6 +55,10 @@ class GoldQuestion(BaseModel):
     )
     catches: str = ""
     evidence: str = ""
+    follow_up: bool = Field(
+        default=False,
+        description="уточняющий вопрос («у них…»): раннер засевает сессию репликой о компании",
+    )
 
 
 class GoldCard(BaseModel):

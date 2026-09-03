@@ -47,6 +47,7 @@ cards:
       только 2023–2026''; get_section arbitrationByStatus: commonCount 278, dpCount null, daCount null; sum(arbitrationCases):
       defendant 259, plaintiff 16, total 275'
   - id: maksmarket-courts-case-details
+    follow_up: true
     inn: '5032257375'
     type: refuse
     question: А что за дело у них было в 2025 году — с кем судились и за что?
@@ -119,6 +120,7 @@ cards:
       labels: svetofor ''зелёный'' (report.baseInfo.riskLevel=LOW), zsk ''зелёный''; get_report_summary: status
       ''CURRENT'', counts.execution_proceedings 507, report_date ''2026-07-31'''
   - id: maksmarket-enforcement-active
+    follow_up: true
     inn: '5032257375'
     type: answer
     question: Сколько у них сейчас висит долгов у приставов и на какую сумму?
@@ -180,6 +182,7 @@ cards:
       state=''empty'', commonCount null; get_section(''2100006761'',''arbitrationCases''): available=False, reason=''section_absent'';
       get_report_summary sections: arbitrationByStatus ''empty'', arbitrationCases ''absent'''
   - id: rado-headcount
+    follow_up: true
     inn: '2100006761'
     type: refuse
     question: Сколько у них сотрудников? Хочу понять, потянут ли они мой заказ.
@@ -524,6 +527,7 @@ cards:
       по этому критерию нельзя.''; get_section(''052500690823'',''finReports''): available=False, reason=''section_absent'';
       get_risk_signals gap: criterion=''финансовая отчётность'', source_path=''report.finReports''.'
   - id: yanpolov-labels
+    follow_up: true
     inn: 052500690823
     type: infer
     question: У него светофор банка красный, а ЗСК зелёный — так кому верить? Можно с ним заключать договор на монтаж
@@ -1067,6 +1071,7 @@ cards:
       разнесены 11: 1 дело без деталей»; by_years: 2026 plaintiff=2/defendant=1, 2024 4/4, 2023 0/1; by_years_window
       «разбивка по годам покрывает только 2023–2026; сводка — за всё время»'
   - id: glavsvyazstroy-inspections
+    follow_up: true
     inn: '2308177290'
     type: refuse
     question: А проверки у них были — трудовая, пожарные, Роспотребнадзор? Нарушения находили?

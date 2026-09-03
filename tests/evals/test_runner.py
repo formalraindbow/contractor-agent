@@ -75,3 +75,27 @@ async def test_runner_caches_and_metrics(snapshot: Snapshot, tmp_path) -> None:
     assert metrics.invented_share == 0.0 and metrics.missed_critical_share == 0.0
     text = render([metrics], {"scripted/test": records})
     assert "Подтверждаемых ответов" in text and "100 %" in text
+
+
+def test_follow_up_history_names_company_and_date():
+    from evals.gold import load_gold
+    from evals.runner import follow_up_history
+
+    gold = load_gold()
+    follow_ups = [q for q in gold.questions() if q.follow_up]
+    assert len(follow_ups) == 5  # «у них…» без названия компании — только с засевом сессии
+    history = follow_up_history(gold.card("5032257375"))
+    assert [m.type for m in history] == ["human", "ai"]
+    assert "МАКСМАРКЕТ" in history[0].content and "5032257375" in history[0].content
+    assert "31.07.2026" in history[1].content
+
+
+def test_initial_state_keeps_history_before_question():
+    from langchain_core.messages import AIMessage, HumanMessage
+
+    from contractor_agent.agent.graph import initial_state
+
+    state = initial_state(
+        "а суды?", [HumanMessage(content="проверь X"), AIMessage(content="смотрю")]
+    )
+    assert [m.content for m in state["messages"]] == ["проверь X", "смотрю", "а суды?"]

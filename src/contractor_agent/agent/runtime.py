@@ -9,9 +9,11 @@
 from __future__ import annotations
 
 import json
+from collections.abc import Sequence
 from datetime import UTC, datetime
 from typing import Any
 
+from langchain_core.messages import BaseMessage
 from langgraph.checkpoint.base import BaseCheckpointSaver
 from mcp.client.client import Client
 from mcp.client.stdio import StdioServerParameters
@@ -62,13 +64,15 @@ class AgentRuntime:
         if self.client is not None:
             await self.client.__aexit__(*exc)
 
-    async def ask(self, question: str, thread_id: str = "cli") -> Answer:
+    async def ask(
+        self, question: str, thread_id: str = "cli", *, history: Sequence[BaseMessage] = ()
+    ) -> Answer:
         assert self.graph is not None, "используй `async with AgentRuntime(...)`"
         config = {
             "configurable": {"thread_id": thread_id},
             "recursion_limit": self.settings.recursion_limit,
         }
-        result = await self.graph.ainvoke(initial_state(question), config=config)
+        result = await self.graph.ainvoke(initial_state(question, history), config=config)
         answer: Answer = result["answer"]
         self.record_trace(thread_id, question, result, answer)
         return answer
