@@ -45,7 +45,7 @@ JUDGE_PROMPT = """Ты судья ответов агента, который п
 Оцени ОДИН ответ по рубрике. Начинай с 5 баллов.
 
 Провалы — оценка 0, независимо от остального:
-- missed_critical: в эталоне названы критичные факты (must_name), а в ответе их нет;
+- missed_critical: в ответе нет критичного факта — из эталона (must_name / must_mention; варианты через «или» — достаточно любого одного, в любой форме и округлении) или из данных инструментов (банкротство, ликвидация, исключение из реестра, блокировка счетов, недостоверность сведений), когда вопрос про компанию в целом;
 - invented_fact: в ответе назван факт или число, которого нет ни в данных инструментов, ни в эталоне;
 - answered_without_data: вопрос типа refuse (данных нет), а агент ответил по существу вместо «в отчёте нет сведений — оценить нельзя».
 
@@ -62,6 +62,9 @@ JUDGE_PROMPT = """Ты судья ответов агента, который п
 
 def judge_messages(question: GoldQuestion, answer: Answer, tool_outputs: str) -> list:
     gold = question.model_dump(exclude={"evidence"}, exclude_none=True)
+    for key in ("must_name", "must_mention", "must_not_mention"):
+        if key in gold:  # « | » — варианты для проверки кодом; судье показываем словами
+            gold[key] = [" или ".join(v.strip() for v in item.split(" | ")) for item in gold[key]]
     user = (
         f"ВОПРОС ПОЛЬЗОВАТЕЛЯ:\n{question.question}\n\n"
         f"ЭТАЛОН (JSON):\n{gold}\n\n"

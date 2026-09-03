@@ -62,6 +62,8 @@ class EvalRunner:
         model_name: str,
         judge_llm: LLM | None = None,
         delay_s: float = 0.0,
+        agent_timeout_s: float = 900,
+        judge_timeout_s: float = 300,
     ) -> None:
         self.gold = gold
         self.runtime = runtime
@@ -69,6 +71,10 @@ class EvalRunner:
         self.model_name = model_name
         self.judge_llm = judge_llm
         self.delay_s = delay_s
+        # OpenRouter держит соединение служебными строками, таймаут чтения клиента не срабатывает —
+        # нужен общий дедлайн на вызов, иначе один зависший провайдер съедает час.
+        self.agent_timeout_s = agent_timeout_s
+        self.judge_timeout_s = judge_timeout_s
 
     def _path(self, question: GoldQuestion, repeat: int) -> Path:
         return self.cache_dir / f"{question.id}-{repeat}.json"
@@ -99,7 +105,10 @@ class EvalRunner:
         if self.judge_llm is None or record.judge is not None or record.answer is None:
             return False
         try:
-            record.judge = await judge(self.judge_llm, question, record.answer, record.tool_outputs)
+            record.judge = await asyncio.wait_for(
+                judge(self.judge_llm, question, record.answer, record.tool_outputs),
+                self.judge_timeout_s,
+            )
         except Exception as e:
             record.error = f"{type(e).__name__}: {e}"
             return False
@@ -119,7 +128,9 @@ class EvalRunner:
         thread_id = f"eval-{question.id}-{repeat}"
         started = time.perf_counter()
         try:
-            answer = await self.runtime.ask(question.question, thread_id=thread_id)
+            answer = await asyncio.wait_for(
+                self.runtime.ask(question.question, thread_id=thread_id), self.agent_timeout_s
+            )
             state = await self.runtime.graph.aget_state({"configurable": {"thread_id": thread_id}})
             values = state.values or {}
             record.answer = answer
@@ -130,7 +141,10 @@ class EvalRunner:
             record.check_failures = result.failures
             record.check_notes = result.notes
             if self.judge_llm is not None:
-                record.judge = await judge(self.judge_llm, question, answer, record.tool_outputs)
+                record.judge = await asyncio.wait_for(
+                    judge(self.judge_llm, question, answer, record.tool_outputs),
+                    self.judge_timeout_s,
+                )
         except Exception as e:  # ошибка прогона — запись, а не остановка эталона
             record.error = f"{type(e).__name__}: {e}"  # проверки, если успели, остаются как есть
         record.duration_s = round(time.perf_counter() - started, 1)
