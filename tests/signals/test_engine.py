@@ -9,19 +9,27 @@ from contractor_agent.signals.model import Severity, Verdict
 
 
 @pytest.mark.parametrize(
-    ("terminal", "score", "risk", "floor", "expected"),
+    ("terminal", "critical", "moderate", "risk", "floor", "expected"),
     [
-        (True, 0, "LOW", False, Verdict.NOT_RECOMMENDED),
-        (False, 4, "LOW", False, Verdict.NOT_RECOMMENDED),
-        (False, 3, "LOW", False, Verdict.CHECK),
-        (False, 1, "LOW", False, Verdict.CHECK),
-        (False, 0, "LOW", False, Verdict.OK),
-        (False, 0, "HIGH", False, Verdict.CHECK),  # пол по светофору
-        (False, 0, "LOW", True, Verdict.CHECK),  # пол по пробелу
+        (True, False, False, "LOW", False, Verdict.NOT_RECOMMENDED),
+        (False, True, False, "LOW", False, Verdict.NOT_RECOMMENDED),  # любой критичный → условия
+        (False, False, True, "LOW", False, Verdict.CHECK),
+        (False, False, False, "LOW", False, Verdict.OK),
+        (False, False, False, "HIGH", False, Verdict.CHECK),  # пол по светофору
+        (False, False, False, "LOW", True, Verdict.CHECK),  # пол по пробелу
     ],
 )
-def test_decide(terminal, score, risk, floor, expected) -> None:
-    assert decide(terminal=terminal, score=score, risk_level=risk, floor_check=floor) is expected
+def test_decide(terminal, critical, moderate, risk, floor, expected) -> None:
+    assert (
+        decide(
+            terminal=terminal,
+            critical=critical,
+            moderate=moderate,
+            risk_level=risk,
+            floor_check=floor,
+        )
+        is expected
+    )
 
 
 DEMO = {
@@ -67,3 +75,4 @@ def test_distribution_over_200_is_stable(snapshot: Snapshot) -> None:
     assert sum(verdicts.values()) == 200
     assert verdicts[Verdict.NOT_RECOMMENDED] < verdicts[Verdict.CHECK]
     assert verdicts[Verdict.OK] >= 60  # большинство зелёных карточек не должны тонуть в «проверить»
+    assert verdicts[Verdict.NOT_RECOMMENDED] >= 29  # любой критичный → условия

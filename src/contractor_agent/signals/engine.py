@@ -4,9 +4,14 @@
 а не вердикт, всегда с фактами»; три исхода — его формулировка):
 
 * терминальный сигнал (банкротство, исключение из ЕГРЮЛ, компания закрыта,
-  конкурсный управляющий, флаг ликвидации) → «не рекомендуем»;
-* иначе баллы: 3 за критичный сигнал, 1 за «проверить»; ≥ 4 → «не рекомендуем»,
-  ≥ 1 → «стоит проверить», 0 → «можно работать»;
+  конкурсный управляющий, флаг ликвидации) → «только на условиях» с текстом
+  про банкротство;
+* любой критичный сигнал → «работать только на условиях: предоплата и документы»
+  (`docs/CRITERIA.md` §2: итоговый цвет в сервисах проверки — не сумма баллов,
+  а наличие критического фактора);
+* иначе хотя бы один сигнал «проверить» → «стоит проверить до договора»,
+  0 → «можно работать»; баллы (3 за критичный, 1 за «проверить») остаются
+  как мера для сравнения компаний, не для порога;
 * нижняя граница: светофор банка HIGH → не лучше «стоит проверить» (метка
   учитывает данные, которых в отчёте нет); пробел с ``floor_check`` (компания
   старше года без отчётности) → не лучше «стоит проверить».
@@ -39,8 +44,6 @@ RULES: tuple[Rule, ...] = (registry.run, finance.run, enforcement.run, arbitrati
 
 SCORE_CRITICAL = 3
 SCORE_MODERATE = 1
-NOT_RECOMMENDED_FROM = 4
-CHECK_FROM = 1
 LABEL_FLOOR_LEVELS = frozenset({"HIGH"})
 
 
@@ -70,7 +73,8 @@ def compute(report: Report, rules: tuple[Rule, ...] = RULES) -> SignalSet:
     )
     verdict = decide(
         terminal=terminal,
-        score=score,
+        critical=any(s.severity is Severity.CRITICAL for s in signals),
+        moderate=any(s.severity is Severity.MODERATE for s in signals),
         risk_level=report.base_info.risk_level,
         floor_check=any(g.floor_check for g in gaps),
     )
@@ -85,9 +89,11 @@ def compute(report: Report, rules: tuple[Rule, ...] = RULES) -> SignalSet:
     )
 
 
-def decide(*, terminal: bool, score: int, risk_level: str, floor_check: bool) -> Verdict:
-    if terminal or score >= NOT_RECOMMENDED_FROM:
+def decide(
+    *, terminal: bool, critical: bool, moderate: bool, risk_level: str, floor_check: bool
+) -> Verdict:
+    if terminal or critical:
         return Verdict.NOT_RECOMMENDED
-    if score >= CHECK_FROM or floor_check or (risk_level or "").upper() in LABEL_FLOOR_LEVELS:
+    if moderate or floor_check or (risk_level or "").upper() in LABEL_FLOOR_LEVELS:
         return Verdict.CHECK
     return Verdict.OK

@@ -30,14 +30,9 @@ from contractor_agent.agent.schema import Answer, Attention, Card, CardLabels, D
 from contractor_agent.agent.state import AgentState, ToolCallTrace
 from contractor_agent.data.loader import ReportSource
 from contractor_agent.mcp_server.tools import Tools
-from contractor_agent.signals.model import Severity, Verdict
+from contractor_agent.signals.model import VERDICT_RU, Severity, Verdict
 
 MAX_CITATION_RETRIES = 1
-VERDICT_RU = {
-    Verdict.OK: "можно работать",
-    Verdict.CHECK: "стоит проверить дополнительно",
-    Verdict.NOT_RECOMMENDED: "не рекомендуем без дополнительной проверки",
-}
 Node = Callable[[AgentState], Awaitable[dict[str, Any]]]
 
 
@@ -218,6 +213,7 @@ def build_card(tools: Tools, inn: str) -> Card | None:
         name=info["short_name"],
         labels=CardLabels(riskLevel=data["labels"]["svetofor"], zskRiskLevel=data["labels"]["zsk"]),
         verdict=Verdict(data["verdict"]),
+        terminal=bool(data.get("terminal")),
         attention=attention,
         ask_before=asks,
         gaps=[g["text"] for g in data["gaps"]],

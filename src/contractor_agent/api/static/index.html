@@ -27,7 +27,7 @@
 <script>
 const thread = "web-" + Math.random().toString(36).slice(2, 10);
 const out = document.getElementById("out");
-const VERDICT = { ok: "можно работать", check: "стоит проверить дополнительно", not_recommended: "не рекомендуем без дополнительной проверки" };
+const VERDICT = { ok: "можно работать", check: "стоит проверить до договора", not_recommended: "работать только на условиях: предоплата и подтверждающие документы" };
 document.getElementById("f").addEventListener("submit", async (e) => {
   e.preventDefault();
   const q = document.getElementById("q").value.trim();

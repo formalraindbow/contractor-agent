@@ -28,7 +28,7 @@ from contractor_agent.mcp_server.envelope import (
 )
 from contractor_agent.signals import arbitration, enforcement, finance
 from contractor_agent.signals.engine import compute
-from contractor_agent.signals.model import Severity, SignalSet
+from contractor_agent.signals.model import TERMINAL_RU, VERDICT_RU, Severity, SignalSet
 
 NOT_FOUND_NOTE = "Компании с таким ИНН в базе нет — ответить по ней нельзя."
 NOT_FOUND_TEXT_NOTE = "«Не найдено» — не значит «нет»: данные могли не найтись."
@@ -455,11 +455,7 @@ def _gap_data(g) -> dict[str, Any]:
 def _signal_set_data(ss: SignalSet) -> dict[str, Any]:
     return {
         "verdict": ss.verdict.value,
-        "verdict_ru": {
-            "ok": "можно работать",
-            "check": "стоит проверить дополнительно",
-            "not_recommended": "не рекомендуем без дополнительной проверки",
-        }[ss.verdict.value],
+        "verdict_ru": TERMINAL_RU if ss.terminal else VERDICT_RU[ss.verdict],
         "terminal": ss.terminal,
         "score": ss.score,
         "signals": {s.value: [_signal_data(x) for x in ss.by_severity(s)] for s in Severity},

@@ -8,7 +8,7 @@ from contractor_agent.cli import main
 def test_signals_text(capsys: pytest.CaptureFixture[str]) -> None:
     assert main(["signals", "5032257375"]) == 0
     out = capsys.readouterr().out
-    assert "НЕ РЕКОМЕНДУЕМ" in out and "терминальный факт" in out
+    assert "ТОЛЬКО НА УСЛОВИЯХ" in out and "терминальный факт" in out
     assert "← report.status.reasonName" in out
     assert "ЗСК: зелёный" in out
 

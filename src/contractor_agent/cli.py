@@ -12,13 +12,8 @@ from pathlib import Path
 
 from contractor_agent.data.loader import load_snapshot
 from contractor_agent.signals.engine import compute
-from contractor_agent.signals.model import Severity, SignalSet, Verdict
+from contractor_agent.signals.model import VERDICT_RU, Severity, SignalSet
 
-VERDICT_RU = {
-    Verdict.OK: "можно работать",
-    Verdict.CHECK: "стоит проверить дополнительно",
-    Verdict.NOT_RECOMMENDED: "не рекомендуем без дополнительной проверки",
-}
 SEVERITY_RU = {
     Severity.CRITICAL: "КРИТИЧНО",
     Severity.MODERATE: "ПРОВЕРИТЬ",
