@@ -29,6 +29,7 @@ from contractor_agent.data.loader import (
     Snapshot,
     Source,
     normalize_name,
+    query_stems,
     rank,
 )
 from contractor_agent.data.model import Report, SectionState
@@ -98,6 +99,14 @@ def build_index(snapshot: Snapshot, path: Path = DEFAULT_INDEX_PATH) -> int:
     return count
 
 
+def _fetch_like(conn: sqlite3.Connection, pattern: str) -> list[sqlite3.Row]:
+    return conn.execute(
+        "SELECT * FROM companies WHERE name_norm LIKE ? ESCAPE '\\' "
+        "OR full_name_norm LIKE ? ESCAPE '\\'",
+        (pattern, pattern),
+    ).fetchall()
+
+
 def _like_pattern(query_norm: str) -> str:
     escaped = query_norm.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_")
     return f"%{escaped}%"
@@ -145,12 +154,11 @@ class SqliteSource:
                 ).fetchall()
                 return [_hit(row) for row in rows]
             query_norm = normalize_name(query)
-            pattern = _like_pattern(query_norm)
-            rows = conn.execute(
-                "SELECT * FROM companies WHERE name_norm LIKE ? ESCAPE '\\' "
-                "OR full_name_norm LIKE ? ESCAPE '\\'",
-                (pattern, pattern),
-            ).fetchall()
+            rows = _fetch_like(conn, _like_pattern(query_norm))
+            if not rows:  # склонение: «янполова» → по основе «янпол»
+                stems = query_stems(query_norm)
+                if stems:
+                    rows = _fetch_like(conn, _like_pattern(max(stems, key=len)))
         scored = [
             (min(rank(row["name_norm"], query_norm), rank(row["full_name_norm"], query_norm)), row)
             for row in rows

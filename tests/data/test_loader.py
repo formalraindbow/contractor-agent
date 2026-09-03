@@ -3,6 +3,7 @@ from datetime import date
 import pytest
 
 from contractor_agent.data.loader import (
+    NO_MATCH,
     CompanyRecord,
     DuplicateInnError,
     ReportSource,
@@ -37,7 +38,8 @@ def test_rank_exact_prefix_contains() -> None:
     assert rank("ооо спорт", "спорт") == 0  # без орг. формы — точное
     assert rank("ооо спортмастер", "спорт") == 1
     assert rank("ооо мир спорта", "спорт") == 2
-    assert rank("ооо лзсо", "спорт") == 3
+    assert rank("ооо лзсо", "спорт") == NO_MATCH
+    assert rank("ип янполов и.а.", "ип янполова") == 3  # падеж
 
 
 def test_snapshot_loads_200_from_two_disjoint_files(snapshot: Snapshot) -> None:
@@ -87,3 +89,8 @@ def test_report_source_protocol_is_structural() -> None:
             return []
 
     assert isinstance(Fake(), ReportSource)
+
+
+def test_search_tolerates_declension(snapshot):
+    hits = snapshot.search("ИП Янполова")
+    assert hits and hits[0].inn == "052500690823"

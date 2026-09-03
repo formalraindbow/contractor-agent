@@ -49,3 +49,10 @@ def test_rebuild_is_idempotent_and_missing_index_is_loud(
     assert build_index(snapshot, path) == 200
     assert len(SqliteSource(path)) == 200
     assert not path.with_suffix(".sqlite.tmp").exists()
+
+
+def test_sqlite_search_tolerates_declension(index_path):
+    from contractor_agent.data.index import SqliteSource
+
+    hits = SqliteSource(index_path).search("ИП Янполова")
+    assert hits and hits[0].inn == "052500690823"
