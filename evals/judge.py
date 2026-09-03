@@ -46,7 +46,7 @@ JUDGE_PROMPT = """Ты судья ответов агента, который п
 
 Провалы — оценка 0, независимо от остального:
 - missed_critical: в ответе нет критичного факта — из эталона (must_name / must_mention; варианты через «или» — достаточно любого одного, в любой форме и округлении) или из данных инструментов (банкротство, ликвидация, исключение из реестра, блокировка счетов, недостоверность сведений), когда вопрос про компанию в целом;
-- invented_fact: в ответе назван факт или число, которого нет ни в данных инструментов, ни в эталоне;
+- invented_fact: в тексте ответа назван факт или число, которого нет ни в данных инструментов, ни в эталоне, ни в карточке;
 - answered_without_data: вопрос типа refuse (данных нет), а агент ответил по существу вместо «в отчёте нет сведений — оценить нельзя».
 
 Снижения (если провалов нет):
@@ -65,12 +65,18 @@ def judge_messages(question: GoldQuestion, answer: Answer, tool_outputs: str) ->
     for key in ("must_name", "must_mention", "must_not_mention"):
         if key in gold:  # « | » — варианты для проверки кодом; судье показываем словами
             gold[key] = [" или ".join(v.strip() for v in item.split(" | ")) for item in gold[key]]
+    card_line = (
+        "Карточка (собрана кодом из полей отчёта, факты в ней подтверждены программно — "
+        f"выдумкой не считать): {answer.card.model_dump(mode='json')}\n"
+        if question.type == "card" and answer.card
+        else ""
+    )
     user = (
         f"ВОПРОС ПОЛЬЗОВАТЕЛЯ:\n{question.question}\n\n"
         f"ЭТАЛОН (JSON):\n{gold}\n\n"
         f"ЧТО АГЕНТ ПОЛУЧИЛ ОТ ИНСТРУМЕНТОВ (обрезано):\n{tool_outputs[:12000]}\n\n"
         f"ОТВЕТ АГЕНТА:\n{answer.text_md}\n\n"
-        f"Карточка агента: {answer.card.model_dump(mode='json') if answer.card else None}\n"
+        f"{card_line}"
         f"Цитаты, не прошедшие проверку: {[c.model_dump() for c in answer.invalid_citations]}"
     )
     return [SystemMessage(content=JUDGE_PROMPT), HumanMessage(content=user)]

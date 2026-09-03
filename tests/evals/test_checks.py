@@ -109,3 +109,27 @@ def test_card_checks_verdict_labels_facts_and_date() -> None:
     assert any("запрещённое" in f for f in labelled.failures)
     assert mentions_report_date(_answer("отчёт от 31.07.2026"), "2026-07-31")
     assert not mentions_report_date(_answer("без даты", kind="answer"), "2026-08-01")
+
+
+def test_judge_sees_card_only_for_card_questions():
+    from evals.gold import load_gold
+    from evals.judge import judge_messages
+
+    from contractor_agent.agent.schema import Answer, Card, CardLabels
+
+    gold = load_gold()
+    card = Card(
+        inn="5032257375",
+        name="X",
+        labels=CardLabels(riskLevel="зелёный", zskRiskLevel="зелёный"),
+        verdict="not_recommended",
+        report_date="2026-07-31",
+    )
+    answer = Answer(
+        kind="answer", text_md="т", card=card, report_dates={"5032257375": "2026-07-31"}
+    )
+    by_id = {q.id: q for q in gold.questions()}
+    plain = judge_messages(by_id["maksmarket-enforcement-active"], answer, "")[1].content
+    card_q = judge_messages(by_id["5032257375-card"], answer, "")[1].content
+    assert "Карточка" not in plain
+    assert "Карточка" in card_q and "собрана кодом" in card_q

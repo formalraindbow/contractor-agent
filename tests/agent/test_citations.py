@@ -95,3 +95,15 @@ def test_extract_inline_citations() -> None:
         ("ЗСК: зелёный", "report.zskRiskLevel"),
     ]
     assert is_meta_path("report.verdict_ru") and not is_meta_path("report.baseInfo.staff")
+
+
+def test_normalize_path_keeps_index_bracket():
+    assert normalize_path("report.executionProceedings[432]") == "report.executionProceedings[432]"
+    assert (
+        normalize_path("[report.executionProceedings[432]]") == "report.executionProceedings[432]"
+    )
+    assert (
+        normalize_path("[executionProceedings[3].amount]")
+        == "report.executionProceedings[3].amount"
+    )
+    assert normalize_path("«report.status.reasonName»") == "report.status.reasonName"
