@@ -209,6 +209,7 @@ class Tools:
                     if capitals is not None
                     else None,
                     "path": row.path,
+                    "paths": _fin_paths(row.path),
                 }
             )
         coef = report.coefficient
@@ -414,6 +415,24 @@ class Tools:
 
 
 # --- вспомогательное ----------------------------------------------------------------
+
+
+def _fin_paths(base: str) -> dict[str, str | list[str]]:
+    """Адрес каждого показателя года — чтобы модель цитировала поле, а не угадывала имя.
+    Производные показатели — списком адресов операндов; цитировать их можно адресом года."""
+    p: dict[str, str | list[str]] = {
+        "proceeds": f"{base}.common.proceeds",
+        "profit": f"{base}.common.profit",
+        "total_assets": f"{base}.assets.totalAssets",
+        "current_assets": f"{base}.assets.currentAssets.total",
+        "short_term_liabilities": f"{base}.liabilities.shortTermLiabilities.total",
+        "long_term_duties": f"{base}.liabilities.longTermDuties.total",
+        "capitals": f"{base}.liabilities.capitals",
+    }
+    p["current_liquidity"] = [p["current_assets"], p["short_term_liabilities"]]
+    p["profitability_pct"] = [p["profit"], p["proceeds"]]
+    p["sustainability"] = [p["capitals"], p["long_term_duties"], p["total_assets"]]
+    return p
 
 
 def _ratio(numerator: int | None, denominator: int | None, scale: int = 1) -> float | None:
