@@ -71,7 +71,11 @@ def is_meta_path(path: str) -> bool:
 
 
 def normalize_path(path: str) -> str:
-    path = path.strip().strip("[]«»\"'` ")
+    """Адрес из цитаты модели: снять кавычки и обрамляющие скобки, но не «]», закрывающую индекс."""
+    path = path.strip().strip("«»\"'` ").lstrip("[")
+    while path.endswith("]") and not re.search(r"\[\d+\]$", path):
+        path = path[:-1]
+    path = path.rstrip("«»\"'` ")
     if not path.startswith("report."):
         path = f"report.{path}"
     return path
