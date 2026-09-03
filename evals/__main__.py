@@ -13,7 +13,7 @@ import logging
 import sys
 from pathlib import Path
 
-from contractor_agent.agent.llm import make_llm
+from contractor_agent.agent.llm import make_judge_llm, make_llm
 from contractor_agent.agent.runtime import AgentRuntime
 from contractor_agent.settings import Settings
 from evals.gold import load_gold
@@ -37,9 +37,7 @@ async def _run(args: argparse.Namespace) -> int:
         questions = questions[: args.limit]
     model = args.model or settings.llm_model
     agent_llm = make_llm(settings, model)
-    judge_llm = (
-        None if args.no_judge else make_llm(settings, args.judge_model or settings.judge_model)
-    )
+    judge_llm = None if args.no_judge else make_judge_llm(settings, args.judge_model)
     async with AgentRuntime(settings, llm=agent_llm) as runtime:
         runner = EvalRunner(
             gold,

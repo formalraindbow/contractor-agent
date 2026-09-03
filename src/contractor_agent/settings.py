@@ -34,6 +34,7 @@ class Settings(BaseSettings):
     )
     llm_timeout: float = 90
     judge_model: str = "openai/gpt-oss-120b"  # судья эвалов — сильнее агента, чтобы не судить себя
+    judge_base_url: str = "https://openrouter.ai/api/v1"  # судья не зависит от адреса агента
     openrouter_api_key: str | None = None
     groq_api_key: str | None = None
     yandex_api_key: str | None = None
@@ -45,16 +46,22 @@ class Settings(BaseSettings):
     def fallback_models(self) -> list[str]:
         return [m.strip() for m in self.llm_fallback_models.split(",") if m.strip()]
 
-    @property
-    def llm_api_key(self) -> str | None:
-        """Ключ по адресу: Groq, Яндекс, иначе OpenRouter; явный override — приоритет."""
-        if self.llm_api_key_override:
-            return self.llm_api_key_override
-        if "groq" in self.llm_base_url:
+    def api_key_for(self, base_url: str) -> str | None:
+        """Ключ по адресу: Groq, Яндекс, иначе OpenRouter."""
+        if "groq" in base_url:
             return self.groq_api_key
-        if "yandex" in self.llm_base_url:
+        if "yandex" in base_url:
             return self.yandex_api_key
         return self.openrouter_api_key
+
+    @property
+    def llm_api_key(self) -> str | None:
+        """Ключ агента: явный override — приоритет, иначе по адресу."""
+        return self.llm_api_key_override or self.api_key_for(self.llm_base_url)
+
+    @property
+    def judge_api_key(self) -> str | None:
+        return self.api_key_for(self.judge_base_url)
 
 
 def make_source(settings: Settings) -> ReportSource:
