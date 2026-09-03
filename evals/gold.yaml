@@ -772,8 +772,7 @@ cards:
   report_date: '2026-08-05'
   expected_verdict: ok
   terminal: false
-  must_name:
-  - филиал
+  must_name: []  # исход ok: критичных фактов нет; филиалы — в вопросе tayfun-branches
   questions:
   - id: tayfun-branches
     inn: '5261137785'
@@ -857,7 +856,6 @@ cards:
   expected_verdict: check
   terminal: false
   must_name:
-  - лиценз
   - убыт
   questions:
   - id: skv-spb-licenses
