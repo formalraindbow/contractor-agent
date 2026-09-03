@@ -99,7 +99,7 @@
 Зарубежные: [D&B ChatD&B](https://www.businesswire.com/news/home/20241023718110/en/Dun-Bradstreet-Launches-ChatDB-Its-Advanced-Gen-AI-Assistant) · [D&B agentic AI, 2026](https://www.prnewswire.com/news-releases/dun--bradstreet-introduces-agentic-ai-capabilities-to-accelerate-compliance-and-third-party-risk-workflows-from-days-to-seconds-302804723.html) · [Moody's Research Assistant](https://ir.moodys.com/press-releases/news-details/2023/Moodys-Launches-Moodys-Research-Assistant-a-GenAI-Tool-to-Power-Analytic-Insights/default.aspx) · [Moody's — к агентному решению](https://www.moodys.com/web/en/us/creditview/blog/from-research-assistant-to-agentic-solution-with-cristina-pieretti.html) · [Coface Score](https://www.coface.ch/business-information/coface-score)
 Рынок: [реестр МСП, СКБ Контур](https://kontur.ru/press/news/83611-chislo_subektov_msp_rastet_za_schet_ip) · [выручка Контура 2024](https://www.cnews.ru/news/line/2025-03-06_vyruchka_skb_kontur_v_2024) · [выручка Контура 2025](https://dsmedia.pro/company/kontur/analytics/vyruchka-skb-kontur-v-2025-godu-vyrosla-na-196-)
 
-## Дополнение 3.09 — слайд кейсодателя «Карта рынка» (`case_owner/labels_and_market_2026-09-03.pdf`)
+## Дополнение 3.09 — слайд кейсодателя «Карта рынка» (`raw/case_owner/labels_and_market_2026-09-03.pdf`)
 
 «Сегодня банки — минорные игроки». Расчётная ёмкость рынка проверки контрагентов — 7–8 млрд ₽.
 Структура: 75 % — API-интеграции (СПАРК, ~6 млрд ₽ выручки), 11 % — веб-моносервисы
