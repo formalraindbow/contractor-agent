@@ -82,7 +82,10 @@ class EvalRunner:
             for repeat in range(repeats):
                 path = self._path(question, repeat)
                 if path.exists() and not refresh:
-                    records.append(RunRecord.model_validate_json(path.read_text(encoding="utf-8")))
+                    record = RunRecord.model_validate_json(path.read_text(encoding="utf-8"))
+                    if await self._rejudge(question, record):
+                        path.write_text(record.model_dump_json(indent=2), encoding="utf-8")
+                    records.append(record)
                     continue
                 record = await self.run_one(question, repeat)
                 path.write_text(record.model_dump_json(indent=2), encoding="utf-8")
@@ -90,6 +93,18 @@ class EvalRunner:
                 if self.delay_s:
                     await asyncio.sleep(self.delay_s)
         return records
+
+    async def _rejudge(self, question: GoldQuestion, record: RunRecord) -> bool:
+        """Ответ агента есть, а вердикта судьи нет (судья упал) — судим заново, агента не гоняем."""
+        if self.judge_llm is None or record.judge is not None or record.answer is None:
+            return False
+        try:
+            record.judge = await judge(self.judge_llm, question, record.answer, record.tool_outputs)
+        except Exception as e:
+            record.error = f"{type(e).__name__}: {e}"
+            return False
+        record.error = None
+        return True
 
     async def run_one(self, question: GoldQuestion, repeat: int) -> RunRecord:
         record = RunRecord(
@@ -117,8 +132,7 @@ class EvalRunner:
             if self.judge_llm is not None:
                 record.judge = await judge(self.judge_llm, question, answer, record.tool_outputs)
         except Exception as e:  # ошибка прогона — запись, а не остановка эталона
-            record.error = f"{type(e).__name__}: {e}"
-            record.check_failures = [record.error]
+            record.error = f"{type(e).__name__}: {e}"  # проверки, если успели, остаются как есть
         record.duration_s = round(time.perf_counter() - started, 1)
         return record
 

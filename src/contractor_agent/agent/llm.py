@@ -47,19 +47,40 @@ class LLM:
         return chains[0].with_fallbacks(chains[1:])
 
 
-def make_llm(settings: Settings, model: str | None = None) -> LLM:
-    names = [model or settings.llm_model, *settings.fallback_models]
+def make_llm(
+    settings: Settings,
+    model: str | None = None,
+    *,
+    base_url: str | None = None,
+    api_key: str | None = None,
+    fallbacks: list[str] | None = None,
+) -> LLM:
+    """Модель агента по умолчанию; судья эвалов передаёт свой адрес, ключ и пустые запасные."""
+    names = [
+        model or settings.llm_model,
+        *(settings.fallback_models if fallbacks is None else fallbacks),
+    ]
     return LLM(
         [
             ChatOpenAI(
                 model=name,
-                base_url=settings.llm_base_url,
-                api_key=settings.llm_api_key or "missing",
+                base_url=base_url or settings.llm_base_url,
+                api_key=api_key or settings.llm_api_key or "missing",
                 temperature=0,
                 timeout=settings.llm_timeout,
-                max_retries=1,
+                max_retries=2,
                 default_headers=HEADERS,
             )
             for name in names
         ]
+    )
+
+
+def make_judge_llm(settings: Settings, model: str | None = None) -> LLM:
+    return make_llm(
+        settings,
+        model or settings.judge_model,
+        base_url=settings.judge_base_url,
+        api_key=settings.judge_api_key,
+        fallbacks=[],
     )
