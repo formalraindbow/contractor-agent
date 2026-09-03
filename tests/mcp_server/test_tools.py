@@ -109,3 +109,17 @@ def test_every_tool_on_every_company_is_json_and_paths_resolve(snapshot: Snapsho
                     resolve(rec.report, path)
             else:
                 assert r.reason and r.note
+
+
+def test_financials_rows_carry_resolvable_metric_paths(snapshot):
+    from contractor_agent.data.paths import resolve
+    from contractor_agent.mcp_server.tools import Tools
+
+    resp = Tools(snapshot).get_financials("2311304742")
+    row = resp.data["years"][0]
+    assert row["paths"]["proceeds"] == "report.finReports[0].common.proceeds"
+    report = snapshot.get("2311304742")
+    for value in row["paths"].values():
+        for path in value if isinstance(value, list) else [value]:
+            resolve(report, path)  # адрес существует
+    assert "citing" in resp.data

@@ -230,6 +230,8 @@ class Tools:
         )
         net = finance.net_assets(report)
         data = {
+            "citing": "адрес каждого показателя — в paths года; производные показатели "
+            "(ликвидность, рентабельность) цитируйте адресом года, например report.finReports[0]",
             "unit": "руб.",
             "years": years,
             "net_assets": {"value": net.value, "year": net.year, "path": net.path} if net else None,
