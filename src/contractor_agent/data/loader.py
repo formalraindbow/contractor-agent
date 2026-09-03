@@ -106,19 +106,31 @@ def strip_legal_form(name_norm: str) -> str:
     return " ".join(words)
 
 
-NO_MATCH = 3
+NO_MATCH = 4
+
+
+def query_stems(query_norm: str) -> list[str]:
+    """Основы слов запроса без орг. формы: «ип янполова» → ["янпол"] — чтобы падеж не мешал."""
+    words = [w for w in strip_legal_form(query_norm).split(" ") if len(w) >= 4]
+    return [w[:-2] if len(w) >= 6 else w[:-1] for w in words]
 
 
 def rank(name_norm: str, query_norm: str) -> int:
-    """0 — точное совпадение, 1 — начало названия, 2 — подстрока, 3 — нет."""
+    """0 — точное совпадение, 1 — начало названия, 2 — подстрока,
+    3 — все основы слов запроса начинают слова названия (склонение), 4 — нет."""
     best = NO_MATCH
     for candidate in (name_norm, strip_legal_form(name_norm)):
-        if candidate == query_norm:
-            return 0
-        if candidate.startswith(query_norm):
-            best = min(best, 1)
-        elif query_norm in candidate:
-            best = min(best, 2)
+        for query in (query_norm, strip_legal_form(query_norm)):
+            if candidate == query:
+                return 0
+            if candidate.startswith(query):
+                best = min(best, 1)
+            elif query in candidate:
+                best = min(best, 2)
+    if best == NO_MATCH:
+        stems, words = query_stems(query_norm), name_norm.split(" ")
+        if stems and all(any(w.startswith(stem) for w in words) for stem in stems):
+            best = 3
     return best
 
 
