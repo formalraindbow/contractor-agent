@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<title>Проверка контрагента</title>
+<style>
+  body { font: 15px/1.45 system-ui, sans-serif; max-width: 860px; margin: 24px auto; padding: 0 16px; color: #1a1a1a; }
+  h1 { font-size: 20px; margin: 0 0 12px; }
+  form { display: flex; gap: 8px; margin-bottom: 16px; }
+  input { flex: 1; padding: 10px 12px; font-size: 15px; border: 1px solid #bbb; border-radius: 8px; }
+  button { padding: 10px 16px; font-size: 15px; border: 0; border-radius: 8px; background: #ef3124; color: #fff; cursor: pointer; }
+  button:disabled { opacity: .5; }
+  .log { color: #666; font-size: 13px; margin: 4px 0; }
+  .answer { white-space: pre-wrap; border: 1px solid #ddd; border-radius: 8px; padding: 12px 14px; margin-top: 12px; }
+  .card { border-left: 4px solid #999; padding: 8px 12px; margin-top: 12px; background: #fafafa; }
+  .card.ok { border-color: #2a9d3a; } .card.check { border-color: #e0a100; } .card.not_recommended { border-color: #d62828; }
+  .muted { color: #777; font-size: 13px; }
+</style>
+</head>
+<body>
+<h1>Проверка контрагента — агент по отчёту банка</h1>
+<form id="f">
+  <input id="q" placeholder="ИНН или вопрос: «Проверь ООО ЛЕ МОНЛИД, ИНН 5029069967»" autofocus>
+  <button id="b">Спросить</button>
+</form>
+<div id="out"></div>
+<script>
+const thread = "web-" + Math.random().toString(36).slice(2, 10);
+const out = document.getElementById("out");
+const VERDICT = { ok: "можно работать", check: "стоит проверить дополнительно", not_recommended: "не рекомендуем без дополнительной проверки" };
+document.getElementById("f").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const q = document.getElementById("q").value.trim();
+  if (!q) return;
+  const b = document.getElementById("b"); b.disabled = true;
+  const block = document.createElement("div");
+  block.innerHTML = `<div class="log"><b>Вы:</b> ${q}</div>`;
+  out.prepend(block);
+  const res = await fetch("/v1/runs/stream", { method: "POST", headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ thread_id: thread, input: { messages: [{ role: "user", content: q }] } }) });
+  const reader = res.body.getReader(); const dec = new TextDecoder(); let buf = "", tokens = "";
+  const tokenEl = document.createElement("div"); tokenEl.className = "log"; block.appendChild(tokenEl);
+  while (true) {
+    const { value, done } = await reader.read(); if (done) break;
+    buf += dec.decode(value, { stream: true });
+    let idx;
+    while ((idx = buf.indexOf("\n\n")) >= 0) {
+      const frame = buf.slice(0, idx); buf = buf.slice(idx + 2);
+      let type = "", data = "";
+      for (const line of frame.split("\n")) { if (line.startsWith("event:")) type = line.slice(6).trim(); if (line.startsWith("data:")) data += line.slice(5).trim(); }
+      if (!data) continue;
+      const env = JSON.parse(data);
+      if (type === "token") { tokens += env.data.text; tokenEl.textContent = tokens; }
+      else if (type === "tool") { const d = env.data; const l = document.createElement("div"); l.className = "log";
+        l.textContent = `агент работает: ${d.name}(${JSON.stringify(d.args)}) → ${d.available === false ? "нет данных: " + d.reason : "ок"}`; block.appendChild(l); }
+      else if (type === "end") {
+        const a = env.data.output; const div = document.createElement("div"); div.className = "answer"; div.textContent = a.text_md; block.appendChild(div);
+        for (const c of [a.card, ...(a.cards || [])].filter(Boolean)) {
+          const cd = document.createElement("div"); cd.className = "card " + c.verdict;
+          cd.innerHTML = `<b>${c.name}</b> · светофор ${c.labels.riskLevel} · ЗСК ${c.labels.zskRiskLevel} · <b>${VERDICT[c.verdict]}</b> · отчёт от ${c.report_date}` +
+            (c.attention.length ? "<ul>" + c.attention.map(x => `<li>[${x.severity}] ${x.claim} <span class="muted">${x.source_path}</span></li>`).join("") + "</ul>" : "") +
+            (c.gaps.length ? `<div class="muted">Нет в отчёте: ${c.gaps.join(" · ")}</div>` : "");
+          block.appendChild(cd);
+        }
+        const u = env.data.usage; const m = document.createElement("div"); m.className = "muted";
+        m.textContent = `цитат подтверждено: ${a.citations.length}, не подтверждено: ${a.invalid_citations.length}; токены: ${u.total_tokens}`; block.appendChild(m);
+      }
+      else if (type === "error") { const l = document.createElement("div"); l.className = "log"; l.textContent = "ошибка: " + env.data.message; block.appendChild(l); }
+    }
+  }
+  b.disabled = false;
+});
+</script>
+</body>
+</html>
