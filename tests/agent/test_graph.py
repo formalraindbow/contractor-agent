@@ -160,3 +160,33 @@ def test_draft_accepts_text_instead_of_lines():
 
     draft = Draft.model_validate({"kind": "refusal", "text_md": "а\nб", "citations": []})
     assert draft.lines == ["а", "б"] and draft.text_md == "а\nб"
+
+
+async def test_comparison_flow_builds_cards_for_each_company(snapshot: Snapshot, tmp_path) -> None:
+    llm = scripted_llm(
+        [
+            tool_call("compare_companies", "c1", inns=["5032257375", "6165169320"]),
+            AIMessage(content="Фактов достаточно."),
+            Draft(
+                kind="comparison",
+                lines=[
+                    "МАКСМАРКЕТ: признана банкротом [report.status.reasonName].",
+                    "ГДК: блокировка счетов на дату отчёта.",
+                    "",
+                    "Итог: с МАКСМАРКЕТ работать только на условиях: предоплата и подтверждающие документы; ГДК стоит проверить до договора.",
+                ],
+                citations=[
+                    Citation(claim="признана банкротом", source_path="report.status.reasonName")
+                ],
+            ),
+        ]
+    )
+    async with AgentRuntime(_settings(tmp_path), source=snapshot, llm=llm) as rt:
+        answer = await rt.ask(
+            "Сравни 5032257375 и 6165169320: с кем лучше работать?", thread_id="cmp"
+        )
+
+    assert answer.kind == "comparison" and answer.card is None
+    assert [c.inn for c in answer.cards] == ["5032257375", "6165169320"]
+    assert set(answer.report_dates) == {"5032257375", "6165169320"}
+    assert not answer.invalid_citations
