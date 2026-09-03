@@ -33,6 +33,7 @@ class Settings(BaseSettings):
         "minimax/minimax-m2.7:free,z-ai/glm-5.2:free,google/gemma-4-31b-it:free"
     )
     llm_timeout: float = 90
+    judge_model: str = "openai/gpt-oss-120b"  # судья эвалов — сильнее агента, чтобы не судить себя
     openrouter_api_key: str | None = None
     groq_api_key: str | None = None
     yandex_api_key: str | None = None

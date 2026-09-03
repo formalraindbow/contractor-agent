@@ -24,6 +24,7 @@ from typing import Any
 
 from langgraph.checkpoint.base import BaseCheckpointSaver
 from langgraph.checkpoint.memory import InMemorySaver
+from langgraph.checkpoint.serde.jsonplus import JsonPlusSerializer
 from langgraph.graph import END, START, StateGraph
 from langgraph.graph.state import CompiledStateGraph
 
@@ -50,7 +51,22 @@ def build_graph(
     graph.add_edge("tools", "agent")
     graph.add_edge("finalize", "validate")
     graph.add_conditional_edges("validate", route_after_validate, {"agent": "agent", END: END})
-    return graph.compile(checkpointer=checkpointer or InMemorySaver())
+    return graph.compile(checkpointer=checkpointer or memory_saver())
+
+
+ALLOWED_STATE_TYPES = (
+    [
+        ("contractor_agent.agent.schema", name)
+        for name in ("Answer", "Draft", "Card", "CardLabels", "Attention", "Citation")
+    ]
+    + [("contractor_agent.agent.state", "ToolCallTrace")]
+    + [("contractor_agent.signals.model", name) for name in ("Verdict", "Severity")]
+)
+
+
+def memory_saver() -> InMemorySaver:
+    """Чекпоинтер в памяти, которому явно разрешены наши pydantic-типы в состоянии."""
+    return InMemorySaver(serde=JsonPlusSerializer(allowed_msgpack_modules=ALLOWED_STATE_TYPES))
 
 
 def initial_state(question: str) -> dict[str, Any]:
