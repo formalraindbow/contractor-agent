@@ -38,6 +38,9 @@ class CitationCheck:
     inn: str | None = None
 
 
+_ABSENCE = re.compile(
+    r"нет сведений|нет данных|не указан|отсутству|не заполнен|не сдан|нет строки", re.I
+)
 _PATH = re.compile(r"report\.[A-Za-z_]\w*(?:\[\d+\])?(?:\.[A-Za-z_]\w*(?:\[\d+\])?)*")
 _CLAIM_TAIL = re.compile(
     r"[\s\[(«\"'`:;,\-—•*]*(?:source_path|адрес|путь)?[\s\[(«\"'`:;,\-—•*]*$", re.IGNORECASE
@@ -125,7 +128,8 @@ def check_citation(source: ReportSource, inns: list[str], citation: Citation) ->
 def _check_value(citation: Citation, path: str, value: Any, inn: str) -> CitationCheck:
     claimed = numbers_in(citation.claim)
     if isinstance(value, bool) or not isinstance(value, int | float | Decimal):
-        if value is None and claimed:
+        if value is None and claimed and not _ABSENCE.search(citation.claim):
+            # «нет сведений о прибыли за 2024–2025» с пустым полем — верная цитата: годы не значения
             return CitationCheck(
                 citation, False, "поле пустое, а утверждение содержит число", value, inn
             )

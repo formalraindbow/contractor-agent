@@ -107,3 +107,17 @@ def test_normalize_path_keeps_index_bracket():
         == "report.executionProceedings[3].amount"
     )
     assert normalize_path("«report.status.reasonName»") == "report.status.reasonName"
+
+
+def test_absence_claim_with_empty_field_is_valid(snapshot):
+    from contractor_agent.agent.citations import check_citation
+
+    c = Citation(
+        claim="В отчёте нет сведений о прибыли/убытке за 2024–2025",
+        source_path="report.finReports[0].common.profit",
+    )
+    assert check_citation(snapshot, ["2100006761"], c).ok
+    c2 = Citation(
+        claim="Прибыль за 2025 год 120 000 ₽", source_path="report.finReports[0].common.profit"
+    )
+    assert not check_citation(snapshot, ["2100006761"], c2).ok
