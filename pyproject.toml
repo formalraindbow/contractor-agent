@@ -5,12 +5,23 @@ description = "Агент и MCP-сервер для проверки контр
 readme = "README.md"
 requires-python = ">=3.12,<3.13"
 dependencies = [
+    "fastapi>=0.141.1",
+    "langchain-core>=1.6.1",
+    "langchain-openai>=1.6.0",
+    "langgraph>=1.2.11",
+    "mcp[cli]>=2.1.1",
     "pydantic>=2.11",
     "pydantic-settings>=2.10",
 ]
 
+[project.scripts]
+kontragent = "contractor_agent.cli:main"
+kontragent-mcp = "contractor_agent.mcp_server.server:main"
+kontragent-api = "contractor_agent.api.server:main"
+
 [dependency-groups]
 dev = [
+    "httpx>=0.28.1",
     "pytest>=8.4",
     "ruff>=0.12",
 ]
@@ -34,4 +45,5 @@ select = ["E", "F", "I", "UP", "B", "SIM"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
-addopts = "-q -ra --import-mode=importlib"
+addopts = "-q -ra --import-mode=importlib -m \"not live\""
+markers = ["live: нужны сеть и ключ модели; запуск: pytest -m live"]

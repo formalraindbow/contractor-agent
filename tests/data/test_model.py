@@ -102,6 +102,14 @@ def test_section_state_absent_empty_present() -> None:
     assert len(SECTIONS) == 18 and "reportDate" not in SECTIONS
 
 
+def test_spec_only_fields_default_to_none() -> None:
+    """Поля из спецификации банка, которых нет в снапшоте: модель их знает, данные — нет."""
+    report = Report.model_validate(dict(MINIMAL, baseInfo=dict(MINIMAL["baseInfo"], staff="11–50")))
+    assert report.base_info.staff == "11–50"
+    assert Report.model_validate(MINIMAL).base_info.staff is None
+    assert "staff" in Report.model_validate(MINIMAL).model_dump()["baseInfo"]
+
+
 def test_unknown_fields_are_kept_not_dropped() -> None:
     report = Report.model_validate(dict(MINIMAL, newSection={"x": 1}))
     assert report.model_extra == {"newSection": {"x": 1}}
