@@ -23,7 +23,7 @@ async def test_card_flow_with_one_citation_repair(snapshot: Snapshot, tmp_path) 
                 lines=[
                     "Компания банкрот [report.status.reasonName], 54 производства [report.executionProceedings], штат 100 человек.",
                     "",
-                    "Стоит проверить дополнительно.",
+                    "Стоит проверить до договора.",
                 ],
                 citations=[
                     Citation(claim="признана банкротом", source_path="report.status.reasonName"),
@@ -40,7 +40,7 @@ async def test_card_flow_with_one_citation_repair(snapshot: Snapshot, tmp_path) 
                 lines=[
                     "Компания банкрот [report.status.reasonName], 54 производства [report.executionProceedings].",
                     "",
-                    "Не рекомендуем без дополнительной проверки. Отчёт от 31.07.2026.",
+                    "Работать только на условиях: предоплата и подтверждающие документы. Отчёт от 31.07.2026.",
                 ],
                 citations=[
                     Citation(claim="признана банкротом", source_path="report.status.reasonName"),
@@ -79,7 +79,7 @@ async def test_card_flow_with_one_citation_repair(snapshot: Snapshot, tmp_path) 
     ]
     assert len(repair) == 1 and "report.baseInfo.staff" in repair[0].content
     assert "не совпадает с рекомендацией" in repair[0].content  # «стоит проверить» против карточки
-    assert "не рекомендуем без дополнительной проверки" in answer.text_md.casefold()
+    assert "только на условиях" in answer.text_md.casefold()
     assert "\n\n" in answer.text_md  # строки склеены кодом
     tool_msgs = [m for m in values["messages"] if isinstance(m, ToolMessage)]
     assert len(tool_msgs) == 2 and '"available": true' in tool_msgs[0].content
@@ -149,10 +149,7 @@ def test_enforce_verdict_replaces_and_appends() -> None:
     from contractor_agent.agent.nodes import enforce_verdict
     from contractor_agent.signals.model import Verdict
 
-    text = "Итог: Стоит проверить дополнительно. Отчёт от 01.08.2026."
+    text = "Итог: Стоит проверить до договора. Отчёт от 01.08.2026."
     fixed = enforce_verdict(text, Verdict.NOT_RECOMMENDED)
-    assert (
-        "не рекомендуем без дополнительной проверки" in fixed
-        and "проверить дополнительно." not in fixed
-    )
+    assert "только на условиях" in fixed and "проверить до договора." not in fixed
     assert enforce_verdict("Без вывода.", Verdict.OK).endswith("**Рекомендация:** можно работать.")

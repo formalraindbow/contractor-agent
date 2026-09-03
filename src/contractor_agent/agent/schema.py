@@ -45,6 +45,7 @@ class Card(BaseModel):
     name: str
     labels: CardLabels
     verdict: Verdict
+    terminal: bool = Field(default=False, description="банкротство или исключение из реестра")
     attention: list[Attention] = Field(default_factory=list, description="на что обратить внимание")
     ask_before: list[str] = Field(default_factory=list, description="что запросить у контрагента")
     gaps: list[str] = Field(default_factory=list, description="чего в отчёте нет")
