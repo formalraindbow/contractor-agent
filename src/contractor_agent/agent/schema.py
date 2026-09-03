@@ -23,6 +23,9 @@ class Citation(BaseModel):
 
     claim: str = Field(description="утверждение своими словами, с числом, если оно есть")
     source_path: str = Field(description="адрес поля: report.executionProceedings[3].amount")
+    inn: str | None = Field(
+        default=None, description="ИНН компании, о которой утверждение (при сравнении)"
+    )
 
 
 class Attention(BaseModel):

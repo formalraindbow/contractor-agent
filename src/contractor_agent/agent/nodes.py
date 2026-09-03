@@ -60,8 +60,10 @@ def make_nodes(llm: LLM, tools: list[Any], source: ReportSource) -> dict[str, No
             payload = _parse(msg.content)
             available = payload.get("available") if isinstance(payload, dict) else None
             reason = payload.get("reason") if isinstance(payload, dict) else None
+            if isinstance(payload, dict) and "error" in payload:
+                reason = "tool_error"  # инструмент отверг аргументы — компании в состояние не пишем
             item_dates = _item_dates(payload)  # compare_companies: дата у каждой компании своя
-            for inn in _inns_from_args(args):
+            for inn in _inns_from_args(args) if reason != "tool_error" else []:
                 if inn not in inns:
                     inns.append(inn)
                 report_date = payload.get("report_date") if isinstance(payload, dict) else None
@@ -140,9 +142,12 @@ def make_nodes(llm: LLM, tools: list[Any], source: ReportSource) -> dict[str, No
                 "citation_retry": retry + 1,
                 "answer": None,
             }
-        text = (
-            enforce_verdict(answer.text_md, answer.card.verdict) if answer.card else answer.text_md
-        )
+        if answer.card:
+            text = enforce_verdict(answer.text_md, answer.card.verdict)
+        elif answer.cards:
+            text = enforce_comparison(answer.text_md, answer.cards)
+        else:
+            text = answer.text_md
         checked = answer.model_copy(
             update={
                 "text_md": text,
@@ -165,20 +170,40 @@ def route_after_validate(state: AgentState) -> str:
 
 
 def verdict_mismatch(answer: Answer) -> str | None:
-    """Текст модели не должен спорить с вердиктом карточки, посчитанным по сигналам."""
-    if answer.card is None:
-        return None
-    expected = VERDICT_RU[answer.card.verdict]
-    lowered = answer.text_md.casefold()
-    if expected in lowered:
-        return None
-    others = [v for v in VERDICT_RU.values() if v != expected and v in lowered]
-    if others:
-        return (
-            f"Вывод в тексте («{others[0]}») не совпадает с рекомендацией по сигналам. "
-            f"Рекомендация должна быть буквально: «{expected}»."
-        )
-    return f"В тексте нет рекомендации. Добавь буквально: «{expected}»."
+    """Текст модели не должен спорить с вердиктом карточки, посчитанным по сигналам.
+    При сравнении — с вердиктом каждой компании."""
+    if answer.card is not None:
+        expected = VERDICT_RU[answer.card.verdict]
+        lowered = answer.text_md.casefold()
+        if expected in lowered:
+            return None
+        others = [v for v in VERDICT_RU.values() if v != expected and v in lowered]
+        if others:
+            return (
+                f"Вывод в тексте («{others[0]}») не совпадает с рекомендацией по сигналам. "
+                f"Рекомендация должна быть буквально: «{expected}»."
+            )
+        return f"В тексте нет рекомендации. Добавь буквально: «{expected}»."
+    if answer.cards:
+        missing = [
+            c for c in answer.cards if VERDICT_RU[c.verdict] not in answer.text_md.casefold()
+        ]
+        if missing:
+            wanted = "; ".join(
+                f"{c.name} (ИНН {c.inn}) — «{VERDICT_RU[c.verdict]}»" for c in missing
+            )
+            return f"Для каждой компании вывод должен быть буквально по verdict_ru: {wanted}."
+    return None
+
+
+def enforce_comparison(text: str, cards: list[Card]) -> str:
+    """После неудачного круга исправления итог сравнения дописывается кодом."""
+    lowered = text.casefold()
+    missing = [c for c in cards if VERDICT_RU[c.verdict] not in lowered]
+    if not missing:
+        return text
+    lines = [f"- {c.name} (ИНН {c.inn}): {VERDICT_RU[c.verdict]}" for c in missing]
+    return f"{text.rstrip()}\n\n**По данным отчётов:**\n" + "\n".join(lines)
 
 
 def enforce_verdict(text: str, verdict: Verdict) -> str:
@@ -247,6 +272,8 @@ def _item_dates(payload: Any) -> dict[str, str]:
 def _inns_from_args(args: dict[str, Any]) -> list[str]:
     inn = args.get("inn")
     inns = args.get("inns") or []
+    if isinstance(inns, str):  # слабая модель передаёт список строкой
+        inns = re.findall(r"\d{10,12}", inns)
     out = [str(inn)] if inn else []
     out.extend(str(i) for i in inns)
     return out

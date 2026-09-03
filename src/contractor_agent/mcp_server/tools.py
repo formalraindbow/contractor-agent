@@ -350,6 +350,13 @@ class Tools:
                 note=f"Раздела «{name}» в отчёте нет — оценить по нему нельзя.",
                 report_date=report.report_date,
             )
+        if name == "zskRiskLevel":  # ЗСК показываем как банк: жёлтый и красный не раскрываем
+            return ok(
+                {"section": name, "state": state, "content": zsk_ru(report.zsk_risk_level)},
+                source_paths=["report.zskRiskLevel"],
+                report_date=report.report_date,
+                note="ЗСК показываем как банк: только «зелёный» или «серый».",
+            )
         value = resolve(report, f"report.{name}")
         raw = (
             value.model_dump()
@@ -369,13 +376,16 @@ class Tools:
     def compare_companies(self, inns: list[str]) -> ToolResponse:
         if not inns:
             return unavailable("bad_request", note="Нужен хотя бы один ИНН.")
-        inns = list(dict.fromkeys(inns))[:MAX_COMPARE]
+        requested = list(dict.fromkeys(inns))
+        inns, dropped = requested[:MAX_COMPARE], requested[MAX_COMPARE:]
         items = []
         paths = []
         for inn in inns:
             report = self.source.get(inn)
             if report is None:
-                items.append({"inn": inn, "available": False, "reason": "not_found"})
+                items.append(
+                    {"inn": inn, "available": False, "reason": "not_found", "note": NOT_FOUND_NOTE}
+                )
                 continue
             signal_set = compute(report)
             net = finance.net_assets(report)
@@ -391,6 +401,9 @@ class Tools:
                         "zsk": zsk_ru(report.zsk_risk_level),
                     },
                     "verdict": signal_set.verdict.value,
+                    "verdict_ru": TERMINAL_RU
+                    if signal_set.terminal
+                    else VERDICT_RU[signal_set.verdict],
                     "terminal": signal_set.terminal,
                     "score": signal_set.score,
                     "signal_counts": {s.value: len(signal_set.by_severity(s)) for s in Severity},
@@ -402,18 +415,36 @@ class Tools:
                         }
                         for s in signal_set.by_severity(Severity.CRITICAL)
                     ],
-                    "moderate_titles": [
-                        s.title_ru for s in signal_set.by_severity(Severity.MODERATE)
+                    "moderate": [
+                        {"title": s.title_ru, "source_path": s.source_path}
+                        for s in signal_set.by_severity(Severity.MODERATE)
                     ],
-                    "net_assets": {"value": net.value, "year": net.year} if net else None,
-                    "proceeds": {"value": proceeds.value, "year": proceeds.year}
+                    "net_assets": {"value": net.value, "year": net.year, "source_path": net.path}
+                    if net
+                    else None,
+                    "proceeds": {
+                        "value": proceeds.value,
+                        "year": proceeds.year,
+                        "source_path": proceeds.path,
+                    }
                     if proceeds
                     else None,
                     "gaps": [g.criterion for g in signal_set.gaps],
                 }
             )
-            paths.append("report.baseInfo.inn")
-        return ok({"items": items, "total": len(items)}, source_paths=_dedupe(paths))
+            paths.extend(s.source_path for s in signal_set.signals)
+            paths.extend(x.path for x in (net, proceeds) if x)
+        missing = [i["inn"] for i in items if not i["available"]]
+        notes = []
+        if missing:
+            notes.append(f"ИНН {', '.join(missing)} в базе не найдены — по ним вывод дать нельзя.")
+        if dropped:
+            notes.append(f"Сравниваем не больше {MAX_COMPARE}: {', '.join(dropped)} не вошли.")
+        return ok(
+            {"items": items, "total": len(requested), "truncated": bool(dropped)},
+            source_paths=_dedupe(paths)[:ITEM_LIMIT],
+            note=" ".join(notes) or None,
+        )
 
 
 # --- вспомогательное ----------------------------------------------------------------

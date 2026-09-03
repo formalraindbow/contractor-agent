@@ -173,7 +173,7 @@ async def test_comparison_flow_builds_cards_for_each_company(snapshot: Snapshot,
                     "МАКСМАРКЕТ: признана банкротом [report.status.reasonName].",
                     "ГДК: блокировка счетов на дату отчёта.",
                     "",
-                    "Итог: с МАКСМАРКЕТ работать только на условиях: предоплата и подтверждающие документы; ГДК стоит проверить до договора.",
+                    "Итог: МАКСМАРКЕТ — работать только на условиях: предоплата и подтверждающие документы; ГДК — работать только на условиях: предоплата и подтверждающие документы.",
                 ],
                 citations=[
                     Citation(claim="признана банкротом", source_path="report.status.reasonName")
@@ -190,3 +190,33 @@ async def test_comparison_flow_builds_cards_for_each_company(snapshot: Snapshot,
     assert [c.inn for c in answer.cards] == ["5032257375", "6165169320"]
     assert set(answer.report_dates) == {"5032257375", "6165169320"}
     assert not answer.invalid_citations
+
+
+async def test_comparison_verdict_is_enforced_by_code(snapshot: Snapshot, tmp_path) -> None:
+    """Текст сравнения спорит с вердиктами: круг исправления, потом итог дописывает код."""
+    wrong = Draft(
+        kind="comparison",
+        lines=["С МАКСМАРКЕТ можно работать; с ГДК можно работать."],
+        citations=[],
+    )
+    llm = scripted_llm(
+        [
+            tool_call("compare_companies", "c1", inns=["5032257375", "6165169320"]),
+            AIMessage(content="Фактов достаточно."),
+            wrong,
+            AIMessage(content="Оставляю как есть."),
+            wrong,
+        ]
+    )
+    async with AgentRuntime(_settings(tmp_path), source=snapshot, llm=llm) as rt:
+        answer = await rt.ask("Сравни 5032257375 и 6165169320", thread_id="cmp2")
+    assert answer.kind == "comparison" and len(answer.cards) == 2
+    assert "По данным отчётов" in answer.text_md
+    assert answer.text_md.count("работать только на условиях") == 2
+
+
+def test_inns_from_args_accepts_string_list() -> None:
+    from contractor_agent.agent.nodes import _inns_from_args
+
+    assert _inns_from_args({"inns": "5032257375, 6165169320"}) == ["5032257375", "6165169320"]
+    assert _inns_from_args({"inn": "5032257375"}) == ["5032257375"]
