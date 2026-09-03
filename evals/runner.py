@@ -131,7 +131,7 @@ class EvalRunner:
     async def _judge(
         self, question: GoldQuestion, answer: Answer, tool_outputs: str
     ) -> JudgeVerdict:
-        """Судья с дедлайном и второй попыткой: зависший запрос к провайдеру — не приговор вопросу."""
+        """Судья с дедлайном и второй попыткой: зависший провайдер — не приговор вопросу."""
         assert self.judge_llm is not None
         for attempt in (1, 2):
             try:
