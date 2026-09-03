@@ -43,3 +43,17 @@ def index_path(snapshot: Snapshot, tmp_path_factory: pytest.TempPathFactory) -> 
     path = tmp_path_factory.mktemp("index") / "snapshot.sqlite"
     build_index(snapshot, path)
     return path
+
+
+@pytest.fixture
+def anyio_backend() -> str:
+    return "asyncio"
+
+
+def pytest_collection_modifyitems(items: list[pytest.Item]) -> None:
+    """Все async-тесты — через anyio на asyncio, без пометки в каждом файле."""
+    import inspect
+
+    for item in items:
+        if inspect.iscoroutinefunction(getattr(item, "function", None)):
+            item.add_marker(pytest.mark.anyio)

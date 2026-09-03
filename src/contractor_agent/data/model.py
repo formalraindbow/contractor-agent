@@ -93,6 +93,7 @@ class BaseInfo(ReportModel):
     risk_level: str  # LOW | MEDIUM | HIGH | UNKNOWN — метка банка, приводим как есть
     address: str | None = None
     company_size: str | None = None
+    staff: str | None = None  # диапазон численности — есть в спецификации, нет в снапшоте
     email: str | None = None
     website: str | None = None
 
@@ -152,12 +153,21 @@ class Cofounder(ReportModel):
     share: int | None = None
     date_from: MoscowDate | None = None
     active: bool | None = None
+    is_active: bool | None = None  # так поле названо в спецификации; в снапшоте — ``active``
+
+
+class ParentOrganization(ReportModel):
+    inn: str | None = None
+    ogrn: str | None = None
+    full_name: str | None = None
+    parent_date: MoscowDate | None = None
 
 
 class FoundersInfo(ReportModel):
     share_capital: int | None = None
     auth_person: AuthPerson | None = None
     cofounders: list[Cofounder] | None = None
+    parent_organizations: list[ParentOrganization] | None = None  # по спецификации; в снапшоте нет
 
 
 # --- finReports / coefficient ---------------------------------------------------
@@ -311,13 +321,6 @@ class License(ReportModel):
     end_date: MoscowDate | None = None
 
 
-class ParentOrganization(ReportModel):
-    inn: str | None = None
-    ogrn: str | None = None
-    full_name: str | None = None
-    parent_date: MoscowDate | None = None
-
-
 class RelatedCompany(ReportModel):
     inn: str | None = None
     ogrn: str | None = None
@@ -341,6 +344,7 @@ class BranchesInfo(ReportModel):
 class Procurement(ReportModel):
     procurements_year: int | None = None
     federal_law_code: str | None = None  # «ФЗ94» / «ФЗ223» — текст
+    tender_admitted_cnt: int | None = None  # по спецификации; в снапшоте нет
     tender_winner_cnt: int | None = None
     contract_signed_cnt: int | None = None
     contract_signed_amt: int | None = None
@@ -352,6 +356,7 @@ class TaxSystem(ReportModel):
 
 
 class Phone(ReportModel):
+    phone_type: str | None = None  # по спецификации; в снапшоте нет
     phone_code: str | None = None
     phone_number: str | None = None
 
