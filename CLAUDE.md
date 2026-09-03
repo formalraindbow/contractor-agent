@@ -67,7 +67,8 @@ src/contractor_agent/
   settings.py   pydantic-settings (.env): DATA_DIR, INDEX_PATH, REPORT_SOURCE, MCP_TRANSPORT/HOST/PORT, LLM_BASE_URL, LLM_MODEL,
                 OPENROUTER_API_KEY, GROQ_API_KEY; позже CHECKPOINTER, LANGFUSE_*
 langgraph.json  граф для `langgraph dev` + Studio (разработка)
-evals/          gold.yaml, runner.py, judge.py, report.py
+evals/          gold.yaml (50 вопросов на 12 карточках), gold.py, checks.py (без модели), judge.py (рубрика CRITERIA §5),
+                runner.py (кэш runs/evals/), metrics.py (четыре доли + стабильность), report.py; python -m evals run|report
 web/            React + @alfalab/core-components (зона Владимира Т.)
 tests/          pytest; инструменты и сигналы тестируются без сети и без модели
 ```
