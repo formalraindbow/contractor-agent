@@ -11,6 +11,7 @@ import re
 from dataclasses import dataclass, field
 
 from contractor_agent.agent.schema import Answer
+from contractor_agent.signals.model import TERMINAL_RU, VERDICT_RU, Verdict
 from evals.gold import FORBIDDEN_LABELS, REFUSAL_MARKERS, GoldQuestion
 
 
@@ -19,6 +20,17 @@ class CheckResult:
     passed: bool
     failures: list[str] = field(default_factory=list)
     notes: dict[str, bool] = field(default_factory=dict)
+
+
+def verdict_in_text(text: str) -> str | None:
+    """Исход по формулировке в тексте, когда карточки нет (ответ на вопрос, а не проверка)."""
+    lowered = text.casefold()
+    if TERMINAL_RU.split("— ")[-1].casefold() in lowered:  # хвост терминальной фразы
+        return Verdict.NOT_RECOMMENDED.value
+    for verdict in (Verdict.NOT_RECOMMENDED, Verdict.CHECK, Verdict.OK):
+        if VERDICT_RU[verdict].casefold() in lowered:
+            return verdict.value
+    return None
 
 
 def _has(text: str, needle: str) -> bool:
@@ -78,7 +90,7 @@ def check(question: GoldQuestion, answer: Answer, report_date: str) -> CheckResu
             failures.append("ни одной цитаты с адресом поля")
 
     if question.type in ("card", "infer") and question.expected_verdict:
-        actual = answer.card.verdict.value if answer.card else None
+        actual = answer.card.verdict.value if answer.card else verdict_in_text(answer.text_md)
         notes["verdict_match"] = actual == question.expected_verdict
         if actual != question.expected_verdict:
             failures.append(f"вывод {actual} вместо {question.expected_verdict}")

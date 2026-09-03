@@ -131,5 +131,15 @@ def test_judge_sees_card_only_for_card_questions():
     by_id = {q.id: q for q in gold.questions()}
     plain = judge_messages(by_id["maksmarket-enforcement-active"], answer, "")[1].content
     card_q = judge_messages(by_id["5032257375-card"], answer, "")[1].content
-    assert "Карточка" not in plain
-    assert "Карточка" in card_q and "собрана кодом" in card_q
+    assert "собрана кодом" in plain and "собрана кодом" in card_q  # карточку видит всегда
+
+
+def test_verdict_in_text_falls_back_to_phrase():
+    from evals.checks import verdict_in_text
+
+    assert verdict_in_text("Рекомендация: стоит проверить до договора.") == "check"
+    assert (
+        verdict_in_text("сделки могут быть оспорены, обязательства не исполнены")
+        == "not_recommended"
+    )
+    assert verdict_in_text("ничего про исход") is None

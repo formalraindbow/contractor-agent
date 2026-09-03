@@ -91,7 +91,9 @@ class EvalRunner:
                 if path.exists() and not refresh:
                     record = RunRecord.model_validate_json(path.read_text(encoding="utf-8"))
                     if record.answer is not None:  # ошибка без ответа — не кэш, гоняем заново
-                        if await self._rejudge(question, record):
+                        changed = self._recheck(question, record)
+                        changed = await self._rejudge(question, record) or changed
+                        if changed:
                             path.write_text(record.model_dump_json(indent=2), encoding="utf-8")
                         records.append(record)
                         continue
@@ -101,6 +103,18 @@ class EvalRunner:
                 if self.delay_s:
                     await asyncio.sleep(self.delay_s)
         return records
+
+    def _recheck(self, question: GoldQuestion, record: RunRecord) -> bool:
+        """Проверки кодом пересчитываются из кэша: правка проверки действует задним числом."""
+        assert record.answer is not None
+        result = check(question, record.answer, self.gold.card(question.inn).report_date)
+        before = (record.checks_passed, record.check_failures, record.check_notes)
+        record.checks_passed, record.check_failures, record.check_notes = (
+            result.passed,
+            result.failures,
+            result.notes,
+        )
+        return before != (record.checks_passed, record.check_failures, record.check_notes)
 
     async def _rejudge(self, question: GoldQuestion, record: RunRecord) -> bool:
         """Ответ агента есть, а вердикта судьи нет (судья упал) — судим заново, агента не гоняем."""

@@ -68,13 +68,13 @@ def judge_messages(question: GoldQuestion, answer: Answer, tool_outputs: str) ->
     card_line = (
         "Карточка (собрана кодом из полей отчёта, факты в ней подтверждены программно — "
         f"выдумкой не считать): {answer.card.model_dump(mode='json')}\n"
-        if question.type == "card" and answer.card
+        if answer.card
         else ""
     )
     user = (
         f"ВОПРОС ПОЛЬЗОВАТЕЛЯ:\n{question.question}\n\n"
         f"ЭТАЛОН (JSON):\n{gold}\n\n"
-        f"ЧТО АГЕНТ ПОЛУЧИЛ ОТ ИНСТРУМЕНТОВ (обрезано):\n{tool_outputs[:12000]}\n\n"
+        f"ЧТО АГЕНТ ПОЛУЧИЛ ОТ ИНСТРУМЕНТОВ (обрезано):\n{tool_outputs[:40000]}\n\n"
         f"ОТВЕТ АГЕНТА:\n{answer.text_md}\n\n"
         f"{card_line}"
         f"Цитаты, не прошедшие проверку: {[c.model_dump() for c in answer.invalid_citations]}"
