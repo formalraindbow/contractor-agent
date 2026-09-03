@@ -1,0 +1,65 @@
+"""Модель за одной строкой конфига: OpenAI-совместимый клиент с запасными моделями.
+
+Groq, OpenRouter, vLLM в контуре банка — меняется только ``LLM_BASE_URL`` и
+``LLM_MODEL``. Бесплатные модели OpenRouter упираются в лимиты, поэтому основная
+модель + список запасных: ``with_fallbacks`` переключает на следующую при ошибке.
+``bind_tools`` и ``with_structured_output`` применяются к каждой модели отдельно —
+обёртка с fallback их не умеет.
+"""
+
+from __future__ import annotations
+
+from typing import Any
+
+from langchain_core.language_models import BaseChatModel
+from langchain_core.runnables import Runnable
+from langchain_openai import ChatOpenAI
+
+from contractor_agent.settings import Settings
+
+HEADERS = {
+    "HTTP-Referer": "https://github.com/formalraindbow/contractor-agent",
+    "X-Title": "kontragent-agent",
+}
+
+
+class LLM:
+    """Основная модель и запасные; отдаёт готовые цепочки с инструментами или схемой."""
+
+    def __init__(self, models: list[BaseChatModel]) -> None:
+        if not models:
+            raise ValueError("нужна хотя бы одна модель")
+        self.models = models
+
+    @property
+    def name(self) -> str:
+        return getattr(self.models[0], "model_name", type(self.models[0]).__name__)
+
+    def with_tools(self, tools: list[Any]) -> Runnable:
+        bound = [m.bind_tools(tools) for m in self.models]
+        return bound[0].with_fallbacks(bound[1:]) if len(bound) > 1 else bound[0]
+
+    def structured(self, schema: type) -> Runnable:
+        chains: list[Runnable] = []
+        for m in self.models:
+            chains.append(m.with_structured_output(schema, method="json_schema"))
+            chains.append(m.with_structured_output(schema, method="function_calling"))
+        return chains[0].with_fallbacks(chains[1:])
+
+
+def make_llm(settings: Settings, model: str | None = None) -> LLM:
+    names = [model or settings.llm_model, *settings.fallback_models]
+    return LLM(
+        [
+            ChatOpenAI(
+                model=name,
+                base_url=settings.llm_base_url,
+                api_key=settings.llm_api_key or "missing",
+                temperature=0,
+                timeout=settings.llm_timeout,
+                max_retries=1,
+                default_headers=HEADERS,
+            )
+            for name in names
+        ]
+    )
