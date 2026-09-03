@@ -153,3 +153,10 @@ def test_enforce_verdict_replaces_and_appends() -> None:
     fixed = enforce_verdict(text, Verdict.NOT_RECOMMENDED)
     assert "только на условиях" in fixed and "проверить до договора." not in fixed
     assert enforce_verdict("Без вывода.", Verdict.OK).endswith("**Рекомендация:** можно работать.")
+
+
+def test_draft_accepts_text_instead_of_lines():
+    from contractor_agent.agent.schema import Draft
+
+    draft = Draft.model_validate({"kind": "refusal", "text_md": "а\nб", "citations": []})
+    assert draft.lines == ["а", "б"] and draft.text_md == "а\nб"

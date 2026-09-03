@@ -9,9 +9,9 @@
 from __future__ import annotations
 
 from datetime import date
-from typing import Literal
+from typing import Any, Literal
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 from contractor_agent.signals.model import Severity, Verdict
 
@@ -68,6 +68,18 @@ class Draft(BaseModel):
         "пустая строка — пустой элемент; простым языком, с датой отчёта"
     )
     citations: list[Citation] = Field(default_factory=list)
+
+    @model_validator(mode="before")
+    @classmethod
+    def _accept_text(cls, data: Any) -> Any:
+        """Модель без строгой JSON-схемы иногда отдаёт ``text_md``/``text`` вместо ``lines``
+        (Яндекс, живой прогон) — принимаем и режем на строки, а не роняем ответ."""
+        if isinstance(data, dict) and "lines" not in data:
+            data = dict(data)
+            text = data.pop("text_md", None) or data.pop("text", None)
+            if isinstance(text, str):
+                data["lines"] = text.splitlines()
+        return data
 
     @property
     def text_md(self) -> str:

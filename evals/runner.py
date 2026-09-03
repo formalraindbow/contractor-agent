@@ -90,10 +90,11 @@ class EvalRunner:
                 path = self._path(question, repeat)
                 if path.exists() and not refresh:
                     record = RunRecord.model_validate_json(path.read_text(encoding="utf-8"))
-                    if await self._rejudge(question, record):
-                        path.write_text(record.model_dump_json(indent=2), encoding="utf-8")
-                    records.append(record)
-                    continue
+                    if record.answer is not None:  # ошибка без ответа — не кэш, гоняем заново
+                        if await self._rejudge(question, record):
+                            path.write_text(record.model_dump_json(indent=2), encoding="utf-8")
+                        records.append(record)
+                        continue
                 record = await self.run_one(question, repeat)
                 path.write_text(record.model_dump_json(indent=2), encoding="utf-8")
                 records.append(record)
