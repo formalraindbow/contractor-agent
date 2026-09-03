@@ -65,7 +65,7 @@ class EvalRunner:
         judge_llm: LLM | None = None,
         delay_s: float = 0.0,
         agent_timeout_s: float = 900,
-        judge_timeout_s: float = 300,
+        judge_timeout_s: float = 120,
     ) -> None:
         self.gold = gold
         self.runtime = runtime
@@ -128,15 +128,27 @@ class EvalRunner:
             (valid if check_citation(self.runtime.source, inns, c).ok else invalid).append(c)
         answer.citations, answer.invalid_citations = valid, invalid
 
+    async def _judge(
+        self, question: GoldQuestion, answer: Answer, tool_outputs: str
+    ) -> JudgeVerdict:
+        """Судья с дедлайном и второй попыткой: зависший запрос к провайдеру — не приговор вопросу."""
+        assert self.judge_llm is not None
+        for attempt in (1, 2):
+            try:
+                return await asyncio.wait_for(
+                    judge(self.judge_llm, question, answer, tool_outputs), self.judge_timeout_s
+                )
+            except TimeoutError:
+                if attempt == 2:
+                    raise
+        raise AssertionError("unreachable")
+
     async def _rejudge(self, question: GoldQuestion, record: RunRecord) -> bool:
         """Ответ агента есть, а вердикта судьи нет (судья упал) — судим заново, агента не гоняем."""
         if self.judge_llm is None or record.judge is not None or record.answer is None:
             return False
         try:
-            record.judge = await asyncio.wait_for(
-                judge(self.judge_llm, question, record.answer, record.tool_outputs),
-                self.judge_timeout_s,
-            )
+            record.judge = await self._judge(question, record.answer, record.tool_outputs)
         except Exception as e:
             record.error = f"{type(e).__name__}: {e}"
             return False
@@ -171,10 +183,7 @@ class EvalRunner:
             record.check_failures = result.failures
             record.check_notes = result.notes
             if self.judge_llm is not None:
-                record.judge = await asyncio.wait_for(
-                    judge(self.judge_llm, question, answer, record.tool_outputs),
-                    self.judge_timeout_s,
-                )
+                record.judge = await self._judge(question, answer, record.tool_outputs)
         except Exception as e:  # ошибка прогона — запись, а не остановка эталона
             record.error = f"{type(e).__name__}: {e}"  # проверки, если успели, остаются как есть
         record.duration_s = round(time.perf_counter() - started, 1)
