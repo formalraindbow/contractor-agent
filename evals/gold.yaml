@@ -381,7 +381,7 @@ cards:
     source_path: report.arbitrationByStatus
     must_mention:
     - ответчик
-    - истец
+    - истец | подавала | подавал сам | заявител
     - 11 дел | 11 арбитраж | всего 11 | всего — 11 | 6 завершённ | 51 383 816 | 51383816 | 51,4 млн | 51.4 млн
     must_not_mention: []
     expected_verdict: null
