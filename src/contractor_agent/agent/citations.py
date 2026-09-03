@@ -112,7 +112,8 @@ def number_matches(claimed: Decimal, actual: Decimal) -> bool:
 def check_citation(source: ReportSource, inns: list[str], citation: Citation) -> CitationCheck:
     path = normalize_path(citation.source_path)
     last_error = "адреса нет в отчёте"
-    for inn in inns:
+    scope = [citation.inn] if citation.inn and citation.inn in inns else list(reversed(inns))
+    for inn in scope:  # своя компания, иначе последняя выбранная — первой
         report = source.get(inn)
         if report is None:
             continue

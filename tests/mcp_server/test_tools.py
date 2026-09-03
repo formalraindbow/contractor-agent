@@ -123,3 +123,21 @@ def test_financials_rows_carry_resolvable_metric_paths(snapshot):
         for path in value if isinstance(value, list) else [value]:
             resolve(report, path)  # адрес существует
     assert "citing" in resp.data
+
+
+def test_get_section_zsk_shows_only_green_or_grey(snapshot):
+    from contractor_agent.mcp_server.tools import Tools
+
+    resp = Tools(snapshot).get_section("9705152496", "zskRiskLevel")  # в данных YELLOW
+    assert resp.available and resp.data["content"] in ("зелёный", "серый")
+
+
+def test_compare_companies_carries_verdict_ru_and_paths(snapshot):
+    from contractor_agent.mcp_server.tools import Tools
+
+    resp = Tools(snapshot).compare_companies(["5032257375", "6165169320", "0000000000"])
+    items = {i["inn"]: i for i in resp.data["items"]}
+    assert items["5032257375"]["verdict_ru"].startswith("работать только на условиях")
+    assert all("source_path" in m for m in items["6165169320"]["moderate"])
+    assert items["0000000000"]["available"] is False and "0000000000" in (resp.note or "")
+    assert resp.data["total"] == 3 and resp.data["truncated"] is False
