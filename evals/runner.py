@@ -20,6 +20,7 @@ from typing import Any
 from langchain_core.messages import AIMessage, BaseMessage, HumanMessage, ToolMessage
 from pydantic import BaseModel, Field
 
+from contractor_agent.agent.citations import check_citation
 from contractor_agent.agent.llm import LLM
 from contractor_agent.agent.runtime import AgentRuntime
 from contractor_agent.agent.schema import Answer
@@ -107,6 +108,7 @@ class EvalRunner:
     def _recheck(self, question: GoldQuestion, record: RunRecord) -> bool:
         """Проверки кодом пересчитываются из кэша: правка проверки действует задним числом."""
         assert record.answer is not None
+        self._revalidate_citations(record.answer)
         result = check(question, record.answer, self.gold.card(question.inn).report_date)
         before = (record.checks_passed, record.check_failures, record.check_notes)
         record.checks_passed, record.check_failures, record.check_notes = (
@@ -115,6 +117,16 @@ class EvalRunner:
             result.notes,
         )
         return before != (record.checks_passed, record.check_failures, record.check_notes)
+
+    def _revalidate_citations(self, answer: Answer) -> None:
+        """Цитаты проверяются заново текущим валидатором: его правки действуют задним числом."""
+        inns = list(answer.report_dates)
+        if not inns:
+            return
+        valid, invalid = [], []
+        for c in [*answer.citations, *answer.invalid_citations]:
+            (valid if check_citation(self.runtime.source, inns, c).ok else invalid).append(c)
+        answer.citations, answer.invalid_citations = valid, invalid
 
     async def _rejudge(self, question: GoldQuestion, record: RunRecord) -> bool:
         """Ответ агента есть, а вердикта судьи нет (судья упал) — судим заново, агента не гоняем."""
