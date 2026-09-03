@@ -98,3 +98,14 @@
 Банки: [Альфа — Проверка контрагента](https://alfabank.ru/sme/abp/services/check-contragent/) · [Альфа-Безопасность](https://alfabank.ru/sme/abp/services/alfa_security/) · [Альфа — Индикатор риска](https://alfabank.ru/sme/rko/riski/) · [Сбер запустит ИИ-агента для предпринимателей](https://bosfera.ru/press-release/sberbank-osenyu-zapustit-ii-agenta-dlya-predprinimateley) · [Сбер — Безопасный бизнес](https://www.sberbank.ru/ru/s_m_business/nbs/sberrating) · [ВТБ — Светофор](https://www.vtb.ru/malyj-biznes/servisy-v-pomoshch-biznesu/svetofor/) · [Т-Банк — проверка контрагентов](https://www.tbank.ru/business/contractor/) · [Точка — сервис проверки](https://tochka.com/news/tochka-zapustila-servis-dlya-proverki-podryadchikov-i-kontragentov/) · [Открытие — Светофор](https://www.cnews.ru/news/line/2019-02-27_bank_otkrytie_zapustil_servis_proverki_kontragentov)
 Зарубежные: [D&B ChatD&B](https://www.businesswire.com/news/home/20241023718110/en/Dun-Bradstreet-Launches-ChatDB-Its-Advanced-Gen-AI-Assistant) · [D&B agentic AI, 2026](https://www.prnewswire.com/news-releases/dun--bradstreet-introduces-agentic-ai-capabilities-to-accelerate-compliance-and-third-party-risk-workflows-from-days-to-seconds-302804723.html) · [Moody's Research Assistant](https://ir.moodys.com/press-releases/news-details/2023/Moodys-Launches-Moodys-Research-Assistant-a-GenAI-Tool-to-Power-Analytic-Insights/default.aspx) · [Moody's — к агентному решению](https://www.moodys.com/web/en/us/creditview/blog/from-research-assistant-to-agentic-solution-with-cristina-pieretti.html) · [Coface Score](https://www.coface.ch/business-information/coface-score)
 Рынок: [реестр МСП, СКБ Контур](https://kontur.ru/press/news/83611-chislo_subektov_msp_rastet_za_schet_ip) · [выручка Контура 2024](https://www.cnews.ru/news/line/2025-03-06_vyruchka_skb_kontur_v_2024) · [выручка Контура 2025](https://dsmedia.pro/company/kontur/analytics/vyruchka-skb-kontur-v-2025-godu-vyrosla-na-196-)
+
+## Дополнение 3.09 — слайд кейсодателя «Карта рынка» (`case_owner/labels_and_market_2026-09-03.pdf`)
+
+«Сегодня банки — минорные игроки». Расчётная ёмкость рынка проверки контрагентов — 7–8 млрд ₽.
+Структура: 75 % — API-интеграции (СПАРК, ~6 млрд ₽ выручки), 11 % — веб-моносервисы
+(~1 млрд ₽), 13 % — госсервисы, 1 % — банки (< 1 млрд ₽). Трафик игроков, млн/мес: Saby (Тензор)
+21,4 · Rusprofile 16,2 · Светофор 10,7 · Контур 3,3 · ЗаЧестныйБизнес 2,4. Позиция банка — < 1 %
+рынка; из банков как отдельный сервис — только Точка. Тренды по версии кейсодателя:
+персонализация и отраслевые решения · ИИ-трансформация — саммари, ассистенты, интерпретация
+рисков · бесшовная интеграция в бизнес-процессы через API и A2A. Это прямо подтверждает
+ставку кейса на ассистента-интерпретатора рисков, а не на ещё один отчёт.

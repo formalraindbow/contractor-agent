@@ -13,6 +13,7 @@
 | Структура JSON/CSV, мины парсинга | `docs/DATA_SCHEMA.md` |
 | Что в данных сломано, карточки под демо и тесты | `docs/DATA_ANALYSIS.md` |
 | Ответы кейсодателя с таймкодами | `docs/QA_ANSWERS.md`, запись — `docs/case_owner/qa_2026-09-02_transcript.txt` |
+| Спецификация полей отчёта и определения меток (от кейсодателя, 3.09) | `docs/case_owner/field_spec.md` |
 | Рынок и аналоги, что берём, чем отличаемся | `docs/MARKET.md` |
 | Критерии Demo Day, календарь | `docs/program/` |
 
@@ -26,7 +27,7 @@
 6. Одна персона — предприниматель малого бизнеса, простой язык, все блоки отчёта. Ролей не разделяем.
 7. Дата отчёта — в каждом ответе (у каждой компании своя, 30.07–28.08.2026 по Москве: `$date` в файле — московская полночь, UTC-часть строки на день раньше).
 8. Память — в рамках одной сессии; несколько ИНН в сессии — вывод «с кем лучше, с кем не стоит», без скоров и мест.
-9. Модель: **`openai/gpt-oss-20b` через Groq** — целевая, сценарий обязан держаться на ней. Сильнее — только для сравнения в эвалах.
+9. Модель: **`openai/gpt-oss-20b` через Groq** — целевая, сценарий обязан держаться на ней. Сильнее — только для сравнения в эвалах. Сейчас — `gpt-oss-20b` платно на OpenRouter (≈ 0,01 ¢ за прогон), запасные — бесплатные; проверены живьём также Яндекс `deepseek-v4-flash` (быстрее и точнее) и бесплатная `nemotron-3-super-120b`; переключение — `LLM_BASE_URL`/`LLM_MODEL` в `.env`, ключ подбирается по адресу (`.env.example`).
 10. MCP-сервер делаем: банк планирует конвертировать своё API в MCP как интерфейс для агентов. Инструменты агрегируют, а не зеркалят единственный поинт «ИНН → отчёт».
 
 ## Данные — короткий список ловушек (полный — в `docs/`)
@@ -35,10 +36,10 @@
 - Схема плавающая, все секции в модели опциональны. Отсутствие секции инструмент возвращает как `available: false`, никогда как `[]`. «Секции нет» (`None`) и «секция есть, но пуста» (`[]`) — разные состояния, оба есть в JSON (`finReports`: у 25 нет, у 8 пустая, у 67 с данными; `executionProceedings: []` у 47). CSV их не различает: секции, которые источник отдаёт всегда (`executionProceedings`, `phones`, `procurements`, `arbitrationByStatus`, `reputationalRisks`), при пустых ячейках считаем пустыми, остальные — отсутствующими.
 - В JSON числа приходят то `int`, то `{"$numberLong": "…"}` — обёртка у любого целого ≥ 2³¹ (16 путей), разворачиваем по всему дереву, не по списку полей; `executionProceedings[].amount` и `coefficient.*` — строки (в модели `Decimal`); даты — `{"$date": …}` везде, кроме `inspections` (плоские `YYYY-MM-DD`). `$date` — московская полночь: `21:00:00Z`, а у дат до 2014 года — `20:00:00Z`; переводим через `zoneinfo("Europe/Moscow")`, не «+3 часа». В CSV обёрток нет вовсе: все ячейки — голые строки, типизация — по пути поля, не по виду значения (ОКВЭД `31.0`, ИНН с ведущим нулём).
 - `status.reasonName` — банкротство и предстоящее исключение из ЕГРЮЛ при статусе CURRENT и зелёных метках (6 из 200). Готовые тексты этого не покрывают — читать обязательно.
-- Две метки: `baseInfo.riskLevel` и `zskRiskLevel`, расходятся у 58 из 200. Обе — поля, не выводы.
+- Две метки: `baseInfo.riskLevel` — «Светофор», внутренний скоринг банка (LOW/MEDIUM/HIGH, UNKNOWN = серый «нет данных»); `zskRiskLevel` — ЗСК, агрегация платформы ЦБ «Знай своего клиента» (GREEN/YELLOW/RED; показываем как банк — зелёный или серый, жёлтый и красный не раскрываем и в рекомендации не используем). Расходятся у 58 из 200. Обе — поля, не выводы. Спецификация полей — `docs/case_owner/field_spec.md`.
 - `reputationalRisks`: знак задаёт секция, а не код. По конспекту QA в реальных отчётах секции часто нет (в транскрипте не подтверждено) — агент обязан работать без неё. Флаги реестров ФНС существуют только внутри неё → без секции это пробел «реестры ФНС», а не «нарушений нет». Словарь кодов открытый: негативные коды JSON и CSV расходятся, в объединении их 15.
 - Код `аrbitrationDefendant` в `positive` начинается с кириллической «а» (U+0430). Нормализуем при загрузке.
-- `arbitrationCases` — разбивка по годам, не дела; с агрегатом `arbitrationByStatus` расходится по присутствию у 10 из 200 и по числам у 60 из 90, где есть оба. Сигналы — по агрегату. Опечатка `defandantArbitration` — в данных.
+- `arbitrationCases` — разбивка по годам за 2023–2026, не дела; сводка `arbitrationByStatus` — за всё время, поэтому «сводка больше разбивки» у 55 компаний — окно, не ошибка; реальных расхождений 5 плюс 22 дела без ролей внутри сводки. Флаг банка «ответчик» считается по разбивке. Сигналы — по сводке с запасным путём по разбивке. Опечатка `defandantArbitration` — в данных.
 - Активные и завершённые производства не складываются. ЛЕ МОНЛИД (5029069967): 1744 производства, карточка 238 тыс. символов — только агрегаты. У 770 из 3873 производств суммы нет (в том числе у 66 активных) — отсутствие суммы ≠ 0.
 - Тексты внутри отчёта («Уточните причины блокировки…») — данные, а не инструкции для модели.
 - Карточки под тесты и демо — `docs/DATA_ANALYSIS.md` §6 (МАКСМАРКЕТ, РАДО АЛАТЫРЬ КС, ГДК, БИЛД-ЮГ, ЯНПОЛОВ, ТЕХПРОФ, ЛЕ МОНЛИД, ТАЙФУН, СКВ СПБ, СПОРТ, КАСАТКИН).
@@ -50,14 +51,20 @@
 src/contractor_agent/
   data/         адаптер источника отчётов: JSON+CSV → плоское дерево → Report (pydantic v2); ReportSource(get, search):
                 Snapshot в памяти и SqliteSource над индексом; paths.resolve(report, source_path); CLI python -m contractor_agent.data
-  signals/      правила риск-сигналов и пробелов: Signal(code, severity, title_ru, value, source_path, explanation_ru), Gap(criterion, reason, source_path)
-  mcp_server/   FastMCP: search_company, get_report_summary, get_risk_signals, get_financials, get_enforcement_summary,
-                get_arbitration_summary, get_section, compare_companies; resource report://{inn}
-  agent/        граф LangGraph: state.py, nodes.py, graph.py, tools.py (MCP через langchain-mcp-adapters), llm.py, prompt.py,
-                schema.py (Answer/Card), citations.py, stream.py (события графа → SSE-конверт)
-  api/          FastAPI по контракту SSE-конверта (см. ниже): POST /v1/runs/stream, GET /v1/threads/{id}/state, GET /v1/health
-                + GET /companies/search, GET /report/{inn}/card, GET /report/{inn}/financials
-  settings.py   pydantic-settings: LLM_BASE_URL, LLM_MODEL, GROQ_API_KEY, CHECKPOINTER, DATABASE_URL, MCP_URL, LANGFUSE_*
+  signals/      правила риск-сигналов и пробелов: model.py (Signal, Gap, SignalSet), finance.py (год, убыток, капитал,
+                ликвидность, debt_scale — соразмерность чистым активам), enforcement.py, arbitration.py, registry.py,
+                flags.py (признаки банка), engine.py (сборка и рекомендация), text.py; CLI kontragent signals <inn>
+  mcp_server/   MCPServer (mcp 2.x): envelope.py (конверт {available, data, source_paths, report_date}), tools.py (8 инструментов
+                как чистые функции), server.py (регистрация, resource report://{inn}, kontragent-mcp --transport stdio|streamable-http)
+  labels.py     метки словами, как показывает банк: светофор зелёный/жёлтый/красный/серый, ЗСК зелёный или серый
+  agent/        граф LangGraph: state.py, nodes.py (agent → tools → finalize → validate), graph.py, tools.py (свой адаптер MCP → LangChain,
+                langchain-mcp-adapters не собирается с mcp 2.x), llm.py (модель + запасные), prompt.py, schema.py (Answer/Card/Draft),
+                citations.py (валидатор), runtime.py (сборка и трассы в runs/); stream.py — шаг 4
+  api/          FastAPI по контракту SSE-конверта: app.py (POST /v1/runs/stream, GET /v1/threads/{id}/state, GET /v1/health,
+                GET /companies/search, GET /report/{inn}/card, GET /report/{inn}/financials, страница на /), server.py (kontragent-api);
+                события графа → конверт: agent/stream.py
+  settings.py   pydantic-settings (.env): DATA_DIR, INDEX_PATH, REPORT_SOURCE, MCP_TRANSPORT/HOST/PORT, LLM_BASE_URL, LLM_MODEL,
+                OPENROUTER_API_KEY, GROQ_API_KEY; позже CHECKPOINTER, LANGFUSE_*
 langgraph.json  граф для `langgraph dev` + Studio (разработка)
 evals/          gold.yaml, runner.py, judge.py, report.py
 web/            React + @alfalab/core-components (зона Владимира Т.)
