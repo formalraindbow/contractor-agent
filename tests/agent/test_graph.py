@@ -415,4 +415,5 @@ def test_tidy_text_strips_field_paths_and_inn() -> None:
     raw = "Капитал 22,8 млн ₽ [report.finReports[0].liabilities.capitals][report.finReports[0].common.proceeds] inn 1684017097 – можно работать"
     out = tidy_text(raw)
     assert "report." not in out and "1684017097" not in out and "]" not in out
+    assert "[verdict_ru]" not in tidy_text("Вывод: работать на условиях [verdict_ru]")
     assert out.startswith("Капитал 22,8 млн ₽") and "можно работать" in out
