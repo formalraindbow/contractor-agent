@@ -367,7 +367,7 @@ _TIDY = (  # слабая модель протаскивает в текст и
     ),
     (re.compile(r"\bverdict_ru:\s*", re.I), ""),
     (re.compile(r"\s*\((svetofor|zsk|labels?|verdict)\)", re.I), ""),
-    (re.compile(r"^(.{12,}?)\s+\(\1\)", re.M), r"\1"),  # «X (X)» → «X»
+    (re.compile(r"^(\s*[-•]\s*)?(.{12,}?)\s+\(\2\)", re.M), r"\1\2"),  # «X (X)» → «X»
     (re.compile(r"\bBank ratings\b", re.I), "Оценки банка"),
     (re.compile(r"\bVerdict\b:?", re.I), "Вывод:"),
 )
