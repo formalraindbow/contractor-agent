@@ -36,6 +36,8 @@ async def _run(args: argparse.Namespace) -> int:
     if args.limit:
         questions = questions[: args.limit]
     model = args.model or settings.llm_model
+    if args.tag:  # отдельный кэш и строка отчёта: промпт v2 против v1 на той же модели
+        model = f"{model} [{args.tag}]"
     agent_llm = make_llm(settings, model)
     judge_llm = None if args.no_judge else make_judge_llm(settings, args.judge_model)
     async with AgentRuntime(settings, llm=agent_llm) as runtime:
@@ -97,6 +99,7 @@ def main(argv: list[str] | None = None) -> int:
     run = sub.add_parser("run")
     run.add_argument("--model")
     run.add_argument("--judge-model")
+    run.add_argument("--tag", help="метка прогона (например prompt-v2): свой кэш и строка отчёта")
     run.add_argument("--no-judge", action="store_true")
     run.add_argument("--types", help="card,answer,refuse,infer")
     run.add_argument("--only", help="id вопросов или ИНН через запятую")
