@@ -372,3 +372,18 @@ async def test_comparison_after_card_uses_only_this_turn_companies(
     assert answer.kind == "comparison"
     assert [c.inn for c in answer.cards] == ["6165169320", "1684017097"]
     assert "По данным отчётов" in answer.text_md
+
+
+def test_tidy_text_removes_field_names_and_repeats() -> None:
+    from contractor_agent.agent.nodes import tidy_text
+
+    raw = (
+        "- ООО «ГДК» – оценка: зелёный (svetofor) – verdict_ru: работать только на условиях\n"
+        "- claim: Открытые иски к компании – 2 дела source_path: report.arbitrationByStatus.x\n"
+        "- Адрес признан недостоверным (Адрес признан недостоверным) [report.a]\n"
+        "- Bank ratings: зелёный"
+    )
+    out = tidy_text(raw)
+    assert "verdict_ru" not in out and "(svetofor)" not in out and "claim:" not in out
+    assert "- Открытые иски к компании – 2 дела [report.arbitrationByStatus.x]" in out
+    assert "недостоверным (Адрес" not in out and "Оценки банка" in out
