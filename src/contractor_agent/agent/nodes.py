@@ -387,6 +387,7 @@ def replace_verdict_codes(text: str) -> str:
     return _VERDICT_CODE_RE.sub(lambda m: VERDICT_RU[Verdict(m.group(1))], text)
 
 
+_MONTHS = ["янв", "фев", "мар", "апр", "ма", "июн", "июл", "авг", "сен", "окт", "ноя", "дек"]
 _TIDY = (  # слабая модель протаскивает в текст имена полей и повторы — чистим кодом
     (
         re.compile(r"^(\s*[-•]\s*)?claim:\s*(.+?)\s+source_path:\s*(report\.\S+)\s*$", re.M),
@@ -411,6 +412,15 @@ _TIDY = (  # слабая модель протаскивает в текст и
         ),
         r"\3.\2.\1",
     ),  # ISO → ДД.ММ.ГГГГ
+    (  # «25 авг 2026 г.» → «25.08.2026»
+        re.compile(
+            r"\b(\d{1,2})\s+(янв|фев|мар|апр|ма[йя]|июн|июл|авг|сен|окт|ноя|дек)\w*\s+(\d{4})(?:\s*г\.?)?",
+            re.I,
+        ),
+        lambda m: (
+            f"{int(m.group(1)):02d}.{_MONTHS.index(m.group(2).lower()[:3].replace('май', 'ма').replace('мая', 'ма')) + 1:02d}.{m.group(3)}"
+        ),
+    ),
     (
         re.compile(
             r"\b(\d{2})[\u2010\u2011\u2012\u2013](\d{2})[\u2010\u2011\u2012\u2013](\d{4})\b"
