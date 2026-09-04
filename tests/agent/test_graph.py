@@ -504,3 +504,58 @@ def test_absence_problem_catches_unsupported_denial() -> None:
         is None
     )
     assert absence_problem("258 завершённых дел, где компания ответчик.") is None
+
+
+def test_card_question_keeps_card_kind(snapshot) -> None:
+    """Просили проверить компанию: даже если модель назвала ответ отказом, вид — карточка."""
+    import asyncio
+
+    from langchain_core.messages import AIMessage
+
+    from contractor_agent.agent.runtime import AgentRuntime
+    from contractor_agent.agent.schema import Draft
+    from contractor_agent.settings import Settings
+    from tests.agent.fakes import scripted_llm, tool_call
+
+    llm = scripted_llm(
+        [
+            tool_call("get_risk_signals", "c1", inn="5032257375"),
+            AIMessage(content="ok"),
+            Draft(
+                kind="refusal",
+                lines=[
+                    "Компания признана банкротом [report.status.reasonName].",
+                    "Работать только на условиях: предоплата и подтверждающие документы.",
+                    "Отчёт от 31.07.2026.",
+                ],
+                citations=[],
+            ),
+        ]
+    )
+
+    async def run() -> None:
+        async with AgentRuntime(Settings(), source=snapshot, llm=llm) as rt:
+            answer = await rt.ask(
+                "Проверь ООО МАКСМАРКЕТ, ИНН 5032257375: можно ли с ней работать", thread_id="t"
+            )
+            assert answer.kind == "card" and answer.card is not None
+
+    asyncio.run(run())
+
+
+def test_scrubbed_verdict_is_not_doubled() -> None:
+    """«Работать нельзя» заменяется штатной фразой, а не приклеивается к ней второй раз."""
+    from contractor_agent.agent.nodes import (
+        enforce_verdict,
+        replace_verdict_codes,
+        scrub_forbidden,
+        tidy_text,
+    )
+    from contractor_agent.signals.model import VERDICT_RU, Verdict
+
+    v = Verdict.NOT_RECOMMENDED
+    draft = "С компанией работать нельзя только на условиях: предоплата и подтверждающие документы."
+    out = tidy_text(
+        enforce_verdict(scrub_forbidden(replace_verdict_codes(tidy_text(draft)), VERDICT_RU[v]), v)
+    )
+    assert out.lower().count("только на условиях: предоплата") == 1, out
