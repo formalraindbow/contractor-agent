@@ -240,6 +240,8 @@ def test_question_kind_hint() -> None:
     assert question_kind_hint("Сравни 5032257375 и 6165169320")[0] == "comparison"
     assert question_kind_hint("А сколько у них сейчас висит долгов у приставов?")[0] == "answer"
     assert question_kind_hint("Хочу отгрузить ГДК с отсрочкой. Сколько у них судов?")[0] == "answer"
+    assert question_kind_hint("Есть открытые иски. Можно ли давать им отсрочку?")[0] == "card"
+    assert question_kind_hint("Какая у ИП выручка? Потянет ли он заказ?")[0] == "card"
     assert question_kind_hint("Проверь ООО «МАКСМАРКЕТ»: можно ли с ней работать?")[0] == "card"
     assert question_kind_hint("У него светофор красный, а ЗСК зелёный — кому верить?")[0] == "card"
     assert question_kind_hint("Привет") == (None, None)

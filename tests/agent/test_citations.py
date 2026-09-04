@@ -159,3 +159,17 @@ def test_two_paths_in_one_citation_are_both_checked(snapshot):
     assert check_citation(snapshot, ["5032257375"], c).ok
     bad = Citation(claim="метки", source_path="report.baseInfo.riskLevel, report.nope")
     assert not check_citation(snapshot, ["5032257375"], bad).ok
+
+
+def test_meta_paths_and_year_only_claims(snapshot):
+    from contractor_agent.agent.citations import check_citation, is_meta_path
+
+    assert is_meta_path("report.riskSignals.verdict_ru")
+    c = Citation(
+        claim="выручка за 2024–2025 г.", source_path="report.finReports[0].common.proceeds"
+    )
+    assert check_citation(snapshot, ["9705152496"], c).ok
+    c2 = Citation(
+        claim="нет данных о текущей ликвидности", source_path="report.finReports[0].assets"
+    )
+    assert check_citation(snapshot, ["2100006761"], c2).ok  # объект финансов — не сводка дел
