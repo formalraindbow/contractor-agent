@@ -321,3 +321,21 @@ def test_forbidden_phrase_with_words_between() -> None:
     assert "нельзя" not in scrub_forbidden(
         text, "работать только на условиях: предоплата и подтверждающие документы"
     )
+
+
+def test_empty_answer_triggers_repair() -> None:
+    from contractor_agent.agent.nodes import empty_problem
+    from contractor_agent.agent.schema import Answer
+
+    assert empty_problem(Answer(kind="answer", text_md=""))
+    assert empty_problem(Answer(kind="answer", text_md="| | **—**"))
+    assert empty_problem(Answer(kind="answer", text_md="54 производства.")) is None
+    assert (
+        empty_problem(
+            Answer(
+                kind="answer",
+                text_md="54 действующих производства на 4 млн ₽ по отчёту от 31.07.2026.",
+            )
+        )
+        is None
+    )
