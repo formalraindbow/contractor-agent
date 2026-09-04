@@ -78,6 +78,7 @@ def initial_state(question: str, history: Sequence[BaseMessage] = ()) -> dict[st
     return {
         "messages": [*history, HumanMessage(content=question)],
         "question": question,
+        "turn_inns": [],
         # selected_inns и report_dates не сбрасываем: память сессии — уточняющий вопрос
         # по компании из прошлого хода проверяется по её отчёту
         "trace": [],
