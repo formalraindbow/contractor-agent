@@ -124,7 +124,7 @@
   </section>
 
   <section class="agent" id="agent" hidden>
-    <div class="head"><span class="t">Что важно для сделки</span><span class="d" id="ahead"></span></div>
+    <div class="head"><span class="t">Рекомендация по отчёту</span><span class="d" id="ahead"></span></div>
     <div id="card"></div>
     <div class="chips" id="chips">
       <span class="lbl">Спросить:</span>
@@ -229,7 +229,7 @@ async function check(q) {
   if (!cr.ok) { $("#card").innerHTML = `<div class="empty" style="padding:12px 20px">Отчёта по ИНН ${esc(res.inn)} в базе нет.</div>`; return; }
   const card = await cr.json();
   showCompany(card);
-  ask(`Проверь ${card.name}, ИНН ${card.inn}: можно ли с ней работать? Объясни коротко, два-три главных факта.`, "Проверь компанию: можно ли с ней работать?");
+  ask(`Проверь ${card.name}, ИНН ${card.inn}: можно ли с ней работать? Коротко: рекомендация и два-три главных факта.`, "Проверь компанию");
 }
 
 async function ask(question, shown) {
