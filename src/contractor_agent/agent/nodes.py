@@ -162,6 +162,7 @@ def make_nodes(llm: LLM, tools: list[Any], source: ReportSource) -> dict[str, No
             or verdict_mismatch(answer)
             or forbidden_problem(answer.text_md)
             or format_problem(answer, str(state.get("question") or ""))
+            or details_problem(answer, str(state.get("question") or ""))
         )
         retry = state.get("citation_retry") or 0
         if (invalid or verdict_problem) and retry < MAX_CITATION_RETRIES:
@@ -305,6 +306,32 @@ def question_kind_hint(question: str) -> tuple[str | None, str | None]:
     return None, None
 
 
+_COURT_Q = re.compile(r"\bсуд|\bиск|арбитраж|ответчик|истец", re.I)
+_BAILIFF_Q = re.compile(r"пристав|исполнительн", re.I)
+_ROLE_WORDS = re.compile(r"ответчик|истец|истц|подавал|к компании|против компании", re.I)
+_FINISHED_WORDS = re.compile(r"заверш|закрыт|окончен", re.I)
+_ACTIVE_WORDS = re.compile(r"действующ|активн|открыт|текущ|непогашен", re.I)
+
+
+def details_problem(answer: Answer, question: str) -> str | None:
+    """Ответ про суды без ролей и про приставов без разделения — самая частая потеря смысла.
+    Пользователю нужно знать, кто на кого подавал и что из долгов ещё висит."""
+    text = answer.text_md
+    if _COURT_Q.search(question) and not _ROLE_WORDS.search(text):
+        return (
+            "В ответе про суды не указана роль. Напиши, сколько дел, где компания ответчик, "
+            "и сколько, где истец, по данным инструмента; если по роли дел не найдено — так и скажи."
+        )
+    if _BAILIFF_Q.search(question) and not (
+        _ACTIVE_WORDS.search(text) and _FINISHED_WORDS.search(text)
+    ):
+        return (
+            "В ответе про приставов нужно назвать отдельно действующие производства (сколько и на "
+            "какую сумму) и завершённые (сколько), не складывая их."
+        )
+    return None
+
+
 def format_problem(answer: Answer, question: str) -> str | None:
     """Вопрос про один раздел, а в ответе — сводка по компании: повод для круга исправления."""
     kind, _ = question_kind_hint(question)
@@ -404,6 +431,7 @@ _TIDY = (  # слабая модель протаскивает в текст и
     # служебные ключи в скобках: [verdict_ru], [dfCount], [svetofor]
     (re.compile(r"\s*\[[A-Za-z_][A-Za-z0-9_.]*(?:\[\d+\][A-Za-z0-9_.]*)*\]"), ""),
     (re.compile(r"\s*\binn\s*[:=]?\s*\d{10,12}\b", re.I), ""),
+    (re.compile(r"[ \t]{2,}"), " "),  # двойные пробелы после чистки
     (re.compile(r"\s+([.,;:])"), r"\1"),  # пробел перед знаком после чистки
     (re.compile(r"\bZSK\b"), "ЗСК"),
     # эмодзи и значки: deepseek и подобные любят 🟢🔴 в тексте — в банковском ответе им не место
