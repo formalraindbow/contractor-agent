@@ -1,7 +1,10 @@
 """Граф LangGraph, собранный явно из ``StateGraph``.
 
-          ┌──────────┐   tool_calls   ┌─────────┐
- START ─▶ │  agent   │ ─────────────▶ │  tools  │ ──┐
+          ┌──────────┐   посторонний ввод, ругань, попытка сменить правила
+ START ─┬▶ │  guard   │ ──▶ END (короткий ответ без модели)
+        │  └──────────┘
+        │ ┌──────────┐   tool_calls   ┌─────────┐
+        └▶│  agent   │ ─────────────▶ │  tools  │ ──┐
           │ (LLM +   │ ◀───────────── │ToolNode │   │  ToolMessage[] в state
           │  tools)  │                └─────────┘   │
           └────┬─────┘ ◀────────────────────────────┘
@@ -31,7 +34,12 @@ from langgraph.graph import END, START, StateGraph
 from langgraph.graph.state import CompiledStateGraph
 
 from contractor_agent.agent.llm import LLM
-from contractor_agent.agent.nodes import make_nodes, route_after_agent, route_after_validate
+from contractor_agent.agent.nodes import (
+    make_nodes,
+    route_after_agent,
+    route_after_validate,
+    route_input,
+)
 from contractor_agent.agent.state import AgentState
 from contractor_agent.data.loader import ReportSource
 
@@ -46,7 +54,8 @@ def build_graph(
     graph = StateGraph(AgentState)
     for name, fn in nodes.items():
         graph.add_node(name, fn)
-    graph.add_edge(START, "agent")
+    graph.add_conditional_edges(START, route_input, {"guard": "guard", "agent": "agent"})
+    graph.add_edge("guard", END)
     graph.add_conditional_edges(
         "agent", route_after_agent, {"tools": "tools", "finalize": "finalize"}
     )

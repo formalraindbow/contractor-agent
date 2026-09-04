@@ -54,6 +54,13 @@ async def test_runner_caches_and_metrics(snapshot: Snapshot, tmp_path) -> None:
                 lines=["В отчёте нет сведений о численности — оценить нельзя."],
                 citations=[],
             ),
+            # инструмент вернул сводку, поэтому отказ уходит на круг исправления
+            AIMessage(content="ok"),
+            Draft(
+                kind="refusal",
+                lines=["В отчёте нет сведений о численности — оценить нельзя."],
+                citations=[],
+            ),
         ]
     )
     settings = Settings(runs_dir=tmp_path / "runs", openrouter_api_key="x")

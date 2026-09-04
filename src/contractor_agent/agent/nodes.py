@@ -52,6 +52,18 @@ def make_nodes(llm: LLM, tools: list[Any], source: ReportSource) -> dict[str, No
     tool_node = ToolNode(tools, handle_tool_errors=True)
     tools_layer = Tools(source)
 
+    async def guard(state: AgentState) -> dict[str, Any]:
+        """Короткий ответ без модели и инструментов: посторонний ввод не повод собирать карточку."""
+        reply = offtopic_reply(str(state.get("question") or "")) or _CAPABILITIES
+        return {
+            "answer": Answer(
+                kind="refusal",
+                text_md=reply,
+                citations=[],
+                report_dates=dict(state.get("report_dates") or {}),
+            )
+        }
+
     async def agent(state: AgentState) -> dict[str, Any]:
         question = str(state.get("question") or "")
         history = visible_history(state["messages"], question)
@@ -103,6 +115,10 @@ def make_nodes(llm: LLM, tools: list[Any], source: ReportSource) -> dict[str, No
 
     async def finalize(state: AgentState) -> dict[str, Any]:
         _, hint = question_kind_hint(str(state.get("question") or ""))
+        if is_follow_up(state["messages"]) and not _FULL_CHECK_RE.search(
+            str(state.get("question") or "")
+        ):
+            hint = ((hint + " ") if hint else "") + FOLLOW_UP_HINT
         history = visible_history(state["messages"], str(state.get("question") or ""))
         messages = [
             SystemMessage(content=SYSTEM_PROMPT),
@@ -163,6 +179,7 @@ def make_nodes(llm: LLM, tools: list[Any], source: ReportSource) -> dict[str, No
             or forbidden_problem(answer.text_md)
             or format_problem(answer, str(state.get("question") or ""))
             or details_problem(answer, str(state.get("question") or ""))
+            or absence_problem(answer.text_md)
         )
         retry = state.get("citation_retry") or 0
         if (invalid or verdict_problem) and retry < MAX_CITATION_RETRIES:
@@ -171,7 +188,7 @@ def make_nodes(llm: LLM, tools: list[Any], source: ReportSource) -> dict[str, No
                 verdict_problem,
             )
             return {
-                "messages": [HumanMessage(content=repair)],
+                "messages": [HumanMessage(content=repair, additional_kwargs={"repair": True})],
                 "citation_retry": retry + 1,
                 "answer": None,
             }
@@ -194,7 +211,18 @@ def make_nodes(llm: LLM, tools: list[Any], source: ReportSource) -> dict[str, No
         )
         return {"answer": checked}
 
-    return {"agent": agent, "tools": tools_, "finalize": finalize, "validate": validate}
+    return {
+        "guard": guard,
+        "agent": agent,
+        "tools": tools_,
+        "finalize": finalize,
+        "validate": validate,
+    }
+
+
+def route_input(state: AgentState) -> str:
+    """Первая развилка: посторонний ввод не тратит модель и инструменты."""
+    return "guard" if offtopic_reply(str(state.get("question") or "")) else "agent"
 
 
 def route_after_agent(state: AgentState) -> str:
@@ -282,6 +310,52 @@ def tool_subset(question: str) -> list[str] | None:
     return None
 
 
+_ABUSE_RE = re.compile(
+    r"\b(?:на|по|о|за|в)?\s*(?:бл[яa]д|ху[йёеяю]|пизд|[еёe]б[аоу]|сук[аиу]\b|мудак|долбо|"
+    r"гандон|пид[оа]р|чмо\b|уёб|охуе|нахуй|шлюх|дебил|идиот|тварь)",
+    re.I,
+)
+_INJECTION_RE = re.compile(
+    r"(?:игнорир\w*|забудь|отмени|не\s+следуй)[^.\n]{0,30}(?:инструкц|правил|промпт|систем)"
+    r"|(?:покажи|выведи|напечатай|повтори)[^.\n]{0,20}(?:систем\w*\s*промпт|свои\s+инструкц)"
+    r"|ты\s+(?:теперь|больше\s+не)\b|представь,?\s+что\s+ты\b|веди\s+себя\s+как\b"
+    r"|ignore\s+(?:all\s+)?(?:previous|prior)|disregard\s+(?:all\s+)?(?:previous|your)"
+    r"|system\s+prompt|jailbreak|developer\s+mode|act\s+as\s+(?:a\s+)?(?:dan|different)",
+    re.I,
+)
+_TOPIC_RE = re.compile(
+    r"\d{10,12}|компан|контрагент|фирм|ооо|ип\b|инн|суд|иск|приста|долг|финанс|выручк|прибыл|"
+    r"убыт|отчёт|отчет|светофор|зск|лиценз|адрес|директор|учредит|банкрот|реестр|закупк|проверк|"
+    r"работать|отсрочк|предоплат|сделк|договор|поставк|надёжн|надежн|риск|что\s+ты\s+умеешь|"
+    r"чем\s+(?:ты\s+)?поможешь|привет|здравств|спасибо|помог",
+    re.I,
+)
+_CAPABILITIES = (
+    "Я отвечаю по отчёту банка о контрагенте: оценки банка, суды, долги у приставов, финансы, "
+    "лицензии, проверки, виды деятельности — и говорю, на каких условиях с компанией работать. "
+    "Назовите компанию или ИНН."
+)
+_INJECTION_REPLY = (
+    "Правила проверки я не меняю и инструкции не показываю: отвечаю только фактами из отчёта "
+    "банка. Спросите про компанию — суды, долги у приставов, финансы, оценки банка."
+)
+
+
+def offtopic_reply(question: str) -> str | None:
+    """Не всё, что написал пользователь, — вопрос про контрагента. Ругань, попытку сменить
+    правила и болтовню разбираем кодом: до модели и инструментов это не доходит."""
+    text = question.strip()
+    if not text:
+        return "Напишите вопрос: название компании, ИНН или что посмотреть в отчёте."
+    if _INJECTION_RE.search(text):
+        return _INJECTION_REPLY
+    if _ABUSE_RE.search(text):
+        return "Давайте по делу. " + _CAPABILITIES
+    if len(text) <= 60 and not _TOPIC_RE.search(text) and not re.search(r"\?$", text):
+        return _CAPABILITIES
+    return None
+
+
 def question_kind_hint(question: str) -> tuple[str | None, str | None]:
     """Вид ответа по словам вопроса и подсказка модели: несколько компаний → comparison,
     вопрос про раздел → answer, «можно ли работать» → card. Решает модель, но с якорем."""
@@ -362,6 +436,26 @@ FORBIDDEN_RU = (  # характеристика вместо действия �
 _FORBIDDEN_RES = [re.compile(f, re.IGNORECASE) for f in FORBIDDEN_RU]
 
 
+_ABSENCE_CLAIM = re.compile(
+    r"\b(?:судов|дел|исков|производств|долгов|нарушений|проверок|лицензий|штрафов|претензий)\s+"
+    r"(?:у\s+\w+\s+)?нет\b|\bникаких\s+\w+\s+нет\b|\bне\s+имеет\s+(?:судов|долгов|дел)\b",
+    re.I,
+)
+
+
+def absence_problem(text: str) -> str | None:
+    """«Судов нет» — вывод, которого отчёт не даёт: в нём нет записей, а не гарантия отсутствия.
+    Правило 3 промпта, самая частая подмена смысла у слабой модели."""
+    m = _ABSENCE_CLAIM.search(text)
+    if not m:
+        return None
+    return (
+        f"Формулировка «{m.group(0)}» утверждает больше, чем есть в отчёте. Пиши «в отчёте не "
+        "найдено» с оговоркой, что это не значит отсутствия, — и только про тот раздел, который "
+        "инструмент действительно вернул."
+    )
+
+
 def refusal_problem(answer: Answer, trace: list[ToolCallTrace]) -> str | None:
     """Отказ, когда инструмент вернул данные, — ошибка модели, а не пробел в отчёте."""
     if answer.kind != "refusal":
@@ -431,8 +525,6 @@ _TIDY = (  # слабая модель протаскивает в текст и
     # служебные ключи в скобках: [verdict_ru], [dfCount], [svetofor]
     (re.compile(r"\s*\[[A-Za-z_][A-Za-z0-9_.]*(?:\[\d+\][A-Za-z0-9_.]*)*\]"), ""),
     (re.compile(r"\s*\binn\s*[:=]?\s*\d{10,12}\b", re.I), ""),
-    (re.compile(r"[ \t]{2,}"), " "),  # двойные пробелы после чистки
-    (re.compile(r"\s+([.,;:])"), r"\1"),  # пробел перед знаком после чистки
     (re.compile(r"\bZSK\b"), "ЗСК"),
     # эмодзи и значки: deepseek и подобные любят 🟢🔴 в тексте — в банковском ответе им не место
     (re.compile(r"[\U0001F300-\U0001FAFF\u2190-\u21FF\u2600-\u27BF\uFE0F]"), ""),
@@ -458,14 +550,33 @@ _TIDY = (  # слабая модель протаскивает в текст и
         r"\1.\2.\3",
     ),
     (re.compile(r"\b(svetofor|traffic light)\b", re.I), "светофор"),
+    # подсказка «зачем проверяете» живёт кнопками в интерфейсе — в тексте это дубль
+    (re.compile(r"^.*Скажите, зачем проверяете.*$\n?", re.M | re.I), ""),
+    # ниже — только после всех чисток, иначе схлопывать нечего
+    (re.compile(r"[ \t]{2,}"), " "),  # двойные пробелы после удалённых кусков
+    (re.compile(r"\s+([.,;:])"), r"\1"),  # пробел перед знаком
+    (re.compile(r"([,;:])(?:\s*[,;:])+"), r"\1"),  # «нет данных,,» → «нет данных,»
+    (re.compile(r",\s*\."), "."),
+    (re.compile(r"\n{3,}"), "\n\n"),
 )
+
+
+_LINE_START = re.compile(
+    r"^([\s>]*(?:[-•*]\s+|\d+[.)]\s+|#{1,6}\s+)?(?:\*\*|__)?)([а-яёa-z])", re.M
+)
+
+
+def capitalize_lines(text: str) -> str:
+    """Модель пишет пункты вперемешку: «Запросить у контрагента…» и «работать только на
+    условиях…». Первая буква строки — заглавная, маркеры списка и разметка не считаются."""
+    return _LINE_START.sub(lambda m: m.group(1) + m.group(2).upper(), text)
 
 
 def tidy_text(text: str) -> str:
     out = text
     for rx, repl in _TIDY:
         out = rx.sub(repl, out)
-    return out
+    return capitalize_lines(out.strip())
 
 
 def drop_invalid_lines(text: str, invalid: list[Citation]) -> str:
@@ -562,6 +673,27 @@ def _parse(content: Any) -> Any:
         except ValueError:
             return content
     return content
+
+
+_FULL_CHECK_RE = re.compile(
+    r"проверь\s+(?:ещё|еще|заново|полностью|целиком)|полн\w+\s+проверк|всю\s+карточк|"
+    r"карточк\w*\s+(?:целиком|заново)|повтори\s+проверк",
+    re.I,
+)
+FOLLOW_UP_HINT = (
+    "Это продолжение разговора: пользователь уже видел проверку компании. Отвечай репликой на "
+    "заданный вопрос, а не бланком: карточку, список «на что обратить внимание», вывод и то, что "
+    "уже говорил, не повторяй. Если вопрос неоднозначный — переспроси одной строкой."
+)
+
+
+def is_follow_up(messages: list[BaseMessage]) -> bool:
+    """Второй и следующие вопросы в сессии: пользователь уже получил ответ по компании.
+    Служебные сообщения круга исправления за ход пользователя не считаются."""
+    asked = [
+        m for m in messages if isinstance(m, HumanMessage) and not m.additional_kwargs.get("repair")
+    ]
+    return len(asked) > 1
 
 
 def visible_history(messages: list[BaseMessage], question: str) -> list[BaseMessage]:
