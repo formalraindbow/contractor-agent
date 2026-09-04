@@ -149,7 +149,9 @@ def make_nodes(llm: LLM, tools: list[Any], source: ReportSource) -> dict[str, No
             }
         if answer.card:
             text = enforce_verdict(
-                scrub_forbidden(answer.text_md, VERDICT_RU[answer.card.verdict]),
+                scrub_forbidden(
+                    replace_verdict_codes(answer.text_md), VERDICT_RU[answer.card.verdict]
+                ),
                 answer.card.verdict,
             )
         elif answer.cards:
@@ -290,8 +292,17 @@ def scrub_forbidden(text: str, replacement: str | None) -> str:
     return re.sub(r"[ \t]{2,}", " ", out)
 
 
+_VERDICT_CODE_RE = re.compile(r"(?<![\w/])(not_recommended|check|ok)(?![\w/])")
+
+
+def replace_verdict_codes(text: str) -> str:
+    """Код исхода в тексте («ГДК — not_recommended») → штатная фраза."""
+    return _VERDICT_CODE_RE.sub(lambda m: VERDICT_RU[Verdict(m.group(1))], text)
+
+
 def enforce_comparison(text: str, cards: list[Card]) -> str:
     """После неудачного круга исправления итог сравнения дописывается кодом."""
+    text = replace_verdict_codes(text)
     lowered = text.casefold()
     missing = [c for c in cards if VERDICT_RU[c.verdict] not in lowered]
     if not missing:

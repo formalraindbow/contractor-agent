@@ -257,3 +257,14 @@ def test_format_problem_flags_summary_for_section_question() -> None:
     )
     assert format_problem(short, q) is None
     assert format_problem(card_like, "Проверь компанию") is None
+
+
+def test_verdict_codes_are_replaced_with_phrases() -> None:
+    from contractor_agent.agent.nodes import replace_verdict_codes
+
+    out = replace_verdict_codes(
+        "Итог: ГДК – not_recommended, ТЕХПРОФ – ok. Поле check_id не трогаем."
+    )
+    assert "not_recommended" not in out and " ok" not in out
+    assert "работать только на условиях" in out and "можно работать" in out
+    assert "check_id" in out
