@@ -33,9 +33,22 @@ def verdict_in_text(text: str) -> str | None:
     return None
 
 
+ROLE_SYNONYMS = {  # роль в суде словами предпринимателя — засчитываем наравне с термином
+    "ответчик": (
+        "ответчик | к компании | против компании | на компанию | на неё подавали "
+        "| на него подавали | иски к ней | иски к нему"
+    ),
+    "истец": (
+        "истец | истц | сама подавала | сам подавал | компания подавала | подала иск "
+        "| подал иск | заявител"
+    ),
+}
+
+
 def _has(text: str, needle: str) -> bool:
     """Подстрока без учёта регистра; варианты через « | »; пробелы любые."""
     lowered = re.sub(r"\s+", " ", text.casefold())
+    needle = ROLE_SYNONYMS.get(needle.strip().casefold(), needle)
     return any(
         re.sub(r"\s+", " ", v.strip().casefold()) in lowered
         for v in needle.split(" | ")
@@ -45,7 +58,8 @@ def _has(text: str, needle: str) -> bool:
 
 _REFUSAL_RE = re.compile(
     r"(оценить|сказать|определить|посчитать|рассчитать|ответить)[^.\n]{0,60}(нельзя|невозможно)"
-    r"|не указан|не раскрыт|пробел в данных|невозможно оценить",
+    r"|не указан|не раскрыт|пробел в данных|невозможно оценить"
+    r"|сведений[^.\n]{0,40}\bнет\b|данных[^.\n]{0,30}\bнет\b|перечня[^.\n]{0,30}\bнет\b",
     re.I,
 )
 
@@ -86,6 +100,9 @@ def check(question: GoldQuestion, answer: Answer, report_date: str) -> CheckResu
         if not refused:
             failures.append("нет корректного отказа — ответ по существу при отсутствии данных")
         for needle in question.must_mention:
+            marker_list = any(m in needle for m in REFUSAL_MARKERS)
+            if marker_list and refused:  # список маркеров отказа: любая формулировка засчитана
+                continue
             if not _has(text, needle):
                 failures.append(f"в отказе нет «{needle}»")
     else:
