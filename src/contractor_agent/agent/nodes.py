@@ -38,14 +38,24 @@ Node = Callable[[AgentState], Awaitable[dict[str, Any]]]
 
 def make_nodes(llm: LLM, tools: list[Any], source: ReportSource) -> dict[str, Node]:
     with_tools = llm.with_tools(tools)
+    by_name = {t.name: t for t in tools}
+
+    def tools_for(question: str) -> Any:
+        """Вопрос про раздел — модели даём только инструменты этого раздела: без get_risk_signals
+        она не соберёт карточку вместо ответа. Сравнение — только поиск и compare_companies."""
+        names = tool_subset(question)
+        subset = [by_name[n] for n in names if n in by_name] if names else []
+        return llm.with_tools(subset) if subset else with_tools
+
     structured = llm.structured(Draft)
     tool_node = ToolNode(tools, handle_tool_errors=True)
     tools_layer = Tools(source)
 
     async def agent(state: AgentState) -> dict[str, Any]:
-        history = visible_history(state["messages"], str(state.get("question") or ""))
+        question = str(state.get("question") or "")
+        history = visible_history(state["messages"], question)
         messages = [SystemMessage(content=SYSTEM_PROMPT), *history]
-        response = await with_tools.ainvoke(messages)
+        response = await tools_for(question).ainvoke(messages)
         return {"messages": [response]}
 
     async def tools_(state: AgentState) -> dict[str, Any]:
@@ -227,6 +237,32 @@ _CARD_RE = re.compile(
 _COMPARE_RE = re.compile(r"сравни|с кем лучше|кого выбрать|кто из них", re.I)
 
 
+_SECTION_TOOLS = {
+    "долги у приставов": ["get_enforcement_summary"],
+    "суды": ["get_arbitration_summary"],
+    "финансы": ["get_financials"],
+    "лицензии": ["get_section"],
+    "филиалы": ["get_section"],
+    "проверки госорганов": ["get_section"],
+    "виды деятельности": ["get_section"],
+    "госзакупки": ["get_section"],
+    "численность": ["get_section", "get_report_summary"],
+}
+
+
+def tool_subset(question: str) -> list[str] | None:
+    """Имена инструментов под вид вопроса; None — все (карточка и неопределённые вопросы)."""
+    kind, _ = question_kind_hint(question)
+    if kind == "comparison":
+        return ["search_company", "compare_companies"]
+    if kind != "answer":
+        return None
+    for name, rx in _SECTION_HINTS:
+        if rx.search(question):
+            return ["search_company", "get_report_summary", *_SECTION_TOOLS[name]]
+    return None
+
+
 def question_kind_hint(question: str) -> tuple[str | None, str | None]:
     """Вид ответа по словам вопроса и подсказка модели: несколько компаний → comparison,
     вопрос про раздел → answer, «можно ли работать» → card. Решает модель, но с якорем."""
@@ -262,35 +298,35 @@ def format_problem(answer: Answer, question: str) -> str | None:
     )
 
 
-FORBIDDEN_RU = (  # характеристика вместо действия — CRITERIA §2, инвариант 5
-    "работать нельзя",
-    "нельзя работать",
-    "не рекомендуем",
-    "не связывайтесь",
-    "ненадёжн",
-    "сомнительн",
-    "однодневк",
+FORBIDDEN_RU = (  # характеристика вместо действия — CRITERIA §2, инвариант 5 (регулярные выражения)
+    r"работать[^.\n]{0,40}?нельзя",
+    r"нельзя[^.\n]{0,20}?работать",
+    r"не рекомендуем",
+    r"не связывайтесь",
+    r"ненадёжн\w*",
+    r"сомнительн\w*",
+    r"однодневк\w*",
 )
+_FORBIDDEN_RES = [re.compile(f, re.IGNORECASE) for f in FORBIDDEN_RU]
 
 
 def forbidden_problem(text: str) -> str | None:
     """Категоричная характеристика в тексте — повод для круга исправления."""
-    lowered = text.casefold()
-    found = [f for f in FORBIDDEN_RU if f in lowered]
-    if not found:
-        return None
-    return (
-        f"Убери формулировку «{found[0]}»: рекомендация — это действие для пользователя, "
-        "одна из трёх штатных фраз, а не характеристика компании."
-    )
+    for rx in _FORBIDDEN_RES:
+        m = rx.search(text)
+        if m:
+            return (
+                f"Убери формулировку «{m.group(0)}»: рекомендация — это действие для пользователя, "
+                "одна из трёх штатных фраз, а не характеристика компании."
+            )
+    return None
 
 
 def scrub_forbidden(text: str, replacement: str | None) -> str:
     """После неудачного круга исправления категоричные фразы вычищает код."""
     out = text
-    for f in FORBIDDEN_RU:
-        pattern = re.compile(rf"(?:компания\s+)?{re.escape(f)}\w*", re.IGNORECASE)
-        out = pattern.sub(replacement or "", out)
+    for rx in _FORBIDDEN_RES:
+        out = rx.sub(replacement or "", out)
     return re.sub(r"[ \t]{2,}", " ", out)
 
 

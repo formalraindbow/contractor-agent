@@ -299,3 +299,25 @@ def test_visible_history_drops_old_tool_traffic_but_keeps_current_turn() -> None
         "ToolMessage",
     ]
     assert seen[1].content.startswith("Карточка X")
+
+
+def test_tool_subset_by_question() -> None:
+    from contractor_agent.agent.nodes import tool_subset
+
+    assert tool_subset("А сколько у них сейчас висит долгов у приставов?") == [
+        "search_company",
+        "get_report_summary",
+        "get_enforcement_summary",
+    ]
+    assert tool_subset("Сравни 5032257375 и 6165169320") == ["search_company", "compare_companies"]
+    assert tool_subset("Проверь ООО «МАКСМАРКЕТ»: можно ли с ней работать?") is None
+
+
+def test_forbidden_phrase_with_words_between() -> None:
+    from contractor_agent.agent.nodes import forbidden_problem, scrub_forbidden
+
+    text = "**Работать с ООО «МАКСМАРКЕТ» нельзя — компания в процедуре банкротства.**"
+    assert forbidden_problem(text)
+    assert "нельзя" not in scrub_forbidden(
+        text, "работать только на условиях: предоплата и подтверждающие документы"
+    )
