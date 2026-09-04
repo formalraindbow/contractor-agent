@@ -383,6 +383,8 @@ _TIDY = (  # слабая модель протаскивает в текст и
     (re.compile(r"\bBank ratings\b", re.I), "Оценки банка"),
     (re.compile(r"\bVerdict\b:?", re.I), "Вывод:"),
     (re.compile(r"\bZSK\b"), "ЗСК"),
+    (re.compile(r"\b(\d{4})[\u2010\u2011\u2012\u2013-](\d{2})[\u2010\u2011\u2012\u2013-](\d{2})\b"), r"\3.\2.\1"),  # ISO → ДД.ММ.ГГГГ
+    (re.compile(r"\b(\d{2})[\u2010\u2011\u2012\u2013](\d{2})[\u2010\u2011\u2012\u2013](\d{4})\b"), r"\1.\2.\3"),
     (re.compile(r"\b(svetofor|traffic light)\b", re.I), "светофор"),
 )
 
