@@ -9,12 +9,14 @@
 
 from __future__ import annotations
 
+import base64
+import secrets
 from collections.abc import Callable
 from contextlib import asynccontextmanager
 from pathlib import Path
 from typing import Any
 
-from fastapi import FastAPI, HTTPException, Query, Request
+from fastapi import FastAPI, HTTPException, Query, Request, Response
 from fastapi.responses import HTMLResponse
 from langchain_core.messages import AIMessage, HumanMessage, ToolMessage
 from pydantic import BaseModel, Field
@@ -26,6 +28,7 @@ from contractor_agent.agent.runtime import AgentRuntime
 from contractor_agent.agent.stream import CONTRACT_VERSION, new_run_id, stream_run
 from contractor_agent.mcp_server.server import DESCRIPTIONS
 from contractor_agent.mcp_server.tools import Tools
+from contractor_agent.settings import Settings
 
 STATIC = Path(__file__).parent / "static"
 
@@ -69,6 +72,21 @@ def create_app(runtime_factory: Callable[[], AgentRuntime] | None = None) -> Fas
     @app.get("/", response_class=HTMLResponse)
     def index() -> str:
         return (STATIC / "index.html").read_text(encoding="utf-8")
+
+    web_password = Settings().web_password
+    if web_password:  # публичная ссылка: в данных ИНН физлиц, закрываем паролем
+
+        @app.middleware("http")
+        async def password_gate(request: Request, call_next):
+            header = request.headers.get("authorization", "")
+            expected = "Basic " + base64.b64encode(f"alfa:{web_password}".encode()).decode()
+            if not secrets.compare_digest(header, expected):
+                return Response(
+                    "Нужен пароль",
+                    status_code=401,
+                    headers={"WWW-Authenticate": 'Basic realm="kontragent"'},
+                )
+            return await call_next(request)
 
     @app.get("/v1/health")
     def health(request: Request) -> dict[str, Any]:
