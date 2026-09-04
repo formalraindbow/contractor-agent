@@ -86,10 +86,7 @@ def make_nodes(llm: LLM, tools: list[Any], source: ReportSource) -> dict[str, No
         }
 
     async def finalize(state: AgentState) -> dict[str, Any]:
-        question = next(
-            (m.content for m in reversed(state["messages"]) if isinstance(m, HumanMessage)), ""
-        )
-        hint = question_kind_hint(str(question))
+        _, hint = question_kind_hint(str(state.get("question") or ""))
         messages = [
             SystemMessage(content=SYSTEM_PROMPT),
             *state["messages"],
@@ -134,7 +131,11 @@ def make_nodes(llm: LLM, tools: list[Any], source: ReportSource) -> dict[str, No
         real = [c for c in answer.citations if not is_meta_path(c.source_path)]
         checks = validate_citations(source, state.get("selected_inns") or [], real)
         invalid = [c for c in checks if not c.ok]
-        verdict_problem = verdict_mismatch(answer) or forbidden_problem(answer.text_md)
+        verdict_problem = (
+            verdict_mismatch(answer)
+            or forbidden_problem(answer.text_md)
+            or format_problem(answer, str(state.get("question") or ""))
+        )
         retry = state.get("citation_retry") or 0
         if (invalid or verdict_problem) and retry < MAX_CITATION_RETRIES:
             repair = citation_repair_prompt(
@@ -222,21 +223,39 @@ _CARD_RE = re.compile(
 _COMPARE_RE = re.compile(r"сравни|с кем лучше|кого выбрать|кто из них", re.I)
 
 
-def question_kind_hint(question: str) -> str | None:
-    """Подсказка виду ответа по словам вопроса: несколько компаний → comparison,
+def question_kind_hint(question: str) -> tuple[str | None, str | None]:
+    """Вид ответа по словам вопроса и подсказка модели: несколько компаний → comparison,
     вопрос про раздел → answer, «можно ли работать» → card. Решает модель, но с якорем."""
     if _COMPARE_RE.search(question) or len(re.findall(r"\b\d{10,12}\b", question)) >= 2:
-        return "Подсказка: в вопросе несколько компаний — kind «comparison»."
+        return "comparison", "Подсказка: в вопросе несколько компаний — kind «comparison»."
     for name, rx in _SECTION_HINTS:
         if rx.search(question):
-            return (
+            return "answer", (
                 f"Подсказка: вопрос про один раздел ({name}) — kind «answer»: сначала ответ по "
                 "существу с числами, карточку не повторяй; если спрашивают, можно ли работать "
                 "или давать отсрочку — добавь вывод verdict_ru одной строкой."
             )
     if _CARD_RE.search(question):
-        return "Подсказка: просят оценить, можно ли работать с компанией — kind «card»."
-    return None
+        return "card", "Подсказка: просят оценить, можно ли работать с компанией — kind «card»."
+    return None, None
+
+
+def format_problem(answer: Answer, question: str) -> str | None:
+    """Вопрос про один раздел, а в ответе — сводка по компании: повод для круга исправления."""
+    kind, _ = question_kind_hint(question)
+    if kind != "answer":
+        return None
+    text = answer.text_md.casefold()
+    summary_like = (
+        answer.kind == "card" or "обратить внимание" in text or len(text.splitlines()) > 10
+    )
+    if not summary_like:
+        return None
+    return (
+        "Это вопрос про один раздел отчёта. Перепиши как kind «answer»: сначала ответ по существу "
+        "с числами (одна-три строки), потом не больше одной строки контекста. Полную карточку "
+        "и список «на что обратить внимание» не повторяй."
+    )
 
 
 FORBIDDEN_RU = (  # характеристика вместо действия — CRITERIA §2, инвариант 5
