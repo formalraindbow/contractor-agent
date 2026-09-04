@@ -147,3 +147,15 @@ def test_absence_claim_on_filled_summary_is_invalid(snapshot):
         claim="Действующих производств не найдено", source_path="report.executionProceedings"
     )
     assert check_citation(snapshot, ["7816085851"], lst).ok
+
+
+def test_two_paths_in_one_citation_are_both_checked(snapshot):
+    from contractor_agent.agent.citations import check_citation
+
+    c = Citation(
+        claim="светофор зелёный, ЗСК зелёный",
+        source_path="report.baseInfo.riskLevel, report.zskRiskLevel",
+    )
+    assert check_citation(snapshot, ["5032257375"], c).ok
+    bad = Citation(claim="метки", source_path="report.baseInfo.riskLevel, report.nope")
+    assert not check_citation(snapshot, ["5032257375"], bad).ok
