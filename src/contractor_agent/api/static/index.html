@@ -62,21 +62,26 @@
   .panel .head .t { font: 700 12px Manrope, sans-serif; letter-spacing: .08em; text-transform: uppercase; color: var(--accent); }
   .panel .head .d { font-size: 12.5px; color: var(--muted); }
   .verdict { padding: 14px 20px; border-left: 3px solid transparent; }
-  .verdict .v { font: 700 16px/1.35 Manrope, sans-serif; text-wrap: balance; }
-  .verdict .s { font-size: 13px; margin-top: 4px; color: var(--text); }
+  .verdict .v { font: 800 19px/1.3 Manrope, sans-serif; letter-spacing: -.01em; text-wrap: balance; max-width: 62ch; }
+  .verdict .s { font-size: 13px; margin-top: 5px; color: var(--text); max-width: 62ch; }
   .verdict.ok { background: var(--ok-bg); border-left-color: var(--ok); } .verdict.ok .v { color: var(--ok); }
   .verdict.check { background: var(--mod-bg); border-left-color: var(--mod); } .verdict.check .v { color: var(--mod); }
   .verdict.not_recommended { background: var(--crit-bg); border-left-color: var(--crit); } .verdict.not_recommended .v { color: var(--crit); }
   .facts { list-style: none; margin: 0; padding: 0 20px; }
-  .facts li { padding: 12px 0; border-bottom: 1px solid var(--line); }
+  .facts li { padding: 12px 0; padding-right: max(0px, calc(100% - 62ch)); border-bottom: 1px solid var(--line); }
   .facts:last-of-type li:last-child { border-bottom: 0; }
   #moreList { border-top: 1px solid var(--line); }
-  .sev { display: inline; padding: 1px 7px; margin-right: 8px; border-radius: 5px; font-size: 11.5px; font-weight: 600; white-space: nowrap; vertical-align: 1px; }
+  .sev { display: inline; padding: 1px 8px; margin-right: 8px; border-radius: 5px; font-size: 12px; font-weight: 600; white-space: nowrap; vertical-align: 1px; }
+  .sev.critical { box-shadow: inset 0 0 0 1px currentColor; }
   .sev.critical { background: var(--crit-bg); color: var(--crit); } .sev.moderate { background: var(--mod-bg); color: var(--mod); } .sev.info { background: var(--info-bg); color: var(--info); }
   .more { padding: 0 20px 12px; }
   .more button { background: none; border: 0; color: var(--accent); font-size: 13px; padding: 0; }
-  .gaps { padding: 14px 20px; font-size: 13.5px; color: var(--muted); border-top: 1px solid var(--line); }
-  .gaps b { color: var(--text); font-weight: 600; }
+  .gaps { padding: 14px 20px; padding-right: max(20px, calc(100% - 62ch)); font-size: 13.5px; color: var(--muted); border-top: 1px solid var(--line); }
+  .gaps b { display: block; color: var(--text); font-weight: 600; margin-bottom: 4px; }
+  #card .gaps { color: var(--text); }
+  .gaps ul { margin: 0; padding: 0; list-style: none; }
+  .gaps li { padding: 4px 0 4px 14px; position: relative; }
+  .gaps li::before { content: ""; position: absolute; left: 0; top: 12px; width: 5px; height: 5px; border-radius: 50%; background: var(--muted); }
   .chips { display: flex; flex-wrap: wrap; gap: 8px; padding: 14px 20px; align-items: center; border-top: 1px solid var(--line); }
   .chips .lbl { font-size: 12px; color: var(--muted); margin-right: 4px; }
   .chip { padding: 7px 12px; border-radius: 999px; background: var(--chip); border: 1px solid var(--line); font-size: 13.5px; color: var(--text); }
@@ -99,7 +104,7 @@
   .turn .who { font-size: 11px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); font-weight: 600; }
   .turn.user { justify-items: end; }
   .bubble { max-width: 85%; padding: 10px 14px; border-radius: 16px 16px 4px 16px; background: var(--user); color: var(--user-ink); }
-  .answer { padding: 12px 16px; border-radius: 12px; background: var(--surface); font-size: 14.5px; }
+  .answer { padding: 2px 0 0; font-size: 14.5px; max-width: 62ch; }
   .answer p { margin: 0 0 8px; } .answer p:last-child { margin: 0; }
   .answer ul { margin: 0 0 8px; padding: 0; list-style: none; } .answer li { padding: 3px 0; } .answer li + li { border-top: 1px solid var(--line); }
   .answer .status { font-size: 12.5px; color: var(--muted); }
@@ -124,7 +129,8 @@
   .cmpwrap { overflow-x: auto; padding: 0 20px 14px; }
   table.cmp { width: 100%; border-collapse: collapse; font-size: 13.5px; min-width: 640px; }
   table.cmp th { text-align: left; padding: 8px 10px; font: 600 11.5px "IBM Plex Sans", sans-serif; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); border-bottom: 1px solid var(--line); vertical-align: bottom; }
-  table.cmp th small { display: block; font-weight: 400; text-transform: none; letter-spacing: 0; }
+  table.cmp thead th { font: 700 14px/1.3 Manrope, sans-serif; letter-spacing: 0; text-transform: none; color: var(--text); }
+  table.cmp th small { display: block; font: 400 12.5px/1.35 "IBM Plex Sans", sans-serif; color: var(--muted); margin-top: 3px; letter-spacing: 0; }
   table.cmp { table-layout: fixed; }
   table.cmp th:first-child, table.cmp td:first-child { width: 150px; }
   table.cmp td { padding: 12px 14px 12px 0; border-bottom: 1px solid var(--line); vertical-align: top; }
@@ -166,15 +172,15 @@
 
     <section class="panel" id="agent" hidden>
       <div class="head"><span class="t">Рекомендация по отчёту</span><span class="d" id="ahead"></span></div>
+      <div id="card"></div>
       <div class="chips goals" id="goals">
         <span class="lbl">Зачем проверяете?</span>
         <button class="chip" type="button" data-goal="pay">Плачу по счёту</button>
-        <button class="chip" type="button" data-goal="deal">Договор с отсрочкой</button>
-        <button class="chip" type="button" data-goal="supply">Поставка или подряд</button>
-        <button class="chip" type="button" data-goal="legal">Претензия или суд</button>
+        <button class="chip" type="button" data-goal="deal">Даю отсрочку</button>
+        <button class="chip" type="button" data-goal="supply">Заказываю поставку или работы</button>
+        <button class="chip" type="button" data-goal="legal">Готовлю претензию</button>
         <button class="chip" type="button" data-goal="look">Просто смотрю</button>
       </div>
-      <div id="card"></div>
       <div class="chips" id="chips">
         <span class="lbl">Спросить агента:</span>
         <button class="chip" type="button" data-ask="Почему такой вывод?">Объясни рекомендацию</button>
@@ -239,8 +245,9 @@
 <script>
 const $ = (s) => document.querySelector(s);
 const VERDICT = { ok: "Можно работать", check: "Стоит проверить до договора", not_recommended: "Работать только на условиях: предоплата и подтверждающие документы" };
-const SEV = { critical: "критично", moderate: "умеренно", info: "справочно" };
-const TOOLS = { search_company: "ищу компанию", get_report_summary: "читаю сводку", get_risk_signals: "считаю сигналы риска", get_financials: "смотрю финансы", get_enforcement_summary: "смотрю долги у приставов", get_arbitration_summary: "смотрю суды", get_section: "читаю раздел отчёта", compare_companies: "сравниваю компании" };
+const VERDICT_SHORT = { ok: "Можно работать", check: "Проверить до договора", not_recommended: "Предоплата и документы" };
+const SEV = { critical: "важно", moderate: "стоит учесть", info: "к сведению" };
+const TOOLS = { search_company: "ищу компанию", get_report_summary: "читаю сводку", get_risk_signals: "проверяю, на что обратить внимание", get_financials: "смотрю финансы", get_enforcement_summary: "смотрю долги у приставов", get_arbitration_summary: "смотрю суды", get_section: "читаю раздел отчёта", compare_companies: "сравниваю компании" };
 const newThread = () => "web-" + Math.random().toString(36).slice(2, 10);
 let thread = newThread();
 let current = null;   // одна компания: {inn, name, date}
@@ -253,6 +260,7 @@ const pillClass = (v) => /зел/.test(v || "") ? "g" : /ж[её]лт|средн
 function setBusy(b) {
   busy = b;
   for (const id of ["#go", "#askbtn", "#cmpAskBtn"]) $(id).disabled = b;
+  document.querySelectorAll("#chips button[data-ask], #cmpChips button[data-ask], #modeOne .hint button").forEach((x) => { x.disabled = b; });
   $("#cmpgo").disabled = b || chosen.length < 2;
 }
 
@@ -287,17 +295,24 @@ function showMessage(el, text) { el.hidden = false; el.innerHTML = `<div class="
 // ---------- одна компания
 function renderCard(c) {
   const facts = c.attention || [];
-  const top = facts.slice(0, 3), rest = facts.slice(3);
   const li = (a) => `<li><span class="sev ${a.severity}">${SEV[a.severity] || a.severity}</span>${esc(a.claim)}</li>`;
-  const sub = c.terminal ? "Компания в процедуре банкротства или исключается из реестра: сделки могут быть оспорены, обязательства не исполнены."
-    : c.verdict === "ok" ? "Критичных и умеренных сигналов в отчёте не найдено." : "";
+  const green = /зел/.test(c.labels.riskLevel || "");
+  const sub = c.terminal
+    ? "Компания в процедуре банкротства или исключается из реестра: сделки могут быть оспорены, обязательства не исполнены."
+    : c.verdict === "not_recommended" && green
+      ? "Оценки банка зелёные, но по фактам из отчёта работать без условий рискованно."
+      : c.verdict === "ok"
+        ? "В отчёте не нашлось ни одного факта, который мешал бы работать."
+        : "";
   let html = `<div class="verdict ${c.verdict}"><div class="v">${VERDICT[c.verdict]}</div>${sub ? `<div class="s">${sub}</div>` : ""}</div>`;
-  html += top.length ? `<ul class="facts">${top.map(li).join("")}</ul>` : `<div class="empty" style="padding:12px 20px">Сигналов риска не найдено. Это не значит, что их нет: смотрите, чего нет в отчёте.</div>`;
-  if (rest.length) html += `<div class="more"><button type="button" id="moreBtn">Ещё ${rest.length} сигнал${rest.length === 1 ? "" : rest.length < 5 ? "а" : "ов"}</button></div><ul class="facts" id="moreList" hidden>${rest.map(li).join("")}</ul>`;
-  const gaps = (c.gaps || []).map(esc).join(" · "), ask = (c.ask_before || []).map(esc).join(" · ");
-  html += `<div class="gaps">${gaps ? `<b>Чего в отчёте нет:</b> ${gaps}` : "<b>Пробелов в отчёте по правилам нет.</b>"}${ask ? `<br><b>Что запросить:</b> ${ask}` : ""}</div>`;
+  html += facts.length
+    ? `<ul class="facts">${facts.map(li).join("")}</ul>`
+    : `<div class="empty" style="padding:12px 20px;max-width:62ch">Ни рисков, ни заметных фактов в отчёте не нашлось. Посмотрите ниже, чего в отчёте нет: это и стоит запросить у контрагента.</div>`;
+  const gaps = (c.gaps || []).map((g) => `<li>${esc(g)}</li>`).join("");
+  const ask = (c.ask_before || []).map((a) => `<li>${esc(a)}</li>`).join("");
+  html += `<div class="gaps">${gaps ? `<b>Чего в отчёте нет</b><ul>${gaps}</ul>` : "<b>Все разделы отчёта заполнены</b>"}</div>`;
+  if (ask) html += `<div class="gaps"><b>Что запросить у контрагента</b><ul>${ask}</ul></div>`;
   $("#card").innerHTML = html;
-  const mb = $("#moreBtn"); if (mb) mb.addEventListener("click", () => { $("#moreList").hidden = false; mb.parentElement.hidden = true; });
 }
 
 function showCompany(c) {
@@ -317,7 +332,7 @@ async function check(q) {
   if (busy) return;
   if (isQuestion(q) && !/^\d{10,12}$/.test(q.trim())) return askFree(q.trim());
   let res;
-  try { res = await resolveCompany(q); } catch (e) { showMessage($("#picker"), `Сервис недоступен: ${e.message}`); return; }
+  try { res = await resolveCompany(q); } catch (e) { showMessage($("#picker"), "Сервис недоступен, попробуйте обновить страницу."); return; }
   $("#picker").hidden = true;
   if (!res) { showMessage($("#picker"), `Компания «${q}» в базе не найдена. Попробуйте ИНН.`); return; }
   if (res.pick) {
@@ -344,7 +359,7 @@ async function addCompany(q) {
   q = q.trim(); if (!q) return;
   if (chosen.length >= 5) { showMessage($("#picker2"), "Больше пяти компаний за раз не сравниваем."); return; }
   let res;
-  try { res = await resolveCompany(q); } catch (e) { showMessage($("#picker2"), `Сервис недоступен: ${e.message}`); return; }
+  try { res = await resolveCompany(q); } catch (e) { showMessage($("#picker2"), "Сервис недоступен, попробуйте обновить страницу."); return; }
   $("#picker2").hidden = true;
   if (!res) { showMessage($("#picker2"), `Компания «${q}» не найдена. Попробуйте ИНН.`); return; }
   if (res.pick) {
@@ -365,7 +380,7 @@ function renderComparison(cards) {
   let html = `<div class="groups">${groups.map((v) => `<div class="group ${v}"><b>${VERDICT[v]}</b>${g(v).length ? `<ul>${g(v).map((c) => `<li>${esc(c.name)}</li>`).join("")}</ul>` : `<div class="none">никого</div>`}</div>`).join("")}</div>`;
   const row = (label, cell) => `<tr><td>${label}</td>${cards.map(cell).join("")}</tr>`;
   html += `<div class="cmpwrap"><table class="cmp"><thead><tr><th></th>${cards.map((c) => `<th>${esc(c.name)}<small>отчёт от ${dateRu(c.report_date)}</small></th>`).join("")}</tr></thead><tbody>`;
-  html += row("Вывод", (c) => `<td class="v ${c.verdict}">${VERDICT[c.verdict]}</td>`);
+  html += row("Вывод", (c) => `<td class="v ${c.verdict}">${VERDICT_SHORT[c.verdict]}</td>`);
   html += row("Оценки банка", (c) => `<td>${esc(c.labels.riskLevel)} · ЗСК ${esc(c.labels.zskRiskLevel)}</td>`);
   html += row("Главное", (c) => `<td>${(c.attention || []).length ? `<ul>${c.attention.slice(0, 3).map((a) => `<li>${esc(a.claim)}</li>`).join("")}</ul>` : `<span class="muted">сигналов не найдено</span>`}</td>`);
   html += row("Чего нет в отчёте", (c) => `<td class="muted">${(c.gaps || []).length ? esc(c.gaps.join(" · ")) : "пробелов нет"}</td>`);
@@ -417,14 +432,15 @@ async function stream(container, question, shown, onEnd) {
           status.textContent = `готово за ${Math.round((Date.now() - t0) / 1000)} с`;
           body.innerHTML = md(a.text_md || "");
           if (onEnd) { try { await onEnd(a); } catch (e) {} }
-          const inv = (a.invalid_citations || []).length;
-          body.insertAdjacentHTML("beforeend", `<div class="foot">${inv ? `Убрано утверждений, не подтверждённых отчётом: ${inv}. ` : ""}Факты сверены с отчётом банка.</div>`);
+          const dates = [...new Set(Object.values(a.report_dates || {}))].sort();
+          const when = dates.length === 1 ? ` от ${dateRu(dates[0])}` : "";
+          body.insertAdjacentHTML("beforeend", `<div class="foot">Каждое число проверено по отчёту банка${when}.</div>`);
         }
-        else if (type === "error") { ended = true; clearInterval(timer); status.textContent = "ошибка: " + ((env.data && env.data.message) || "неизвестно"); }
+        else if (type === "error") { ended = true; clearInterval(timer); status.textContent = "Не удалось получить ответ, попробуйте ещё раз."; status.title = (env.data && env.data.message) || ""; }
       }
     }
-  } catch (e) { clearInterval(timer); status.textContent = "ошибка соединения: " + e.message; ended = true; }
-  finally { clearInterval(timer); if (!ended) status.textContent = "поток закрыт без ответа, попробуйте ещё раз"; setBusy(false); turn.scrollIntoView({ block: "nearest" }); }
+  } catch (e) { clearInterval(timer); status.textContent = "Связь с сервисом прервалась, попробуйте ещё раз."; status.title = e.message; ended = true; }
+  finally { clearInterval(timer); if (!ended) status.textContent = "Ответ не дошёл, попробуйте ещё раз."; setBusy(false); turn.scrollIntoView({ block: "nearest" }); }
 }
 
 const GOALS = {
