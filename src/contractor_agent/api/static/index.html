@@ -365,6 +365,29 @@ function renderCard(c) {
   $("#card").innerHTML = html;
 }
 
+// карточку компании страница уже собрала кодом — в чате остаётся реплика, а не её пересказ
+const normLine = (t) => t.toLowerCase().replace(/[^а-яёa-z0-9]/g, "").slice(0, 48);
+function withoutCardEcho(a) {
+  const card = a.card;
+  if (!card) return a.text_md || "";
+  const echo = new Set();
+  for (const f of card.attention || []) echo.add(normLine(f.claim));
+  for (const g of card.gaps || []) echo.add(normLine(g));
+  for (const q of card.ask_before || []) echo.add(normLine(q));
+  echo.add(normLine(`${card.labels.riskLevel}${card.labels.zskRiskLevel}`));
+  const kept = (a.text_md || "").split("\n").filter((line) => {
+    const n = normLine(line);
+    if (!n) return false;
+    if (echo.has(n)) return false;
+    for (const e of echo) if (e.length > 20 && (n.includes(e) || e.includes(n))) return false;
+    return !/^(оценки банка|на что обратить внимание|что запросить|чего в отчёте нет)/i.test(line.replace(/[*#\s-]/g, "").slice(0, 0) + line.trim());
+  });
+  const text = kept.join("\n").trim();
+  return text
+    ? `${text}\n\nПодробности — в карточке выше. Спросите, что важно именно вам.`
+    : "Проверка готова — она выше. Спросите, что важно именно вам: суды, долги у приставов, финансы или что запросить у контрагента.";
+}
+
 function showCompany(c) {
   current = { inn: c.inn, name: c.name, date: c.report_date };
   $("#company").hidden = false; $("#agent").hidden = false;
@@ -479,7 +502,7 @@ async function stream(container, question, shown, onEnd) {
           ended = true; clearInterval(timer);
           const a = env.data.output;
           status.textContent = `готово за ${Math.round((Date.now() - t0) / 1000)} с`;
-          const finalHtml = md(a.text_md || "");
+          const finalHtml = md(withoutCardEcho(a));
           if (finalHtml !== body.innerHTML) {  // код мог убрать неподтверждённое — меняем плавно
             body.style.opacity = "0.35";
             setTimeout(() => { body.innerHTML = finalHtml; body.style.opacity = "1"; }, 120);

@@ -154,6 +154,10 @@ def make_nodes(llm: LLM, tools: list[Any], source: ReportSource) -> dict[str, No
             draft = draft.model_copy(
                 update={"kind": "comparison"}
             )  # несколько компаний — сравнение
+        elif kind_hint == "card" and cards and draft.kind in ("refusal", "answer"):
+            # просили проверить компанию, карточка собрана кодом: пробелы в отчёте не повод
+            # отдавать ответ без рекомендации — иначе интерфейс теряет вывод и вид ответа
+            draft = draft.model_copy(update={"kind": "card"})
         answer = Answer(
             kind=draft.kind,
             text_md=draft.text_md,
@@ -202,6 +206,7 @@ def make_nodes(llm: LLM, tools: list[Any], source: ReportSource) -> dict[str, No
             text = enforce_comparison(scrub_forbidden(base, None), answer.cards)
         else:
             text = scrub_forbidden(base, None)
+        text = tidy_text(text)  # ещё раз: подстановки кода тоже приводим к общему виду
         checked = answer.model_copy(
             update={
                 "text_md": text,
@@ -558,6 +563,15 @@ _TIDY = (  # слабая модель протаскивает в текст и
     (re.compile(r"([,;:])(?:\s*[,;:])+"), r"\1"),  # «нет данных,,» → «нет данных,»
     (re.compile(r",\s*\."), "."),
     (re.compile(r"\n{3,}"), "\n\n"),
+    # замена запрещённой фразы штатной рекомендацией даёт повтор: «…документы только на условиях…»
+    (re.compile(r"(\b[^\n]{25,}?)\s*[;,]?\s+\1"), r"\1"),
+    (
+        re.compile(
+            r"(работать только на условиях: предоплата и подтверждающие документы)\s+только на условиях: предоплата и подтверждающие документы",
+            re.I,
+        ),
+        r"\1",
+    ),
 )
 
 
