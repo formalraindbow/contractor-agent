@@ -172,17 +172,16 @@ def make_nodes(llm: LLM, tools: list[Any], source: ReportSource) -> dict[str, No
                 "citation_retry": retry + 1,
                 "answer": None,
             }
+        base = tidy_text(answer.text_md)
         if answer.card:
             text = enforce_verdict(
-                scrub_forbidden(
-                    replace_verdict_codes(answer.text_md), VERDICT_RU[answer.card.verdict]
-                ),
+                scrub_forbidden(replace_verdict_codes(base), VERDICT_RU[answer.card.verdict]),
                 answer.card.verdict,
             )
         elif answer.cards:
-            text = enforce_comparison(scrub_forbidden(answer.text_md, None), answer.cards)
+            text = enforce_comparison(scrub_forbidden(base, None), answer.cards)
         else:
-            text = scrub_forbidden(answer.text_md, None)
+            text = scrub_forbidden(base, None)
         checked = answer.model_copy(
             update={
                 "text_md": text,
@@ -359,6 +358,26 @@ _VERDICT_CODE_RE = re.compile(r"(?<![\w/])(not_recommended|check|ok)(?![\w/])")
 def replace_verdict_codes(text: str) -> str:
     """Код исхода в тексте («ГДК — not_recommended») → штатная фраза."""
     return _VERDICT_CODE_RE.sub(lambda m: VERDICT_RU[Verdict(m.group(1))], text)
+
+
+_TIDY = (  # слабая модель протаскивает в текст имена полей и повторы — чистим кодом
+    (
+        re.compile(r"^(\s*[-•]\s*)?claim:\s*(.+?)\s+source_path:\s*(report\.\S+)\s*$", re.M),
+        r"\1\2 [\3]",
+    ),
+    (re.compile(r"\bverdict_ru:\s*", re.I), ""),
+    (re.compile(r"\s*\((svetofor|zsk|labels?|verdict)\)", re.I), ""),
+    (re.compile(r"^(.{12,}?)\s+\(\1\)", re.M), r"\1"),  # «X (X)» → «X»
+    (re.compile(r"\bBank ratings\b", re.I), "Оценки банка"),
+    (re.compile(r"\bVerdict\b:?", re.I), "Вывод:"),
+)
+
+
+def tidy_text(text: str) -> str:
+    out = text
+    for rx, repl in _TIDY:
+        out = rx.sub(repl, out)
+    return out
 
 
 def enforce_comparison(text: str, cards: list[Card]) -> str:
