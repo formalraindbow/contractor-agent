@@ -15,7 +15,7 @@ import re
 from collections.abc import Awaitable, Callable
 from typing import Any
 
-from langchain_core.messages import AIMessage, HumanMessage, SystemMessage, ToolMessage
+from langchain_core.messages import AIMessage, BaseMessage, HumanMessage, SystemMessage, ToolMessage
 from langgraph.graph import END
 from langgraph.prebuilt import ToolNode
 
@@ -43,7 +43,8 @@ def make_nodes(llm: LLM, tools: list[Any], source: ReportSource) -> dict[str, No
     tools_layer = Tools(source)
 
     async def agent(state: AgentState) -> dict[str, Any]:
-        messages = [SystemMessage(content=SYSTEM_PROMPT), *state["messages"]]
+        history = visible_history(state["messages"], str(state.get("question") or ""))
+        messages = [SystemMessage(content=SYSTEM_PROMPT), *history]
         response = await with_tools.ainvoke(messages)
         return {"messages": [response]}
 
@@ -87,9 +88,10 @@ def make_nodes(llm: LLM, tools: list[Any], source: ReportSource) -> dict[str, No
 
     async def finalize(state: AgentState) -> dict[str, Any]:
         _, hint = question_kind_hint(str(state.get("question") or ""))
+        history = visible_history(state["messages"], str(state.get("question") or ""))
         messages = [
             SystemMessage(content=SYSTEM_PROMPT),
-            *state["messages"],
+            *history,
             HumanMessage(content=f"{FINALIZE_PROMPT}\n\n{hint}" if hint else FINALIZE_PROMPT),
         ]
         try:
@@ -359,6 +361,27 @@ def _parse(content: Any) -> Any:
         except ValueError:
             return content
     return content
+
+
+def visible_history(messages: list[BaseMessage], question: str) -> list[BaseMessage]:
+    """Что видит модель: прошлые ходы — только текстом (без вызовов инструментов и их выдачи),
+    текущий ход — целиком. Иначе на уточняющий вопрос модель копирует прошлую карточку
+    и берёт числа из старых выдач, а правило «данные прошлых ходов не считаются» не работает."""
+    start = next(
+        (
+            i
+            for i in range(len(messages) - 1, -1, -1)
+            if isinstance(messages[i], HumanMessage) and messages[i].content == question
+        ),
+        0,
+    )
+    past = [
+        m
+        for m in messages[:start]
+        if isinstance(m, HumanMessage)
+        or (isinstance(m, AIMessage) and not m.tool_calls and m.content)
+    ]
+    return [*past, *messages[start:]]
 
 
 def _item_dates(payload: Any) -> dict[str, str]:
