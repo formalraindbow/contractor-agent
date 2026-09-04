@@ -33,6 +33,9 @@ class Settings(BaseSettings):
         "minimax/minimax-m2.7:free,z-ai/glm-5.2:free,google/gemma-4-31b-it:free"
     )
     llm_timeout: float = 90
+    llm_reasoning_effort: str | None = (
+        "low"  # gpt-oss: low в 3 раза быстрее medium на том же ответе
+    )
     judge_model: str = "openai/gpt-oss-120b"  # судья эвалов — сильнее агента, чтобы не судить себя
     judge_base_url: str = "https://openrouter.ai/api/v1"  # судья не зависит от адреса агента
     openrouter_api_key: str | None = None
