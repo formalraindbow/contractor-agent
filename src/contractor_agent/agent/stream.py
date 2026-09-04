@@ -72,7 +72,7 @@ async def stream_run(
                     if node == "tools":
                         for call in update.get("trace") or []:
                             yield envelope("tool", call.model_dump())
-                    if node == "validate" and update.get("answer") is not None:
+                    if node in ("validate", "guard") and update.get("answer") is not None:
                         answer = update["answer"]
         if answer is None:
             raise RuntimeError("граф завершился без ответа")
