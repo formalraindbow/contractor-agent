@@ -268,3 +268,34 @@ def test_verdict_codes_are_replaced_with_phrases() -> None:
     assert "not_recommended" not in out and " ok" not in out
     assert "работать только на условиях" in out and "можно работать" in out
     assert "check_id" in out
+
+
+def test_visible_history_drops_old_tool_traffic_but_keeps_current_turn() -> None:
+    from langchain_core.messages import AIMessage, HumanMessage, ToolMessage
+
+    from contractor_agent.agent.nodes import visible_history
+
+    old_call = AIMessage(
+        content="", tool_calls=[{"name": "get_report_summary", "args": {"inn": "1"}, "id": "a"}]
+    )
+    msgs = [
+        HumanMessage(content="Проверь X"),
+        old_call,
+        ToolMessage(content="{}", tool_call_id="a", name="get_report_summary"),
+        AIMessage(content="Карточка X: … Дата отчёта 31.07.2026."),
+        HumanMessage(content="А суды?"),
+        AIMessage(
+            content="",
+            tool_calls=[{"name": "get_arbitration_summary", "args": {"inn": "1"}, "id": "b"}],
+        ),
+        ToolMessage(content="{}", tool_call_id="b", name="get_arbitration_summary"),
+    ]
+    seen = visible_history(msgs, "А суды?")
+    assert [type(m).__name__ for m in seen] == [
+        "HumanMessage",
+        "AIMessage",
+        "HumanMessage",
+        "AIMessage",
+        "ToolMessage",
+    ]
+    assert seen[1].content.startswith("Карточка X")
