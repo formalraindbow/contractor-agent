@@ -22,7 +22,8 @@ class Metrics:
     errors: int = 0
     grounded_share: float | None = None  # ответы, подтверждаемые данными (answer + infer + card)
     refusal_share: float | None = None  # корректные отказы (refuse)
-    invented_share: float | None = None  # выдумки (все типы)
+    invented_share: float | None = None  # выдуманные факты по судье (все типы)
+    bad_citation_share: float | None = None  # ответы с неверной ссылкой на поле (все типы)
     missed_critical_share: float | None = None  # пропущенные критичные факты (card)
     judge_mean: float | None = None
     stability: float | None = None  # доля вопросов с одинаковым исходом во всех повторах
@@ -52,15 +53,14 @@ def compute_metrics(records: list[RunRecord]) -> Metrics:
     refuse = [r for r in ok if r.type == "refuse"]
     m.refusal_share = _share(sum(1 for r in refuse if r.check_notes.get("refused")), len(refuse))
 
-    invented = [
+    invented = [  # выдуманный факт по мнению судьи, который видит данные инструментов
         r
         for r in ok
-        if (r.answer and r.answer.invalid_citations)
-        or (
-            r.judge and ("invented_fact" in r.judge.failures or "false_alarm" in r.judge.deductions)
-        )
+        if r.judge and ("invented_fact" in r.judge.failures or "false_alarm" in r.judge.deductions)
     ]
     m.invented_share = _share(len(invented), len(ok))
+    bad_cit = [r for r in ok if r.answer and r.answer.invalid_citations]  # ссылка не на то поле
+    m.bad_citation_share = _share(len(bad_cit), len(ok))
 
     cards = [r for r in ok if r.type == "card"]
     missed = [
