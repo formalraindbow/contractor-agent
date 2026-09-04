@@ -108,6 +108,16 @@ def number_matches(claimed: Decimal, actual: Decimal) -> bool:
 
 
 def check_citation(source: ReportSource, inns: list[str], citation: Citation) -> CitationCheck:
+    if re.search(
+        r"[,;]\s*report\.", citation.source_path
+    ):  # два адреса в одной цитате — проверяем оба
+        parts = [x.strip() for x in re.split(r"[,;]", citation.source_path) if x.strip()]
+        checks = [
+            check_citation(source, inns, citation.model_copy(update={"source_path": x}))
+            for x in parts
+        ]
+        bad = next((c for c in checks if not c.ok), None)
+        return bad or CitationCheck(citation, True, None, checks[0].value, checks[0].inn)
     path = normalize_path(citation.source_path)
     last_error = "адреса нет в отчёте"
     scope = [citation.inn] if citation.inn and citation.inn in inns else list(reversed(inns))
