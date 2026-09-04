@@ -168,3 +168,11 @@ def test_refusal_with_reordered_words():
         text_md="Кто подавал и за что — в отчёте сведений нет: только суммы по годам.",
     )
     assert is_refusal(a)
+
+
+def test_role_synonyms_count_as_role():
+    from evals.checks import _has
+
+    assert _has("Завершённые иски к компании: 8 дел", "ответчик")
+    assert _has("Компания сама подавала 20 раз", "истец")
+    assert not _has("Всего 8 дел", "ответчик")
