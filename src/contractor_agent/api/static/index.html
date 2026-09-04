@@ -365,27 +365,13 @@ function renderCard(c) {
   $("#card").innerHTML = html;
 }
 
-// карточку компании страница уже собрала кодом — в чате остаётся реплика, а не её пересказ
-const normLine = (t) => t.toLowerCase().replace(/[^а-яёa-z0-9]/g, "").slice(0, 48);
+// карточку компании страница уже собрала кодом — в чате остаётся вывод и приглашение спросить,
+// иначе один и тот же разбор виден дважды и читается как простыня
 function withoutCardEcho(a) {
   const card = a.card;
   if (!card) return a.text_md || "";
-  const echo = new Set();
-  for (const f of card.attention || []) echo.add(normLine(f.claim));
-  for (const g of card.gaps || []) echo.add(normLine(g));
-  for (const q of card.ask_before || []) echo.add(normLine(q));
-  echo.add(normLine(`${card.labels.riskLevel}${card.labels.zskRiskLevel}`));
-  const kept = (a.text_md || "").split("\n").filter((line) => {
-    const n = normLine(line);
-    if (!n) return false;
-    if (echo.has(n)) return false;
-    for (const e of echo) if (e.length > 20 && (n.includes(e) || e.includes(n))) return false;
-    return !/^(оценки банка|на что обратить внимание|что запросить|чего в отчёте нет)/i.test(line.replace(/[*#\s-]/g, "").slice(0, 0) + line.trim());
-  });
-  const text = kept.join("\n").trim();
-  return text
-    ? `${text}\n\nПодробности — в карточке выше. Спросите, что важно именно вам.`
-    : "Проверка готова — она выше. Спросите, что важно именно вам: суды, долги у приставов, финансы или что запросить у контрагента.";
+  const tail = "Подробности — в карточке выше. Спросите, что важно именно вам: суды, долги у приставов, финансы или что запросить у контрагента.";
+  return `**${VERDICT[card.verdict]}.** ${card.terminal ? "Компания в процедуре банкротства или исключается из реестра: сделки могут быть оспорены, обязательства не исполнены." : ""}\n\n${tail}`;
 }
 
 function showCompany(c) {
@@ -399,7 +385,9 @@ function showCompany(c) {
   $("#ask").focus();
 }
 
-const isQuestion = (q) => /\?|\b(можно|сколько|что|какие|какой|какая|есть ли|почему|проверь|расскажи|стоит|давать|сравни|кто|когда|как)\b/i.test(q);
+// в JS \b не работает с кириллицей (буква не входит в \w): границы задаём явно,
+// иначе вопрос «Проверь МАКСМАРКЕТ: можно ли работать» уходил в поиск по названию
+const isQuestion = (q) => /\?|(^|[^а-яёa-z])(можно|сколько|что|какие|какой|какая|есть ли|почему|проверь|проверить|расскажи|стоит|давать|сравни|кто|когда|как)([^а-яёa-z]|$)|(^|[^а-яёa-z])(надёжн|надежн|рискован|банкрот)/i.test(q);
 
 async function check(q) {
   if (busy) return;
@@ -407,7 +395,11 @@ async function check(q) {
   let res;
   try { res = await resolveCompany(q); } catch (e) { showMessage($("#picker"), "Сервис недоступен, попробуйте обновить страницу."); return; }
   $("#picker").hidden = true;
-  if (!res) { showMessage($("#picker"), `Компания «${q}» в базе не найдена. Попробуйте ИНН.`); return; }
+  if (!res) {  // не нашли по названию — отдаём вопрос агенту, он ищет сам и объясняет
+    if (q.trim().split(/\s+/).length > 1) return askFree(q.trim());
+    showMessage($("#picker"), `Компания «${q}» в базе не найдена. Попробуйте ИНН или спросите словами.`);
+    return;
+  }
   if (res.pick) {
     showPicker($("#picker"), res.pick, check, "Нашлось несколько компаний — выберите нужную:");
     return;

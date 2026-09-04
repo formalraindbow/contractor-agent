@@ -245,7 +245,7 @@ def verdict_mismatch(answer: Answer) -> str | None:
     if answer.card is not None:
         expected = VERDICT_RU[answer.card.verdict]
         lowered = answer.text_md.casefold()
-        if expected in lowered:
+        if verdict_present(answer.text_md, answer.card.verdict):
             return None
         others = [v for v in VERDICT_RU.values() if v != expected and v in lowered]
         if others:
@@ -638,15 +638,28 @@ def enforce_comparison(text: str, cards: list[Card]) -> str:
     return f"{text.rstrip()}\n\n**По данным отчётов:**\n" + "\n".join(lines)
 
 
+_VERDICT_CORE = {  # ядро фразы: «работать с ООО … можно только на условиях» — тот же вывод
+    Verdict.OK: re.compile(r"можно работать|работать можно", re.I),
+    Verdict.CHECK: re.compile(r"стоит проверить", re.I),
+    Verdict.NOT_RECOMMENDED: re.compile(r"только на условиях:?\s*предоплата", re.I),
+}
+
+
+def verdict_present(text: str, verdict: Verdict) -> bool:
+    """Вывод в тексте уже есть, даже если модель вплела его в предложение."""
+    return bool(_VERDICT_CORE[verdict].search(text))
+
+
 def enforce_verdict(text: str, verdict: Verdict) -> str:
     """После неудачного круга исправления вывод в тексте заменяется кодом."""
     expected = VERDICT_RU[verdict]
     out = text
-    for other in VERDICT_RU.values():
-        if other == expected:
+    for other_verdict, other in VERDICT_RU.items():
+        if other_verdict is verdict:
             continue
-        out = re.compile(re.escape(other), re.IGNORECASE).sub(expected, out)
-    if expected not in out.casefold():
+        if _VERDICT_CORE[other_verdict].search(out):
+            out = re.compile(re.escape(other), re.IGNORECASE).sub(expected, out)
+    if not verdict_present(out, verdict):
         out = f"{out.rstrip()}\n\n**Рекомендация:** {expected}."
     return out
 
