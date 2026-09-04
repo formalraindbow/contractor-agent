@@ -124,8 +124,11 @@
   table.cmp { width: 100%; border-collapse: collapse; font-size: 13.5px; min-width: 640px; }
   table.cmp th { text-align: left; padding: 8px 10px; font: 600 11.5px "IBM Plex Sans", sans-serif; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); border-bottom: 1px solid var(--line); vertical-align: bottom; }
   table.cmp th small { display: block; font-weight: 400; text-transform: none; letter-spacing: 0; }
-  table.cmp td { padding: 10px; border-bottom: 1px solid var(--line); vertical-align: top; }
-  table.cmp td:first-child { font-weight: 600; white-space: nowrap; }
+  table.cmp { table-layout: fixed; }
+  table.cmp th:first-child, table.cmp td:first-child { width: 150px; }
+  table.cmp td { padding: 12px 14px 12px 0; border-bottom: 1px solid var(--line); vertical-align: top; }
+  table.cmp td:first-child { font-weight: 600; white-space: nowrap; padding-right: 20px; }
+  table.cmp th { padding: 10px 14px 10px 0; }
   table.cmp .v { font-weight: 600; }
   table.cmp .v.ok { color: var(--ok); } table.cmp .v.check { color: var(--mod); } table.cmp .v.not_recommended { color: var(--crit); }
   table.cmp ul { margin: 0; padding: 0; list-style: none; }
@@ -363,7 +366,7 @@ function renderComparison(cards) {
   html += `<div class="cmpwrap"><table class="cmp"><thead><tr><th></th>${cards.map((c) => `<th>${esc(c.name)}<small>отчёт от ${dateRu(c.report_date)}</small></th>`).join("")}</tr></thead><tbody>`;
   html += row("Вывод", (c) => `<td class="v ${c.verdict}">${VERDICT[c.verdict]}</td>`);
   html += row("Оценки банка", (c) => `<td>${esc(c.labels.riskLevel)} · ЗСК ${esc(c.labels.zskRiskLevel)}</td>`);
-  html += row("Главное", (c) => `<td>${(c.attention || []).length ? `<ul>${c.attention.slice(0, 3).map((a) => `<li>${esc(a.claim)}</li>`).join("")}</ul>` : `<span class="muted">сигналов по правилам не найдено</span>`}</td>`);
+  html += row("Главное", (c) => `<td>${(c.attention || []).length ? `<ul>${c.attention.slice(0, 3).map((a) => `<li>${esc(a.claim)}</li>`).join("")}</ul>` : `<span class="muted">сигналов не найдено</span>`}</td>`);
   html += row("Чего нет в отчёте", (c) => `<td class="muted">${(c.gaps || []).length ? esc(c.gaps.join(" · ")) : "пробелов нет"}</td>`);
   html += `</tbody></table></div>`;
   $("#cmpBody").innerHTML = html;
