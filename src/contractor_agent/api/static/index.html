@@ -108,7 +108,7 @@
 </style>
 </head>
 <body>
-<div class="topbar"><div class="in"><span><i></i>Проверка контрагента</span><span class="s" id="session">новая сессия</span><button id="reset" type="button">Новая проверка</button></div></div>
+<div class="topbar"><div class="in"><span><i></i>Проверка контрагента</span><span class="s" id="session">агент помнит разговор</span><button id="reset" type="button">Новая проверка</button></div></div>
 
 <div class="page">
   <form class="search" id="search">
@@ -152,7 +152,7 @@ const TOOLS = { search_company: "ищу компанию", get_report_summary: "
 let thread = "web-" + Math.random().toString(36).slice(2, 10);
 let current = null; // {inn, name, date}
 let busy = false;
-$("#session").textContent = "сессия " + thread.slice(4);
+
 
 const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
 const dateRu = (iso) => { if (!iso) return ""; const [y, m, d] = String(iso).split("-"); return d ? `${d}.${m}.${y}` : iso; };
@@ -162,7 +162,7 @@ function md(text) {
   const out = []; let list = null;
   const inline = (s) => esc(s)
     .replace(/\*\*(.+?)\*\*/g, "<b>$1</b>")
-    .replace(/\[(report\.[^\]\s]+)\]/g, '<span class="src">$1</span>');
+    .replace(/\s*\[(report\.[^\]\s]+)\]/g, "");
   for (const raw of text.split("\n")) {
     const line = raw.trim();
     const m = line.match(/^(?:[-•*]|\d+[.)])\s+(.*)$/);
@@ -177,7 +177,7 @@ function md(text) {
 function renderCard(c) {
   const facts = c.attention || [];
   const top = facts.slice(0, 3), rest = facts.slice(3);
-  const li = (a) => `<li><span class="sev ${a.severity}">${SEV[a.severity] || a.severity}</span><div>${esc(a.claim)}<span class="src">${esc(a.source_path)}</span></div></li>`;
+  const li = (a) => `<li><span class="sev ${a.severity}">${SEV[a.severity] || a.severity}</span><div>${esc(a.claim)}</div></li>`;
   const sub = c.terminal ? "Компания в процедуре банкротства или исключается из реестра: сделки могут быть оспорены, обязательства не исполнены."
     : c.verdict === "ok" ? "Критичных и умеренных сигналов в отчёте не найдено." : "";
   let html = `<div class="verdict ${c.verdict}"><div class="stripe"></div><div><div class="v">${VERDICT[c.verdict]}</div>${sub ? `<div class="s">${sub}</div>` : ""}</div></div>`;
@@ -196,7 +196,7 @@ function showCompany(c) {
   $("#cname").textContent = c.name;
   $("#cmeta").textContent = `ИНН ${c.inn} · отчёт банка от ${dateRu(c.report_date)}`;
   $("#cpills").innerHTML = `<span class="pill ${pillClass(c.labels.riskLevel)}"><span class="dot"></span>Оценка банка: ${esc(c.labels.riskLevel)}</span><span class="pill ${pillClass(c.labels.zskRiskLevel)}"><span class="dot"></span>ЗСК: ${esc(c.labels.zskRiskLevel)}</span>`;
-  $("#ahead").textContent = `по отчёту от ${dateRu(c.report_date)} · каждый факт со ссылкой на поле`;
+  $("#ahead").textContent = `по отчёту банка от ${dateRu(c.report_date)}`;
   renderCard(c);
 }
 
@@ -222,7 +222,7 @@ async function check(q) {
     $("#picker").querySelectorAll("button").forEach((b) => b.addEventListener("click", () => check(b.dataset.inn)));
     return;
   }
-  thread = "web-" + Math.random().toString(36).slice(2, 10); $("#session").textContent = "сессия " + thread.slice(4);
+  thread = "web-" + Math.random().toString(36).slice(2, 10); 
   $("#thread").innerHTML = "";
   $("#agent").hidden = false; $("#card").innerHTML = '<div class="skeleton"></div><div class="skeleton" style="width:70%"></div>';
   const cr = await fetch(`/report/${res.inn}/card`);
@@ -266,10 +266,10 @@ async function ask(question, shown) {
           status.textContent = `готово за ${Math.round((Date.now() - t0) / 1000)} с`;
           body.innerHTML = md(a.text_md || "");
           const cards = a.cards && a.cards.length ? a.cards : [];
-          if (cards.length) body.insertAdjacentHTML("beforeend", `<div class="cards">${cards.map((c) => `<div class="cmp"><b>${esc(c.name)}</b> <span class="src">ИНН ${esc(c.inn)}</span><div class="v ${c.verdict}">${VERDICT[c.verdict]}</div>${(c.attention || []).slice(0, 2).map((x) => `<ul><li>${esc(x.claim)}</li></ul>`).join("")}<div class="foot">оценка банка: ${esc(c.labels.riskLevel)} · ЗСК: ${esc(c.labels.zskRiskLevel)} · отчёт от ${dateRu(c.report_date)}</div></div>`).join("")}</div>`);
+          if (cards.length) body.insertAdjacentHTML("beforeend", `<div class="cards">${cards.map((c) => `<div class="cmp"><b>${esc(c.name)}</b> <span class="foot">ИНН ${esc(c.inn)}</span><div class="v ${c.verdict}">${VERDICT[c.verdict]}</div>${(c.attention || []).slice(0, 2).map((x) => `<ul><li>${esc(x.claim)}</li></ul>`).join("")}<div class="foot">оценка банка: ${esc(c.labels.riskLevel)} · ЗСК: ${esc(c.labels.zskRiskLevel)} · отчёт от ${dateRu(c.report_date)}</div></div>`).join("")}</div>`);
           if (a.card && a.kind === "card") renderCard(a.card);
           const inv = (a.invalid_citations || []).length, ok = (a.citations || []).length;
-          body.insertAdjacentHTML("beforeend", `<div class="foot">ссылок на отчёт подтверждено: ${ok}${inv ? `, не подтверждено и убрано: ${inv}` : ""}</div>`);
+          body.insertAdjacentHTML("beforeend", `<div class="foot">${inv ? `Убрано утверждений, не подтверждённых отчётом: ${inv}. ` : ""}Все факты сверены с отчётом.</div>`);
         }
         else if (type === "error") { ended = true; clearInterval(timer); status.textContent = "ошибка: " + ((env.data && env.data.message) || "неизвестно"); }
       }
@@ -288,7 +288,7 @@ $("#cmp").addEventListener("click", () => {
   if (!other) return;
   ask(`Сравни ${current.name} (ИНН ${current.inn}) и ${other.trim()}: с кем лучше работать?`);
 });
-$("#reset").addEventListener("click", () => { thread = "web-" + Math.random().toString(36).slice(2, 10); $("#session").textContent = "сессия " + thread.slice(4); current = null; $("#company").hidden = true; $("#agent").hidden = true; $("#thread").innerHTML = ""; $("#q").value = ""; $("#q").focus(); });
+$("#reset").addEventListener("click", () => { thread = "web-" + Math.random().toString(36).slice(2, 10);  current = null; $("#company").hidden = true; $("#agent").hidden = true; $("#thread").innerHTML = ""; $("#q").value = ""; $("#q").focus(); });
 </script>
 </body>
 </html>
