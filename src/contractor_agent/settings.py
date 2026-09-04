@@ -25,6 +25,9 @@ class Settings(BaseSettings):
     mcp_port: int = 8765
 
     api_host: str = "127.0.0.1"
+    web_password: str | None = (
+        None  # WEB_PASSWORD: пароль на доступ к странице (для публичной ссылки)
+    )
     api_port: int = 8080
 
     llm_base_url: str = "https://openrouter.ai/api/v1"
