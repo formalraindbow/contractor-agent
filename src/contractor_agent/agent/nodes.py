@@ -22,11 +22,12 @@ from langgraph.prebuilt import ToolNode
 from contractor_agent.agent.citations import (
     extract_inline_citations,
     is_meta_path,
+    numbers_in,
     validate_citations,
 )
 from contractor_agent.agent.llm import LLM
 from contractor_agent.agent.prompt import FINALIZE_PROMPT, SYSTEM_PROMPT, citation_repair_prompt
-from contractor_agent.agent.schema import Answer, Attention, Card, CardLabels, Draft
+from contractor_agent.agent.schema import Answer, Attention, Card, CardLabels, Citation, Draft
 from contractor_agent.agent.state import AgentState, ToolCallTrace
 from contractor_agent.data.loader import ReportSource
 from contractor_agent.mcp_server.tools import Tools
@@ -172,7 +173,7 @@ def make_nodes(llm: LLM, tools: list[Any], source: ReportSource) -> dict[str, No
                 "citation_retry": retry + 1,
                 "answer": None,
             }
-        base = tidy_text(answer.text_md)
+        base = drop_invalid_lines(tidy_text(answer.text_md), [c.citation for c in invalid])
         if answer.card:
             text = enforce_verdict(
                 scrub_forbidden(replace_verdict_codes(base), VERDICT_RU[answer.card.verdict]),
@@ -389,6 +390,40 @@ def tidy_text(text: str) -> str:
     for rx, repl in _TIDY:
         out = rx.sub(repl, out)
     return out
+
+
+def drop_invalid_lines(text: str, invalid: list[Citation]) -> str:
+    """После неудачных кругов исправления строки с неподтверждёнными числами убираются из текста:
+    пользователь не должен видеть «7 152 200 %», которых нет в отчёте."""
+    if not invalid:
+        return text
+    lines = text.split("\n")
+    keep: list[str] = []
+    dropped = 0
+    for line in lines:
+        hit = False
+        for c in invalid:
+            nums = {str(n) for n in numbers_in(c.claim)}
+            inline = f"[{c.source_path}]" in line
+            by_number = bool(nums) and bool(nums & {str(n) for n in numbers_in(line)})
+            if (
+                inline
+                and (by_number or not nums)
+                or (by_number and c.source_path.split(".")[-1] in line)
+            ):
+                hit = True
+                break
+        if hit and line.strip():
+            dropped += 1
+            continue
+        keep.append(line)
+    if dropped:
+        keep.append("")
+        keep.append(
+            f"Убрано утверждений, которые не подтвердились отчётом: {dropped}. "
+            "Числа для них в отчёте другие или отсутствуют."
+        )
+    return "\n".join(keep)
 
 
 def enforce_comparison(text: str, cards: list[Card]) -> str:
