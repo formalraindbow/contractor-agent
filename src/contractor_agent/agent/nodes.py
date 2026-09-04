@@ -507,7 +507,8 @@ def build_card(tools: Tools, inn: str) -> Card | None:
         Attention(
             claim=s["explanation"], severity=Severity(s["severity"]), source_path=s["source_path"]
         )
-        for severity in (Severity.CRITICAL, Severity.MODERATE)
+        # info тоже показываем: у компаний без рисков это единственное содержание карточки
+        for severity in (Severity.CRITICAL, Severity.MODERATE, Severity.INFO)
         for s in data["signals"][severity.value]
     ]
     asks = list(dict.fromkeys(g["ask"] for g in data["gaps"] if g.get("ask")))
