@@ -54,12 +54,15 @@ def make_llm(
     base_url: str | None = None,
     api_key: str | None = None,
     fallbacks: list[str] | None = None,
+    reasoning_effort: str | None = "inherit",
 ) -> LLM:
     """Модель агента по умолчанию; судья эвалов передаёт свой адрес, ключ и пустые запасные."""
     names = [
         model or settings.llm_model,
         *(settings.fallback_models if fallbacks is None else fallbacks),
     ]
+    effort = settings.llm_reasoning_effort if reasoning_effort == "inherit" else reasoning_effort
+    extra: dict[str, Any] = {"reasoning_effort": effort} if effort else {}
     return LLM(
         [
             ChatOpenAI(
@@ -70,6 +73,7 @@ def make_llm(
                 timeout=settings.llm_timeout,
                 max_retries=2,
                 default_headers=HEADERS,
+                **extra,
             )
             for name in names
         ]
@@ -83,4 +87,5 @@ def make_judge_llm(settings: Settings, model: str | None = None) -> LLM:
         base_url=settings.judge_base_url,
         api_key=settings.judge_api_key,
         fallbacks=[],
+        reasoning_effort=None,  # судья думает как умеет: качество важнее скорости
     )
