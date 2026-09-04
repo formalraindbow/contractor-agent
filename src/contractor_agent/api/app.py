@@ -17,7 +17,7 @@ from pathlib import Path
 from typing import Any
 
 from fastapi import FastAPI, HTTPException, Query, Request, Response
-from fastapi.responses import HTMLResponse
+from fastapi.responses import HTMLResponse, RedirectResponse
 from langchain_core.messages import AIMessage, HumanMessage, ToolMessage
 from pydantic import BaseModel, Field
 from sse_starlette.sse import EventSourceResponse
@@ -75,18 +75,29 @@ def create_app(runtime_factory: Callable[[], AgentRuntime] | None = None) -> Fas
 
     web_password = Settings().web_password
     if web_password:  # публичная ссылка: в данных ИНН физлиц, закрываем паролем
+        expected_basic = "Basic " + base64.b64encode(f"alfa:{web_password}".encode()).decode()
 
         @app.middleware("http")
         async def password_gate(request: Request, call_next):
-            header = request.headers.get("authorization", "")
-            expected = "Basic " + base64.b64encode(f"alfa:{web_password}".encode()).decode()
-            if not secrets.compare_digest(header, expected):
-                return Response(
-                    "Нужен пароль",
-                    status_code=401,
-                    headers={"WWW-Authenticate": 'Basic realm="kontragent"'},
+            """Пускаем по ключу в ссылке (?k=…, дальше cookie) или по паре логин-пароль."""
+            key = request.query_params.get("k")
+            if key and secrets.compare_digest(key, web_password):
+                response = RedirectResponse(
+                    str(request.url.remove_query_params("k")), status_code=303
                 )
-            return await call_next(request)
+                response.set_cookie("kontragent_key", web_password, httponly=True, max_age=86400)
+                return response
+            cookie = request.cookies.get("kontragent_key", "")
+            header = request.headers.get("authorization", "")
+            if secrets.compare_digest(cookie, web_password) or secrets.compare_digest(
+                header, expected_basic
+            ):
+                return await call_next(request)
+            return Response(
+                "Нужен пароль: откройте ссылку, которую вам прислали, целиком.",
+                status_code=401,
+                headers={"WWW-Authenticate": 'Basic realm="kontragent"'},
+            )
 
     @app.get("/v1/health")
     def health(request: Request) -> dict[str, Any]:
