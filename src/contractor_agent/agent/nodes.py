@@ -144,7 +144,8 @@ def make_nodes(llm: LLM, tools: list[Any], source: ReportSource) -> dict[str, No
         checks = validate_citations(source, state.get("selected_inns") or [], real)
         invalid = [c for c in checks if not c.ok]
         verdict_problem = (
-            verdict_mismatch(answer)
+            empty_problem(answer)
+            or verdict_mismatch(answer)
             or forbidden_problem(answer.text_md)
             or format_problem(answer, str(state.get("question") or ""))
         )
@@ -308,6 +309,16 @@ FORBIDDEN_RU = (  # характеристика вместо действия �
     r"однодневк\w*",
 )
 _FORBIDDEN_RES = [re.compile(f, re.IGNORECASE) for f in FORBIDDEN_RU]
+
+
+def empty_problem(answer: Answer) -> str | None:
+    """Пустой или обрывочный ответ (gpt-oss-20b отдавал lines=[]) — круг исправления."""
+    if len(re.sub(r"[\s*#|_\-—–]+", "", answer.text_md)) >= 12:
+        return None
+    return (
+        "Ответ пустой. Напиши ответ пользователю в lines: по фактам из ответов инструментов, "
+        "с числами и адресами полей, с датой отчёта."
+    )
 
 
 def forbidden_problem(text: str) -> str | None:
