@@ -417,3 +417,19 @@ def test_tidy_text_strips_field_paths_and_inn() -> None:
     assert "report." not in out and "1684017097" not in out and "]" not in out
     assert "[verdict_ru]" not in tidy_text("Вывод: работать на условиях [verdict_ru]")
     assert out.startswith("Капитал 22,8 млн ₽") and "можно работать" in out
+
+
+def test_refusal_with_data_triggers_repair() -> None:
+    from contractor_agent.agent.nodes import refusal_problem
+    from contractor_agent.agent.schema import Answer
+    from contractor_agent.agent.state import ToolCallTrace
+
+    trace = [
+        ToolCallTrace(
+            name="get_financials", args={}, available=True, reason=None, result_chars=5129
+        )
+    ]
+    refusal = Answer(kind="refusal", text_md="В отчёте нет данных для оценки.")
+    assert refusal_problem(refusal, trace)
+    assert refusal_problem(refusal, []) is None
+    assert refusal_problem(Answer(kind="answer", text_md="Выручка 748 млн ₽."), trace) is None

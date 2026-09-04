@@ -69,7 +69,8 @@
   .verdict.not_recommended { background: var(--crit-bg); border-left-color: var(--crit); } .verdict.not_recommended .v { color: var(--crit); }
   .facts { list-style: none; margin: 0; padding: 0 20px; }
   .facts li { padding: 12px 0; border-bottom: 1px solid var(--line); }
-  .facts li:last-child { border-bottom: 0; }
+  .facts:last-of-type li:last-child { border-bottom: 0; }
+  #moreList { border-top: 1px solid var(--line); }
   .sev { display: inline; padding: 1px 7px; margin-right: 8px; border-radius: 5px; font-size: 11.5px; font-weight: 600; white-space: nowrap; vertical-align: 1px; }
   .sev.critical { background: var(--crit-bg); color: var(--crit); } .sev.moderate { background: var(--mod-bg); color: var(--mod); } .sev.info { background: var(--info-bg); color: var(--info); }
   .more { padding: 0 20px 12px; }

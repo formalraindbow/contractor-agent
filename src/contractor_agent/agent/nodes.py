@@ -157,7 +157,8 @@ def make_nodes(llm: LLM, tools: list[Any], source: ReportSource) -> dict[str, No
         )
         invalid = [c for c in checks if not c.ok]
         verdict_problem = (
-            empty_problem(answer)
+            refusal_problem(answer, state.get("trace") or [])
+            or empty_problem(answer)
             or verdict_mismatch(answer)
             or forbidden_problem(answer.text_md)
             or format_problem(answer, str(state.get("question") or ""))
@@ -332,6 +333,20 @@ FORBIDDEN_RU = (  # характеристика вместо действия �
     r"однодневк\w*",
 )
 _FORBIDDEN_RES = [re.compile(f, re.IGNORECASE) for f in FORBIDDEN_RU]
+
+
+def refusal_problem(answer: Answer, trace: list[ToolCallTrace]) -> str | None:
+    """Отказ, когда инструмент вернул данные, — ошибка модели, а не пробел в отчёте."""
+    if answer.kind != "refusal":
+        return None
+    with_data = [t.name for t in trace if t.available and t.result_chars > 400]
+    if not with_data:
+        return None
+    return (
+        f"Данные получены ({', '.join(dict.fromkeys(with_data))}), отказываться нельзя. "
+        "Перепиши ответ по существу: назови числа из ответа инструмента и дату отчёта; "
+        "«нет сведений» пиши только про то, чего в отчёте действительно нет."
+    )
 
 
 def empty_problem(answer: Answer) -> str | None:
