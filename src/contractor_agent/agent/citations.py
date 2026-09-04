@@ -68,7 +68,8 @@ def extract_inline_citations(text: str) -> list[Citation]:
 
 
 def is_meta_path(path: str) -> bool:
-    return normalize_path(path) in META_PATHS
+    norm = normalize_path(path)
+    return norm in META_PATHS or "verdict_ru" in norm or norm.startswith("report.riskSignals")
 
 
 def normalize_path(path: str) -> str:
@@ -152,9 +153,17 @@ def _positive_counts(value: Any) -> bool:
     return False
 
 
+def _is_year(n: Decimal) -> bool:
+    return n == n.to_integral_value() and 1990 <= n <= 2035
+
+
 def _check_value(citation: Citation, path: str, value: Any, inn: str) -> CitationCheck:
     claimed = numbers_in(citation.claim)
-    if _ABSENCE_STRICT.search(citation.claim):
+    if claimed and all(_is_year(n) for n in claimed):
+        claimed = []  # «выручка за 2024–2025» — годы в утверждении не значения поля
+    if _ABSENCE_STRICT.search(citation.claim) and (
+        path.startswith("report.arbitration") or path.lower().endswith("count")
+    ):
         # «сведений о судах нет» со ссылкой на сводку, где счётчики > 0, — выдуманное отсутствие
         filled = (
             isinstance(value, int | float | Decimal) and not isinstance(value, bool) and value > 0

@@ -247,6 +247,10 @@ _CARD_RE = re.compile(
     re.I,
 )
 _COMPARE_RE = re.compile(r"сравни|с кем лучше|кого выбрать|кто из них", re.I)
+_DECISION_RE = re.compile(
+    r"можно ли|стоит ли|давать ли|кому верить|или лучше|безопасно ли|рискованно ли|надо ли|потянет ли",
+    re.I,
+)
 
 
 _SECTION_TOOLS = {
@@ -280,6 +284,13 @@ def question_kind_hint(question: str) -> tuple[str | None, str | None]:
     вопрос про раздел → answer, «можно ли работать» → card. Решает модель, но с якорем."""
     if _COMPARE_RE.search(question) or len(re.findall(r"\b\d{10,12}\b", question)) >= 2:
         return "comparison", "Подсказка: в вопросе несколько компаний — kind «comparison»."
+    if _DECISION_RE.search(
+        question
+    ):  # просят решение — карточка с выводом, даже если назван раздел
+        return "card", (
+            "Подсказка: просят решение (можно ли работать, давать отсрочку, кому верить) — "
+            "kind «card» с выводом из verdict_ru; факты по разделу из вопроса — первыми."
+        )
     for name, rx in _SECTION_HINTS:
         if rx.search(question):
             return "answer", (
