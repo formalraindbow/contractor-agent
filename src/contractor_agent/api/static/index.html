@@ -81,6 +81,9 @@
   .chip { padding: 7px 12px; border-radius: 999px; background: var(--chip); border: 1px solid var(--line); font-size: 13.5px; color: var(--text); }
   .chip:hover { border-color: var(--accent); }
   .chip.x { padding-right: 8px; } .chip.x b { margin-left: 6px; color: var(--muted); font-weight: 600; cursor: pointer; }
+  .chips.goals { border-top: 0; border-bottom: 1px solid var(--line); padding-bottom: 12px; }
+  .chip.on { background: var(--ink); color: var(--ink-text); border-color: var(--ink); }
+  .goalnote { padding: 0 20px 12px; font-size: 12.5px; color: var(--muted); border-bottom: 1px solid var(--line); }
 
   .thread { display: grid; gap: 12px; padding: 4px 20px 16px; }
   .thread:empty { padding: 0; }
@@ -147,6 +150,14 @@
 
     <section class="panel" id="agent" hidden>
       <div class="head"><span class="t">Рекомендация по отчёту</span><span class="d" id="ahead"></span></div>
+      <div class="chips goals" id="goals">
+        <span class="lbl">Зачем проверяете?</span>
+        <button class="chip" type="button" data-goal="pay">Плачу по счёту</button>
+        <button class="chip" type="button" data-goal="deal">Договор с отсрочкой</button>
+        <button class="chip" type="button" data-goal="supply">Поставка или подряд</button>
+        <button class="chip" type="button" data-goal="legal">Претензия или суд</button>
+        <button class="chip" type="button" data-goal="look">Просто смотрю</button>
+      </div>
       <div id="card"></div>
       <div class="chips" id="chips">
         <span class="lbl">Спросить агента:</span>
@@ -216,7 +227,7 @@ function setBusy(b) {
 
 function md(text) {
   const out = []; let list = null;
-  const inline = (s) => esc(s).replace(/\*\*(.+?)\*\*/g, "<b>$1</b>").replace(/\s*\[\s*report\.[A-Za-z0-9_.]+(?:\[\d+\][A-Za-z0-9_.]*)*\s*\]/g, "").replace(/\s*\[\s*report\.[^\]]*$/g, "").replace(/\s*\binn\s*[:=]?\s*\d{10,12}\b/gi, "").replace(/\s+([.,;:])/g, "$1");
+  const inline = (s) => esc(s).replace(/\*\*(.+?)\*\*/g, "<b>$1</b>").replace(/\s*\[\s*report\.[A-Za-z0-9_.]+(?:\[\d+\][A-Za-z0-9_.]*)*\s*\]/g, "").replace(/\s*\[\s*report\.[^\]]*$/g, "").replace(/\s*\[[A-Za-z_][A-Za-z0-9_.]*(?:\[\d+\][A-Za-z0-9_.]*)*\]/g, "").replace(/\s*\binn\s*[:=]?\s*\d{10,12}\b/gi, "").replace(/\s+([.,;:])/g, "$1");
   for (const raw of String(text).split("\n")) {
     const line = raw.trim();
     const m = line.match(/^(?:[-•*]|\d+[.)])\s+(.*)$/);
@@ -385,6 +396,33 @@ async function stream(container, question, shown, onEnd) {
   finally { clearInterval(timer); if (!ended) status.textContent = "поток закрыт без ответа, попробуйте ещё раз"; setBusy(false); turn.scrollIntoView({ block: "nearest" }); }
 }
 
+const GOALS = {
+  pay: { text: "Мне нужно сейчас оплатить счёт этой компании.", note: "Показываю первым то, что мешает платежу: блокировки счетов, статус в реестре, налоговую задолженность.",
+    asks: [["Пройдёт ли платёж?", "Есть ли риск, что платёж не пройдёт: блокировки счетов, статус в реестре?"], ["Налоговая задолженность", "Есть ли налоговая задолженность или проблемы с отчётностью?"], ["Что запросить", "Что запросить у контрагента перед оплатой?"]] },
+  deal: { text: "Думаю дать этой компании отсрочку платежа.", note: "Показываю первым финансы и долги: чем платить по отсрочке и кому она уже должна.",
+    asks: [["Можно давать отсрочку?", "Можно давать отсрочку платежа?"], ["Финансы", "Что с финансами: выручка, прибыль, капитал?"], ["Долги у приставов", "Есть ли долги у приставов?"]] },
+  supply: { text: "Планирую договор на поставку или подряд с этой компанией.", note: "Показываю первым виды деятельности, лицензии и суды: сможет ли исполнить и с кем судится.",
+    asks: [["Подходит ли по видам деятельности?", "Подходит ли компания по видам деятельности для поставки или подряда?"], ["Лицензии", "Есть ли лицензии в отчёте?"], ["Суды", "Что с судами: сколько дел и кто с кем?"]] },
+  legal: { text: "Разбираюсь с претензией или спором к этой компании.", note: "Показываю первым суды по ролям и исполнительные производства.",
+    asks: [["Суды по ролям", "Что с судами: сколько дел, где компания истец, где ответчик?"], ["Долги у приставов", "Есть ли долги у приставов и на какую сумму?"], ["Статус в реестре", "Что со статусом компании в реестре?"]] },
+  look: { text: "Просто смотрю компанию, конкретной задачи пока нет.", note: "Показываю общую картину: что в отчёте есть и чего в нём нет.",
+    asks: [["Почему такой вывод?", "Почему такой вывод?"], ["Чего нет в отчёте?", "Чего нет в отчёте и что это значит?"], ["Суды", "Что с судами: сколько дел и кто с кем?"], ["Финансы", "Что с финансами?"]] },
+};
+let goal = null, sentGoal = false;
+const DEFAULT_ASKS = [["Объясни рекомендацию", "Почему такой вывод?"], ["Что запросить у контрагента?", "Что запросить у контрагента до договора?"], ["Суды", "Что с судами: сколько дел и кто с кем?"], ["Долги у приставов", "Есть ли долги у приставов?"], ["Финансы", "Что с финансами?"], ["Можно давать отсрочку?", "Можно давать отсрочку платежа?"]];
+
+function renderAsks() {
+  const asks = goal ? GOALS[goal].asks : DEFAULT_ASKS;
+  $("#chips").innerHTML = `<span class="lbl">Спросить агента:</span>` +
+    asks.map(([label, q]) => `<button class="chip" type="button" data-ask="${esc(q)}">${esc(label)}</button>`).join("");
+  $("#chips").querySelectorAll("button[data-ask]").forEach((b) => b.addEventListener("click", () => askOne(b.dataset.ask, b.textContent.trim())));
+  const note = $("#goalnote");
+  if (goal) {
+    if (note) note.textContent = GOALS[goal].note;
+    else $("#goals").insertAdjacentHTML("afterend", `<div class="goalnote" id="goalnote">${esc(GOALS[goal].note)}</div>`);
+  } else if (note) note.remove();
+}
+
 // свободный вопрос без выбранной компании: агент сам находит компанию, сводка по правилам подтягивается по его ответу
 function askFree(q) {
   $("#agent").hidden = false;
@@ -400,7 +438,9 @@ function askFree(q) {
 function askOne(q, label) {
   if (!current) return;
   const first = $("#thread").children.length === 0;
-  stream($("#thread"), first ? `${q} Речь о компании ${current.name}, ИНН ${current.inn}.` : q, label || q);
+  const ctx = [first ? `Речь о компании ${current.name}, ИНН ${current.inn}.` : "", goal && !sentGoal ? GOALS[goal].text : ""].filter(Boolean).join(" ");
+  if (goal) sentGoal = true;
+  stream($("#thread"), ctx ? `${q} ${ctx}` : q, label || q);
 }
 function askMany(q, label) {
   if (chosen.length < 2) return;
@@ -419,19 +459,26 @@ $("#tabMany").addEventListener("click", () => switchMode(true));
 $("#search").addEventListener("submit", (e) => { e.preventDefault(); const q = $("#q").value; if (q.trim()) check(q); });
 document.querySelectorAll("#modeOne .hint button").forEach((b) => b.addEventListener("click", () => { $("#q").value = b.dataset.q; check(b.dataset.q); }));
 $("#askform").addEventListener("submit", (e) => { e.preventDefault(); const q = $("#ask").value.trim(); if (!q) return; $("#ask").value = ""; askOne(q); });
-$("#chips").querySelectorAll("button[data-ask]").forEach((b) => b.addEventListener("click", () => askOne(b.dataset.ask, b.textContent.trim())));
+$("#goals").querySelectorAll("button[data-goal]").forEach((b) => b.addEventListener("click", () => {
+  goal = goal === b.dataset.goal ? null : b.dataset.goal; sentGoal = false;
+  $("#goals").querySelectorAll("button[data-goal]").forEach((x) => x.classList.toggle("on", x.dataset.goal === goal));
+  renderAsks();
+}));
 $("#addform").addEventListener("submit", (e) => { e.preventDefault(); addCompany($("#addq").value); });
 $("#cmpgo").addEventListener("click", compare);
 $("#cmpExample").addEventListener("click", async () => { chosen = []; renderChosen(); for (const inn of ["6165169320", "1684017097", "2311304742"]) await addCompany(inn); });
 $("#cmpAskForm").addEventListener("submit", (e) => { e.preventDefault(); const q = $("#cmpAsk").value.trim(); if (!q) return; $("#cmpAsk").value = ""; askMany(q); });
 $("#cmpChips").querySelectorAll("button[data-ask]").forEach((b) => b.addEventListener("click", () => askMany(b.dataset.ask, b.textContent.trim())));
 $("#reset").addEventListener("click", () => {
-  thread = newThread(); current = null; chosen = [];
+  thread = newThread(); current = null; chosen = []; goal = null; sentGoal = false;
+  $("#goals").querySelectorAll("button[data-goal]").forEach((x) => x.classList.remove("on"));
+  renderAsks();
   $("#company").hidden = true; $("#agent").hidden = true; $("#thread").innerHTML = ""; $("#q").value = ""; $("#picker").hidden = true;
   $("#cmpPanel").hidden = true; $("#cmpThread").innerHTML = ""; $("#addq").value = ""; $("#picker2").hidden = true; renderChosen();
   switchMode(false);
 });
 renderChosen();
+renderAsks();
 </script>
 </body>
 </html>
