@@ -216,7 +216,7 @@ function setBusy(b) {
 
 function md(text) {
   const out = []; let list = null;
-  const inline = (s) => esc(s).replace(/\*\*(.+?)\*\*/g, "<b>$1</b>").replace(/\s*\[(report\.[^\]\s]+)\]/g, "").replace(/\s*\[report\.[^\]]*$/g, "");
+  const inline = (s) => esc(s).replace(/\*\*(.+?)\*\*/g, "<b>$1</b>").replace(/\s*\[report\.[^\s\]]*(?:\[\d+\][^\s\]]*)*\]/g, "").replace(/\s*\[report\.[^\]]*$/g, "");
   for (const raw of String(text).split("\n")) {
     const line = raw.trim();
     const m = line.match(/^(?:[-•*]|\d+[.)])\s+(.*)$/);
