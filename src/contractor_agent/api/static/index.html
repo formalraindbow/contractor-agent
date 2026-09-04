@@ -48,10 +48,12 @@ document.getElementById("f").addEventListener("submit", async (e) => {
     const { value, done } = await reader.read(); if (done) break;
     buf += dec.decode(value, { stream: true });
     let idx;
-    while ((idx = buf.indexOf("\n\n")) >= 0) {
-      const frame = buf.slice(0, idx); buf = buf.slice(idx + 2);
+    let m;
+    while ((m = buf.match(/\r?\n\r?\n/)) !== null) {  // SSE разделяет кадры пустой строкой: \n\n или \r\n\r\n
+      idx = m.index; const frame = buf.slice(0, idx); buf = buf.slice(idx + m[0].length);
       let type = "", data = "";
-      for (const line of frame.split("\n")) { if (line.startsWith("event:")) type = line.slice(6).trim(); if (line.startsWith("data:")) data += line.slice(5).trim(); }
+      for (const line of frame.split(/\r?\n/)) { if (line.startsWith("event:")) type = line.slice(6).trim(); if (line.startsWith("data:")) data += line.slice(5).trim(); }
+      if (!type) { try { type = JSON.parse(data).type; } catch (e) {} }
       if (!data) continue;
       const env = JSON.parse(data);
       if (type === "token") { tokens += env.data.text; tokenEl.textContent = tokens; }
