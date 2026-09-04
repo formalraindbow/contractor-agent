@@ -86,10 +86,14 @@ def make_nodes(llm: LLM, tools: list[Any], source: ReportSource) -> dict[str, No
         }
 
     async def finalize(state: AgentState) -> dict[str, Any]:
+        question = next(
+            (m.content for m in reversed(state["messages"]) if isinstance(m, HumanMessage)), ""
+        )
+        hint = question_kind_hint(str(question))
         messages = [
             SystemMessage(content=SYSTEM_PROMPT),
             *state["messages"],
-            HumanMessage(content=FINALIZE_PROMPT),
+            HumanMessage(content=f"{FINALIZE_PROMPT}\n\n{hint}" if hint else FINALIZE_PROMPT),
         ]
         try:
             draft = await structured.ainvoke(messages)
@@ -130,7 +134,7 @@ def make_nodes(llm: LLM, tools: list[Any], source: ReportSource) -> dict[str, No
         real = [c for c in answer.citations if not is_meta_path(c.source_path)]
         checks = validate_citations(source, state.get("selected_inns") or [], real)
         invalid = [c for c in checks if not c.ok]
-        verdict_problem = verdict_mismatch(answer)
+        verdict_problem = verdict_mismatch(answer) or forbidden_problem(answer.text_md)
         retry = state.get("citation_retry") or 0
         if (invalid or verdict_problem) and retry < MAX_CITATION_RETRIES:
             repair = citation_repair_prompt(
@@ -143,11 +147,14 @@ def make_nodes(llm: LLM, tools: list[Any], source: ReportSource) -> dict[str, No
                 "answer": None,
             }
         if answer.card:
-            text = enforce_verdict(answer.text_md, answer.card.verdict)
+            text = enforce_verdict(
+                scrub_forbidden(answer.text_md, VERDICT_RU[answer.card.verdict]),
+                answer.card.verdict,
+            )
         elif answer.cards:
-            text = enforce_comparison(answer.text_md, answer.cards)
+            text = enforce_comparison(scrub_forbidden(answer.text_md, None), answer.cards)
         else:
-            text = answer.text_md
+            text = scrub_forbidden(answer.text_md, None)
         checked = answer.model_copy(
             update={
                 "text_md": text,
@@ -194,6 +201,74 @@ def verdict_mismatch(answer: Answer) -> str | None:
             )
             return f"Для каждой компании вывод должен быть буквально по verdict_ru: {wanted}."
     return None
+
+
+_SECTION_HINTS = (  # слова вопроса → раздел отчёта: подсказка виду ответа, чтобы слабая модель не давала сводку
+    ("долги у приставов", re.compile(r"пристав|исполнительн|долг", re.I)),
+    ("суды", re.compile(r"\bсуд|\bиск|арбитраж", re.I)),
+    ("финансы", re.compile(r"выручк|прибыл|убыт|актив|капитал|ликвидн|отчётност|оборот", re.I)),
+    ("лицензии", re.compile(r"лиценз", re.I)),
+    ("филиалы", re.compile(r"филиал", re.I)),
+    ("проверки госорганов", re.compile(r"проверк[аи]\b|проверял|инспекц|надзор", re.I)),
+    ("виды деятельности", re.compile(r"оквэд|вид\w* деятельн", re.I)),
+    ("госзакупки", re.compile(r"закупк|тендер|госзаказ", re.I)),
+    ("численность", re.compile(r"сотрудник|численност|\bштат|персонал", re.I)),
+)
+_CARD_RE = re.compile(
+    r"провер(ь|ить|ка)\b|что можешь сказать|можно ли .{0,40}работ|стоит ли .{0,40}работ|отсрочк|предоплат"
+    r"|заключ\w* договор|кому верить|надёжн|стоит ли связыв",
+    re.I,
+)
+_COMPARE_RE = re.compile(r"сравни|с кем лучше|кого выбрать|кто из них", re.I)
+
+
+def question_kind_hint(question: str) -> str | None:
+    """Подсказка виду ответа по словам вопроса: несколько компаний → comparison,
+    вопрос про раздел → answer, «можно ли работать» → card. Решает модель, но с якорем."""
+    if _COMPARE_RE.search(question) or len(re.findall(r"\b\d{10,12}\b", question)) >= 2:
+        return "Подсказка: в вопросе несколько компаний — kind «comparison»."
+    for name, rx in _SECTION_HINTS:
+        if rx.search(question):
+            return (
+                f"Подсказка: вопрос про один раздел ({name}) — kind «answer»: сначала ответ по "
+                "существу с числами, карточку не повторяй; если спрашивают, можно ли работать "
+                "или давать отсрочку — добавь вывод verdict_ru одной строкой."
+            )
+    if _CARD_RE.search(question):
+        return "Подсказка: просят оценить, можно ли работать с компанией — kind «card»."
+    return None
+
+
+FORBIDDEN_RU = (  # характеристика вместо действия — CRITERIA §2, инвариант 5
+    "работать нельзя",
+    "нельзя работать",
+    "не рекомендуем",
+    "не связывайтесь",
+    "ненадёжн",
+    "сомнительн",
+    "однодневк",
+)
+
+
+def forbidden_problem(text: str) -> str | None:
+    """Категоричная характеристика в тексте — повод для круга исправления."""
+    lowered = text.casefold()
+    found = [f for f in FORBIDDEN_RU if f in lowered]
+    if not found:
+        return None
+    return (
+        f"Убери формулировку «{found[0]}»: рекомендация — это действие для пользователя, "
+        "одна из трёх штатных фраз, а не характеристика компании."
+    )
+
+
+def scrub_forbidden(text: str, replacement: str | None) -> str:
+    """После неудачного круга исправления категоричные фразы вычищает код."""
+    out = text
+    for f in FORBIDDEN_RU:
+        pattern = re.compile(rf"(?:компания\s+)?{re.escape(f)}\w*", re.IGNORECASE)
+        out = pattern.sub(replacement or "", out)
+    return re.sub(r"[ \t]{2,}", " ", out)
 
 
 def enforce_comparison(text: str, cards: list[Card]) -> str:

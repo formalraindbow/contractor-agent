@@ -220,3 +220,26 @@ def test_inns_from_args_accepts_string_list() -> None:
 
     assert _inns_from_args({"inns": "5032257375, 6165169320"}) == ["5032257375", "6165169320"]
     assert _inns_from_args({"inn": "5032257375"}) == ["5032257375"]
+
+
+def test_forbidden_phrase_is_flagged_and_scrubbed() -> None:
+    from contractor_agent.agent.nodes import forbidden_problem, scrub_forbidden
+
+    text = "**МАКСМАРКЕТ — работать нельзя, компания в банкротстве.**\nФакты…"
+    assert "работать нельзя" in (forbidden_problem(text) or "")
+    scrubbed = scrub_forbidden(
+        text, "работать только на условиях: предоплата и подтверждающие документы"
+    )
+    assert "нельзя" not in scrubbed and "работать только на условиях" in scrubbed
+    assert forbidden_problem("Стоит проверить до договора.") is None
+
+
+def test_question_kind_hint() -> None:
+    from contractor_agent.agent.nodes import question_kind_hint
+
+    assert "comparison" in question_kind_hint("Сравни 5032257375 и 6165169320")
+    assert "answer" in question_kind_hint("А сколько у них сейчас висит долгов у приставов?")
+    assert "answer" in question_kind_hint("Хочу отгрузить ГДК с отсрочкой. Сколько у них судов?")
+    assert "card" in question_kind_hint("Проверь ООО «МАКСМАРКЕТ»: можно ли с ней работать?")
+    assert "card" in question_kind_hint("У него светофор красный, а ЗСК зелёный — кому верить?")
+    assert question_kind_hint("Привет") is None
