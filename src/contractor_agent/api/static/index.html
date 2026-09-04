@@ -95,6 +95,11 @@
   .mcpcfg .lbl { font-size: 12px; color: var(--muted); }
   .mcpcfg pre { margin: 0; padding: 12px 14px; border-radius: 10px; background: var(--surface); border: 1px solid var(--line); font: 12.5px/1.6 ui-monospace, Menlo, monospace; overflow-x: auto; max-width: 100%; }
   .mcpok { font-size: 12.5px; color: var(--ok); }
+  #qtable th:first-child, #qtable td:first-child { width: 300px; white-space: normal; }
+  #qtable td small { display: block; font-weight: 400; color: var(--muted); margin-top: 2px; }
+  #qnote ul { margin: 6px 0 0; padding: 0; list-style: none; }
+  #qnote li { padding: 4px 0 4px 14px; position: relative; }
+  #qnote li::before { content: ""; position: absolute; left: 0; top: 12px; width: 5px; height: 5px; border-radius: 50%; background: var(--muted); }
   #mcptools li { grid-template-columns: 210px 1fr; }
   #mcptools .sev { justify-content: flex-start; font: 500 11.5px ui-monospace, Menlo, monospace; white-space: nowrap; }
 
@@ -154,6 +159,7 @@
   <div class="tabs" role="tablist">
     <button type="button" class="on" id="tabOne" role="tab">Одна компания</button>
     <button type="button" id="tabMany" role="tab">Сравнить несколько</button>
+    <button type="button" id="tabQuality" role="tab">Качество ответов</button>
     <button type="button" id="tabMcp" role="tab">Для агентов банка</button>
   </div>
 
@@ -195,6 +201,15 @@
         <input id="ask" placeholder="Свой вопрос про эту компанию…" autocomplete="off">
         <button id="askbtn" type="submit">Спросить</button>
       </form>
+    </section>
+  </div>
+
+  <div id="modeQuality" hidden>
+    <section class="panel" style="margin-top:0">
+      <div class="head"><span class="t">Как мы проверяем агента</span><span class="d" id="qhead"></span></div>
+      <div class="mcpintro">Мы не верим агенту на слово. К двенадцати компаниям составлены пятьдесят вопросов с заранее известными правильными ответами: где ответ в отчёте есть, где его нет и агент обязан отказаться, где нужен вывод из нескольких фактов и где нужна проверка компании целиком. Каждый ответ сверяет код, затем его оценивает вторая нейросеть, более сильная, чем та, что внутри агента.</div>
+      <div class="cmpwrap"><table class="cmp" id="qtable"></table></div>
+      <div class="gaps" id="qnote"></div>
     </section>
   </div>
 
@@ -291,6 +306,11 @@ async function resolveCompany(q) {
 }
 const pickerHtml = (items) => items.map((i) => `<button type="button" data-inn="${esc(i.inn)}"><b>${esc(i.name)}</b> <small>· ИНН ${esc(i.inn)} · ${esc(i.address || "")}</small></button>`).join("");
 function showMessage(el, text) { el.hidden = false; el.innerHTML = `<div class="empty">${esc(text)}</div>`; }
+function showPicker(el, items, onPick, hint) {
+  el.hidden = false;
+  el.innerHTML = `<div class="empty">${esc(hint)}</div>` + pickerHtml(items);
+  el.querySelectorAll("button[data-inn]").forEach((b) => b.addEventListener("click", () => onPick(b.dataset.inn)));
+}
 
 // ---------- одна компания
 function renderCard(c) {
@@ -336,8 +356,7 @@ async function check(q) {
   $("#picker").hidden = true;
   if (!res) { showMessage($("#picker"), `Компания «${q}» в базе не найдена. Попробуйте ИНН.`); return; }
   if (res.pick) {
-    $("#picker").hidden = false; $("#picker").innerHTML = pickerHtml(res.pick);
-    $("#picker").querySelectorAll("button").forEach((b) => b.addEventListener("click", () => check(b.dataset.inn)));
+    showPicker($("#picker"), res.pick, check, "Нашлось несколько компаний — выберите нужную:");
     return;
   }
   if (!current || current.inn !== res.inn) { thread = newThread(); $("#thread").innerHTML = ""; }
@@ -349,7 +368,8 @@ async function check(q) {
 // ---------- сравнение
 function renderChosen() {
   $("#selected").innerHTML = chosen.length
-    ? chosen.map((c, i) => `<span class="chip x">${esc(c.name)}<b data-i="${i}" role="button" aria-label="убрать">✕</b></span>`).join("")
+    ? chosen.map((c, i) => `<span class="chip x">${esc(c.name)}<b data-i="${i}" role="button" aria-label="убрать">✕</b></span>`).join("") +
+      (chosen.length < 2 ? `<span class="empty">добавьте ещё одну компанию, и кнопка «Сравнить» станет активной</span>` : "")
     : `<span class="empty">Пока никого не добавили. Нужно от двух до пяти компаний.</span>`;
   $("#selected").querySelectorAll("b[data-i]").forEach((b) => b.addEventListener("click", () => { chosen.splice(+b.dataset.i, 1); renderChosen(); }));
   $("#cmpgo").disabled = busy || chosen.length < 2;
@@ -363,8 +383,7 @@ async function addCompany(q) {
   $("#picker2").hidden = true;
   if (!res) { showMessage($("#picker2"), `Компания «${q}» не найдена. Попробуйте ИНН.`); return; }
   if (res.pick) {
-    $("#picker2").hidden = false; $("#picker2").innerHTML = pickerHtml(res.pick);
-    $("#picker2").querySelectorAll("button").forEach((b) => b.addEventListener("click", () => addCompany(b.dataset.inn)));
+    showPicker($("#picker2"), res.pick, addCompany, "Нашлось несколько компаний — выберите, какую добавить:");
     return;
   }
   if (chosen.some((c) => c.inn === res.inn)) { $("#addq").value = ""; return; }
@@ -444,16 +463,31 @@ async function stream(container, question, shown, onEnd) {
 }
 
 const GOALS = {
-  pay: { text: "Мне нужно сейчас оплатить счёт этой компании.", note: "Показываю первым то, что мешает платежу: блокировки счетов, статус в реестре, налоговую задолженность.",
-    asks: [["Пройдёт ли платёж?", "Есть ли риск, что платёж не пройдёт: блокировки счетов, статус в реестре?"], ["Налоговая задолженность", "Есть ли налоговая задолженность или проблемы с отчётностью?"], ["Что запросить", "Что запросить у контрагента перед оплатой?"]] },
-  deal: { text: "Думаю дать этой компании отсрочку платежа.", note: "Показываю первым финансы и долги: чем платить по отсрочке и кому она уже должна.",
-    asks: [["Можно давать отсрочку?", "Можно давать отсрочку платежа?"], ["Финансы", "Что с финансами: выручка, прибыль, капитал?"], ["Долги у приставов", "Есть ли долги у приставов?"]] },
-  supply: { text: "Планирую договор на поставку или подряд с этой компанией.", note: "Показываю первым виды деятельности, лицензии и суды: сможет ли исполнить и с кем судится.",
-    asks: [["Подходит ли по видам деятельности?", "Подходит ли компания по видам деятельности для поставки или подряда?"], ["Лицензии", "Есть ли лицензии в отчёте?"], ["Суды", "Что с судами: сколько дел и кто с кем?"]] },
-  legal: { text: "Разбираюсь с претензией или спором к этой компании.", note: "Показываю первым суды по ролям и исполнительные производства.",
-    asks: [["Суды по ролям", "Что с судами: сколько дел, где компания истец, где ответчик?"], ["Долги у приставов", "Есть ли долги у приставов и на какую сумму?"], ["Статус в реестре", "Что со статусом компании в реестре?"]] },
-  look: { text: "Просто смотрю компанию, конкретной задачи пока нет.", note: "Показываю общую картину: что в отчёте есть и чего в нём нет.",
-    asks: [["Почему такой вывод?", "Почему такой вывод?"], ["Чего нет в отчёте?", "Чего нет в отчёте и что это значит?"], ["Суды", "Что с судами: сколько дел и кто с кем?"], ["Финансы", "Что с финансами?"]] },
+  pay: {
+    text: "Мне нужно сейчас оплатить счёт этой компании.",
+    note: "Под оплату счёта: статус в реестре, блокировки счетов, оценка ЗСК.",
+    asks: [["Пройдёт ли платёж?", "Есть ли риск, что платёж не пройдёт: блокировки счетов, статус в реестре?"], ["Кому платить?", "Кто сейчас руководит компанией и кому платить, если идёт процедура банкротства?"], ["Что запросить", "Что запросить у контрагента перед оплатой?"]],
+  },
+  deal: {
+    text: "Думаю дать этой компании отсрочку платежа.",
+    note: "Под отсрочку: иски к компании против её чистых активов, долги у приставов, ликвидность.",
+    asks: [["Можно давать отсрочку?", "Можно давать отсрочку платежа?"], ["Суды", "Что с судами: сколько дел и кто с кем?"], ["Финансы", "Что с финансами?"], ["Что запросить", "Какие документы запросить перед отсрочкой?"]],
+  },
+  supply: {
+    text: "Планирую заказать у этой компании поставку или работы.",
+    note: "Под поставку и работы: статус, адрес, лицензии, опыт госзакупок.",
+    asks: [["Выполнят ли заказ?", "Сможет ли компания выполнить заказ: статус, адрес, лицензии?"], ["Есть ли лицензии?", "Есть ли в отчёте сведения о лицензиях?"], ["Опыт госзакупок", "Что в отчёте про участие в госзакупках?"], ["Что запросить", "Что запросить у контрагента перед заказом?"]],
+  },
+  legal: {
+    text: "Готовлю претензию или иск к этой компании.",
+    note: "Под претензию: суды по ролям и годам, исполнительные производства, кто руководит сейчас.",
+    asks: [["Кто руководит?", "Кто сейчас руководит компанией по данным реестра?"], ["Суды по годам", "Сколько судебных дел по годам и в какой роли выступала компания?"], ["Долги у приставов", "Есть ли действующие исполнительные производства и на какую сумму?"]],
+  },
+  look: {
+    text: "Просто смотрю компанию, конкретной задачи пока нет.",
+    note: "Общая картина: что в отчёте есть и чего в нём нет.",
+    asks: [["Почему такой вывод?", "Почему такой вывод?"], ["Чего нет в отчёте?", "Чего нет в отчёте и что это значит?"], ["Суды", "Что с судами: сколько дел и кто с кем?"], ["Финансы", "Что с финансами?"]],
+  },
 };
 let goal = null, sentGoal = false;
 const DEFAULT_ASKS = [["Объясни рекомендацию", "Почему такой вывод?"], ["Что запросить у контрагента?", "Что запросить у контрагента до договора?"], ["Суды", "Что с судами: сколько дел и кто с кем?"], ["Долги у приставов", "Есть ли долги у приставов?"], ["Финансы", "Что с финансами?"], ["Можно давать отсрочку?", "Можно давать отсрочку платежа?"]];
@@ -496,6 +530,34 @@ function askMany(q, label) {
 }
 
 // ---------- события
+let qualityLoaded = false;
+const QUALITY_COLS = [
+  ["Ответы, подтверждённые отчётом", "grounded", "все числа сошлись с полями отчёта, а вторая нейросеть поставила не ниже 4 из 5"],
+  ["Отказы там, где данных нет", "refusal", "агент сказал «в отчёте этого нет», а не придумал ответ"],
+  ["Выдуманные факты", "invented", "вторая нейросеть нашла в ответе то, чего нет в данных отчёта"],
+  ["Ссылки не на то поле", "bad_citation", "число верное, а поле отчёта указано неправильно"],
+  ["Пропущено важное", "missed_critical", "в проверке компании не назван факт, который меняет решение"],
+];
+async function loadQuality() {
+  if (qualityLoaded) return; qualityLoaded = true;
+  try {
+    const q = await fetchJson("/v1/quality");
+    $("#qhead").textContent = `${q.questions} вопросов · ${q.companies} компаний`;
+    const pct = (v) => (v == null ? "—" : `${Math.round(v * 100)} %`);
+    const head = `<thead><tr><th></th>${q.rows.map((r) => `<th>${esc(r.model)}</th>`).join("")}</tr></thead>`;
+    const rows = QUALITY_COLS.map(([label, key, hint]) =>
+      `<tr><td>${label}<small style="display:block;font-weight:400;color:var(--muted)">${hint}</small></td>` +
+      q.rows.map((r) => `<td>${pct(r[key])}</td>`).join("") + "</tr>").join("") +
+      `<tr><td>Оценка второй нейросети<small style="display:block;font-weight:400;color:var(--muted)">от 0 до 5 по рубрике кейса</small></td>` +
+      q.rows.map((r) => `<td>${r.judge ?? "—"}</td>`).join("") + "</tr>" +
+      `<tr><td>Время ответа<small style="display:block;font-weight:400;color:var(--muted)">в среднем на вопрос</small></td>` +
+      q.rows.map((r) => `<td>${r.seconds ? Math.round(r.seconds) + " с" : "—"}</td>`).join("") + "</tr>";
+    $("#qtable").innerHTML = head + `<tbody>${rows}</tbody>`;
+    $("#qnote").innerHTML = "<b>Как это читать</b><ul><li>Выдуманных фактов и пропусков важного должно быть ноль: это ошибки, которые стоят денег.</li><li>Первая версия подсказок и текущая — одна и та же модель: видно, сколько даёт работа над агентом, а не смена модели.</li><li>Прогоны кэшируются, поэтому цифры можно повторить в любой момент.</li></ul>";
+  } catch (e) {
+    $("#qhead").textContent = "не удалось загрузить результаты"; qualityLoaded = false;
+  }
+}
 let mcpLoaded = false;
 async function loadMcp() {
   if (mcpLoaded) return; mcpLoaded = true;
@@ -509,14 +571,16 @@ async function loadMcp() {
   }
 }
 function switchMode(mode) {
-  const one = mode === "one", many = mode === "many", mcp = mode === "mcp";
-  $("#modeOne").hidden = !one; $("#modeMany").hidden = !many; $("#modeMcp").hidden = !mcp;
-  $("#tabOne").classList.toggle("on", one); $("#tabMany").classList.toggle("on", many); $("#tabMcp").classList.toggle("on", mcp);
-  if (mcp) loadMcp(); else (many ? $("#addq") : $("#q")).focus();
+  const one = mode === "one", many = mode === "many", mcp = mode === "mcp", quality = mode === "quality";
+  $("#modeOne").hidden = !one; $("#modeMany").hidden = !many; $("#modeMcp").hidden = !mcp; $("#modeQuality").hidden = !quality;
+  $("#tabOne").classList.toggle("on", one); $("#tabMany").classList.toggle("on", many);
+  $("#tabMcp").classList.toggle("on", mcp); $("#tabQuality").classList.toggle("on", quality);
+  if (mcp) loadMcp(); else if (quality) loadQuality(); else (many ? $("#addq") : $("#q")).focus();
 }
 $("#tabOne").addEventListener("click", () => switchMode("one"));
 $("#tabMany").addEventListener("click", () => switchMode("many"));
 $("#tabMcp").addEventListener("click", () => switchMode("mcp"));
+$("#tabQuality").addEventListener("click", () => switchMode("quality"));
 $("#mcpcopy").addEventListener("click", async () => {
   try { await navigator.clipboard.writeText($("#mcpjson").textContent); } catch (e) {}
   const ok = $("#mcpcopied"); ok.hidden = false; setTimeout(() => { ok.hidden = true; }, 1500);

@@ -16,6 +16,8 @@ from contextlib import asynccontextmanager
 from pathlib import Path
 from typing import Any
 
+from evals.metrics import compute_metrics
+from evals.runner import RunRecord
 from fastapi import FastAPI, HTTPException, Query, Request, Response
 from fastapi.responses import HTMLResponse, RedirectResponse
 from langchain_core.messages import AIMessage, HumanMessage, ToolMessage
@@ -31,6 +33,17 @@ from contractor_agent.mcp_server.tools import Tools
 from contractor_agent.settings import Settings
 
 STATIC = Path(__file__).parent / "static"
+QUALITY_NAMES = {  # папки кэша прогонов → понятные имена для страницы
+    "gpt_b1gir8dkimq5j60i6ajf_deepseek-v4-flash_latest": (
+        "deepseek-v4-flash — сильная модель, для сравнения"
+    ),
+    "gpt_b1gir8dkimq5j60i6ajf_gpt-oss-20b_latest": (
+        "gpt-oss-20b — целевая, первая версия подсказок"
+    ),
+    "gpt_b1gir8dkimq5j60i6ajf_gpt-oss-20b_latest_prompt-v2_": (
+        "gpt-oss-20b — целевая, текущая версия"
+    ),
+}
 
 
 class RunInput(BaseModel):
@@ -169,6 +182,34 @@ def create_app(runtime_factory: Callable[[], AgentRuntime] | None = None) -> Fas
             },
             "client_config": {"mcpServers": {"kontragent": {"command": "uv", "args": args}}},
         }
+
+    @app.get("/v1/quality")
+    def quality() -> dict[str, Any]:
+        """Как агента проверяли: эталон, доли и оценка судьи по каждому прогону."""
+        cache = Settings().runs_dir / "evals"
+        rows = []
+        for folder in sorted(p for p in cache.iterdir() if p.is_dir()) if cache.exists() else []:
+            records = [
+                RunRecord.model_validate_json(f.read_text(encoding="utf-8"))
+                for f in sorted(folder.glob("*.json"))
+            ]
+            if not records:
+                continue
+            m = compute_metrics(records)
+            rows.append(
+                {
+                    "model": QUALITY_NAMES.get(folder.name, m.model),
+                    "total": m.total,
+                    "grounded": m.grounded_share,
+                    "refusal": m.refusal_share,
+                    "invented": m.invented_share,
+                    "bad_citation": m.bad_citation_share,
+                    "missed_critical": m.missed_critical_share,
+                    "judge": m.judge_mean,
+                    "seconds": m.mean_duration_s,
+                }
+            )
+        return {"rows": rows, "questions": 50, "companies": 12}
 
     @app.get("/companies/search")
     def companies_search(
