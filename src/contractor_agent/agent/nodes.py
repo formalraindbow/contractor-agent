@@ -382,6 +382,8 @@ _TIDY = (  # слабая модель протаскивает в текст и
     (re.compile(r"^(\s*[-•]\s*)?(.{12,}?)\s+\(\2\)", re.M), r"\1\2"),  # «X (X)» → «X»
     (re.compile(r"\bBank ratings\b", re.I), "Оценки банка"),
     (re.compile(r"\bVerdict\b:?", re.I), "Вывод:"),
+    (re.compile(r"\bZSK\b"), "ЗСК"),
+    (re.compile(r"\b(svetofor|traffic light)\b", re.I), "светофор"),
 )
 
 
