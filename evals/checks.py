@@ -33,9 +33,22 @@ def verdict_in_text(text: str) -> str | None:
     return None
 
 
+ROLE_SYNONYMS = {  # роль в суде словами предпринимателя — засчитываем наравне с термином
+    "ответчик": (
+        "ответчик | к компании | против компании | на компанию | на неё подавали "
+        "| на него подавали | иски к ней | иски к нему"
+    ),
+    "истец": (
+        "истец | истц | сама подавала | сам подавал | компания подавала | подала иск "
+        "| подал иск | заявител"
+    ),
+}
+
+
 def _has(text: str, needle: str) -> bool:
     """Подстрока без учёта регистра; варианты через « | »; пробелы любые."""
     lowered = re.sub(r"\s+", " ", text.casefold())
+    needle = ROLE_SYNONYMS.get(needle.strip().casefold(), needle)
     return any(
         re.sub(r"\s+", " ", v.strip().casefold()) in lowered
         for v in needle.split(" | ")
