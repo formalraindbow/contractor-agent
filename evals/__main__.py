@@ -36,9 +36,9 @@ async def _run(args: argparse.Namespace) -> int:
     if args.limit:
         questions = questions[: args.limit]
     model = args.model or settings.llm_model
-    if args.tag:  # отдельный кэш и строка отчёта: промпт v2 против v1 на той же модели
-        model = f"{model} [{args.tag}]"
     agent_llm = make_llm(settings, model)
+    if args.tag:  # отдельный кэш и строка отчёта: промпт v2 против v1 на той же модели
+        model = f"{model} [{args.tag}]"  # только имя для кэша и отчёта, не для API
     judge_llm = None if args.no_judge else make_judge_llm(settings, args.judge_model)
     async with AgentRuntime(settings, llm=agent_llm) as runtime:
         runner = EvalRunner(
