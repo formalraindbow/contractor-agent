@@ -84,6 +84,11 @@
   .chips.goals { border-top: 0; border-bottom: 1px solid var(--line); padding-bottom: 12px; }
   .chip.on { background: var(--ink); color: var(--ink-text); border-color: var(--ink); }
   .goalnote { padding: 0 20px 12px; font-size: 12.5px; color: var(--muted); border-bottom: 1px solid var(--line); }
+  .mcpintro { padding: 14px 20px; font-size: 14px; color: var(--text); border-bottom: 1px solid var(--line); max-width: 78ch; }
+  .mcpcfg { padding: 14px 20px 18px; display: grid; gap: 10px; justify-items: start; }
+  .mcpcfg .lbl { font-size: 12px; color: var(--muted); }
+  .mcpcfg pre { margin: 0; padding: 12px 14px; border-radius: 10px; background: var(--surface); border: 1px solid var(--line); font: 12.5px/1.6 ui-monospace, Menlo, monospace; overflow-x: auto; max-width: 100%; }
+  .mcpok { font-size: 12.5px; color: var(--ok); }
 
   .thread { display: grid; gap: 12px; padding: 4px 20px 16px; }
   .thread:empty { padding: 0; }
@@ -133,6 +138,7 @@
   <div class="tabs" role="tablist">
     <button type="button" class="on" id="tabOne" role="tab">Одна компания</button>
     <button type="button" id="tabMany" role="tab">Сравнить несколько</button>
+    <button type="button" id="tabMcp" role="tab">Для агентов банка</button>
   </div>
 
   <div id="modeOne">
@@ -173,6 +179,21 @@
         <input id="ask" placeholder="Свой вопрос про эту компанию…" autocomplete="off">
         <button id="askbtn" type="submit">Спросить</button>
       </form>
+    </section>
+  </div>
+
+  <div id="modeMcp" hidden>
+    <section class="panel" style="margin-top:0">
+      <div class="head"><span class="t">Данные для других агентов</span><span class="d" id="mcphead"></span></div>
+      <div class="mcpintro">Банк планирует отдавать отчёты ИИ-агентам по стандарту MCP. Наш сервер уже так работает: любой агент подключается и получает те же восемь функций, что и наш. Ниже список функций и готовая настройка для подключения.</div>
+      <ul class="facts" id="mcptools"></ul>
+      <div class="gaps"><b>Что приходит в каждом ответе:</b> есть ли данные в отчёте, сами данные, адреса полей под каждым фактом, дата отчёта и оговорка, если раздел пуст.</div>
+      <div class="mcpcfg">
+        <div class="lbl">Настройка для клиента, например Claude Desktop:</div>
+        <pre id="mcpjson"></pre>
+        <button class="secondary" type="button" id="mcpcopy">Скопировать</button>
+        <span class="mcpok" id="mcpcopied" hidden>скопировано</span>
+      </div>
     </section>
   </div>
 
@@ -449,13 +470,31 @@ function askMany(q, label) {
 }
 
 // ---------- события
-function switchMode(many) {
-  $("#modeOne").hidden = many; $("#modeMany").hidden = !many;
-  $("#tabOne").classList.toggle("on", !many); $("#tabMany").classList.toggle("on", many);
-  (many ? $("#addq") : $("#q")).focus();
+let mcpLoaded = false;
+async function loadMcp() {
+  if (mcpLoaded) return; mcpLoaded = true;
+  try {
+    const info = await fetchJson("/v1/mcp/info");
+    $("#mcphead").textContent = `${info.tools.length} функции · подключение по stdio и по сети`;
+    $("#mcptools").innerHTML = info.tools.map((t) => `<li><span class="sev info">${esc(t.name)}</span><div>${esc(t.description)}</div></li>`).join("");
+    $("#mcpjson").textContent = JSON.stringify(info.client_config, null, 2);
+  } catch (e) {
+    $("#mcphead").textContent = "не удалось получить описание: " + e.message; mcpLoaded = false;
+  }
 }
-$("#tabOne").addEventListener("click", () => switchMode(false));
-$("#tabMany").addEventListener("click", () => switchMode(true));
+function switchMode(mode) {
+  const one = mode === "one", many = mode === "many", mcp = mode === "mcp";
+  $("#modeOne").hidden = !one; $("#modeMany").hidden = !many; $("#modeMcp").hidden = !mcp;
+  $("#tabOne").classList.toggle("on", one); $("#tabMany").classList.toggle("on", many); $("#tabMcp").classList.toggle("on", mcp);
+  if (mcp) loadMcp(); else (many ? $("#addq") : $("#q")).focus();
+}
+$("#tabOne").addEventListener("click", () => switchMode("one"));
+$("#tabMany").addEventListener("click", () => switchMode("many"));
+$("#tabMcp").addEventListener("click", () => switchMode("mcp"));
+$("#mcpcopy").addEventListener("click", async () => {
+  try { await navigator.clipboard.writeText($("#mcpjson").textContent); } catch (e) {}
+  const ok = $("#mcpcopied"); ok.hidden = false; setTimeout(() => { ok.hidden = true; }, 1500);
+});
 $("#search").addEventListener("submit", (e) => { e.preventDefault(); const q = $("#q").value; if (q.trim()) check(q); });
 document.querySelectorAll("#modeOne .hint button").forEach((b) => b.addEventListener("click", () => { $("#q").value = b.dataset.q; check(b.dataset.q); }));
 $("#askform").addEventListener("submit", (e) => { e.preventDefault(); const q = $("#ask").value.trim(); if (!q) return; $("#ask").value = ""; askOne(q); });
@@ -475,7 +514,7 @@ $("#reset").addEventListener("click", () => {
   renderAsks();
   $("#company").hidden = true; $("#agent").hidden = true; $("#thread").innerHTML = ""; $("#q").value = ""; $("#picker").hidden = true;
   $("#cmpPanel").hidden = true; $("#cmpThread").innerHTML = ""; $("#addq").value = ""; $("#picker2").hidden = true; renderChosen();
-  switchMode(false);
+  switchMode("one");
 });
 renderChosen();
 renderAsks();

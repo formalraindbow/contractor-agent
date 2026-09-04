@@ -24,6 +24,7 @@ from contractor_agent import __version__
 from contractor_agent.agent.nodes import build_card
 from contractor_agent.agent.runtime import AgentRuntime
 from contractor_agent.agent.stream import CONTRACT_VERSION, new_run_id, stream_run
+from contractor_agent.mcp_server.server import DESCRIPTIONS
 from contractor_agent.mcp_server.tools import Tools
 
 STATIC = Path(__file__).parent / "static"
@@ -118,6 +119,26 @@ def create_app(runtime_factory: Callable[[], AgentRuntime] | None = None) -> Fas
             "selected_inns": values.get("selected_inns") or [],
             "report_dates": values.get("report_dates") or {},
             "answer": answer.model_dump(mode="json") if answer else None,
+        }
+
+    @app.get("/v1/mcp/info")
+    def mcp_info() -> dict[str, Any]:
+        """Как подключить наши инструменты к любому агенту по MCP: описания и готовый конфиг."""
+        project = str(Path(__file__).resolve().parents[3])
+        args = ["run", "--directory", project, "kontragent-mcp", "--source", "snapshot"]
+        return {
+            "server": "kontragent",
+            "transport": ["stdio", "streamable-http"],
+            "command": "uv " + " ".join(args),
+            "tools": [{"name": n, "description": d} for n, d in DESCRIPTIONS.items()],
+            "envelope": {
+                "available": "есть ли данные в отчёте",
+                "data": "сам ответ",
+                "source_paths": "адреса полей отчёта под каждым фактом",
+                "report_date": "дата отчёта, у каждой компании своя",
+                "note": "оговорка, если раздел пуст или данные обрезаны",
+            },
+            "client_config": {"mcpServers": {"kontragent": {"command": "uv", "args": args}}},
         }
 
     @app.get("/companies/search")

@@ -134,3 +134,15 @@ def test_inn_input_and_error_event(snapshot: Snapshot, tmp_path) -> None:
             frames = _sse(response.iter_lines())
         assert [t for t, _ in frames] == ["error"]
         assert "сценарий" in frames[0][1]["data"]["message"]
+
+
+def test_mcp_info_lists_tools_and_config(snapshot: Snapshot, tmp_path) -> None:
+    """Вкладка «Для агентов банка» берёт отсюда описания функций и готовый конфиг."""
+    app = create_app(lambda: _runtime(snapshot, tmp_path, []))
+    with TestClient(app) as client:
+        info = client.get("/v1/mcp/info").json()
+    names = [t["name"] for t in info["tools"]]
+    assert "get_risk_signals" in names and len(names) == 8
+    assert all(t["description"] for t in info["tools"])
+    assert info["client_config"]["mcpServers"]["kontragent"]["command"] == "uv"
+    assert "kontragent-mcp" in info["command"]
