@@ -134,8 +134,8 @@
 
   <div id="modeOne">
     <form class="row" id="search">
-      <input id="q" placeholder="ИНН или название компании, например 5032257375 или МАКСМАРКЕТ" autocomplete="off" autofocus>
-      <button id="go" class="primary" type="submit">Найти</button>
+      <input id="q" placeholder="ИНН, название или вопрос: «5032257375», «ГДК», «Сколько у МАКСМАРКЕТ судов?»" autocomplete="off" autofocus>
+      <button id="go" class="primary" type="submit">Спросить</button>
     </form>
     <div class="hint">Попробовать: <button type="button" data-q="5032257375">МАКСМАРКЕТ</button> · <button type="button" data-q="6165169320">ГДК</button> · <button type="button" data-q="052500690823">ЯНПОЛОВ</button> · <button type="button" data-q="1684017097">ТЕХПРОФ</button> · <button type="button" data-q="2311304742">БИЛД-ЮГ</button></div>
     <div class="picker" id="picker" hidden></div>
@@ -269,8 +269,11 @@ function showCompany(c) {
   $("#ask").focus();
 }
 
+const isQuestion = (q) => /\?|\b(можно|сколько|что|какие|какой|какая|есть ли|почему|проверь|расскажи|стоит|давать|сравни|кто|когда|как)\b/i.test(q);
+
 async function check(q) {
   if (busy) return;
+  if (isQuestion(q) && !/^\d{10,12}$/.test(q.trim())) return askFree(q.trim());
   let res;
   try { res = await resolveCompany(q); } catch (e) { showMessage($("#picker"), `Сервис недоступен: ${e.message}`); return; }
   $("#picker").hidden = true;
@@ -339,7 +342,7 @@ function compare() {
 const chosenList = () => chosen.map((c) => `${c.name} (ИНН ${c.inn})`).join(", ");
 
 // ---------- поток ответа агента
-async function stream(container, question, shown) {
+async function stream(container, question, shown, onEnd) {
   if (busy) return; setBusy(true);
   container.insertAdjacentHTML("beforeend", `<div class="turn user"><div class="who">Вы</div><div class="bubble">${esc(shown || question)}</div></div>`);
   const turn = document.createElement("div"); turn.className = "turn";
@@ -371,6 +374,7 @@ async function stream(container, question, shown) {
           const a = env.data.output;
           status.textContent = `готово за ${Math.round((Date.now() - t0) / 1000)} с`;
           body.innerHTML = md(a.text_md || "");
+          if (onEnd) { try { await onEnd(a); } catch (e) {} }
           const inv = (a.invalid_citations || []).length;
           body.insertAdjacentHTML("beforeend", `<div class="foot">${inv ? `Убрано утверждений, не подтверждённых отчётом: ${inv}. ` : ""}Факты сверены с отчётом банка.</div>`);
         }
@@ -379,6 +383,17 @@ async function stream(container, question, shown) {
     }
   } catch (e) { clearInterval(timer); status.textContent = "ошибка соединения: " + e.message; ended = true; }
   finally { clearInterval(timer); if (!ended) status.textContent = "поток закрыт без ответа, попробуйте ещё раз"; setBusy(false); turn.scrollIntoView({ block: "nearest" }); }
+}
+
+// свободный вопрос без выбранной компании: агент сам находит компанию, сводка по правилам подтягивается по его ответу
+function askFree(q) {
+  $("#agent").hidden = false;
+  if (!current) $("#card").innerHTML = '<div class="empty" style="padding:12px 20px">Сводка по правилам появится, как только агент определит компанию.</div>';
+  stream($("#thread"), q, q, async (a) => {
+    const inn = (a.card && a.card.inn) || Object.keys(a.report_dates || {})[0];
+    if (!inn || (current && current.inn === inn)) return;
+    try { showCompany(await fetchJson(`/report/${inn}/card`)); } catch (e) {}
+  });
 }
 
 // вопрос агенту про текущую компанию: ИНН добавляем к первому вопросу в сессии, дальше он помнит
