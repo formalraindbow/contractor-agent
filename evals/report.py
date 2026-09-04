@@ -16,13 +16,13 @@ def render(
 ) -> str:
     lines = ["# Эвалы — метрики по моделям", ""]
     lines.append(
-        "| Модель | Вопросов | Подтверждаемых ответов | Корректных отказов | Выдумок | Пропущенных критичных | Судья (0–5) | Стабильность | Время, с |"
+        "| Модель | Вопросов | Подтверждаемых ответов | Корректных отказов | Выдуманных фактов | Неверных ссылок | Пропущенных критичных | Судья (0–5) | Стабильность | Время, с |"
     )
-    lines.append("|---|---:|---:|---:|---:|---:|---:|---:|---:|")
+    lines.append("|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|")
     for m in metrics:
         lines.append(
             f"| `{m.model}` | {m.total}{f' ({m.errors} ошибок)' if m.errors else ''} | {_pct(m.grounded_share)} | "
-            f"{_pct(m.refusal_share)} | {_pct(m.invented_share)} | {_pct(m.missed_critical_share)} | "
+            f"{_pct(m.refusal_share)} | {_pct(m.invented_share)} | {_pct(m.bad_citation_share)} | {_pct(m.missed_critical_share)} | "
             f"{m.judge_mean if m.judge_mean is not None else '—'} | {_pct(m.stability)} | "
             f"{m.mean_duration_s if m.mean_duration_s is not None else '—'} |"
         )
