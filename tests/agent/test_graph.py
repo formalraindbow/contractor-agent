@@ -339,3 +339,36 @@ def test_empty_answer_triggers_repair() -> None:
         )
         is None
     )
+
+
+async def test_comparison_after_card_uses_only_this_turn_companies(
+    snapshot: Snapshot, tmp_path
+) -> None:
+    """Карточка МАКСМАРКЕТ, затем сравнение двух других: модель по привычке пишет card —
+    код переводит в comparison по компаниям текущего хода, старая компания не попадает."""
+    llm = scripted_llm(
+        [
+            tool_call("get_risk_signals", "c1", inn="5032257375"),
+            AIMessage(content="ок"),
+            Draft(
+                kind="card",
+                lines=[
+                    "МАКСМАРКЕТ: работать только на условиях: предоплата и подтверждающие документы. Отчёт от 31.07.2026."
+                ],
+                citations=[],
+            ),
+            tool_call("compare_companies", "c2", inns=["6165169320", "1684017097"]),
+            AIMessage(content="ок"),
+            Draft(kind="card", lines=["ГДК и ТЕХПРОФ: см. ниже."], citations=[]),
+            AIMessage(content="ок"),
+            Draft(kind="card", lines=["ГДК и ТЕХПРОФ: см. ниже."], citations=[]),
+        ]
+    )
+    async with AgentRuntime(_settings(tmp_path), source=snapshot, llm=llm) as rt:
+        await rt.ask("Проверь 5032257375", thread_id="t")
+        answer = await rt.ask(
+            "Сравни 6165169320 и 1684017097: с кем лучше работать?", thread_id="t"
+        )
+    assert answer.kind == "comparison"
+    assert [c.inn for c in answer.cards] == ["6165169320", "1684017097"]
+    assert "По данным отчётов" in answer.text_md

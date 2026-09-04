@@ -64,6 +64,7 @@ def make_nodes(llm: LLM, tools: list[Any], source: ReportSource) -> dict[str, No
         last_ai = next(m for m in reversed(state["messages"]) if isinstance(m, AIMessage))
         args_by_id = {c["id"]: (c["name"], c["args"]) for c in last_ai.tool_calls}
         inns = list(state.get("selected_inns") or [])
+        turn_inns = list(state.get("turn_inns") or [])
         dates = dict(state.get("report_dates") or {})
         trace: list[ToolCallTrace] = []
         for msg in tool_messages:
@@ -77,6 +78,8 @@ def make_nodes(llm: LLM, tools: list[Any], source: ReportSource) -> dict[str, No
             for inn in _inns_from_args(args) if reason != "tool_error" else []:
                 if inn not in inns:
                     inns.append(inn)
+                if inn not in turn_inns:
+                    turn_inns.append(inn)
                 report_date = payload.get("report_date") if isinstance(payload, dict) else None
                 if item_dates.get(inn) or report_date:
                     dates[inn] = item_dates.get(inn) or report_date
@@ -92,6 +95,7 @@ def make_nodes(llm: LLM, tools: list[Any], source: ReportSource) -> dict[str, No
         return {
             "messages": tool_messages,
             "selected_inns": inns,
+            "turn_inns": turn_inns,
             "report_dates": dates,
             "trace": trace,
         }
@@ -125,8 +129,14 @@ def make_nodes(llm: LLM, tools: list[Any], source: ReportSource) -> dict[str, No
             if extra.source_path not in seen_paths:
                 citations.append(extra)
                 seen_paths.add(extra.source_path)
-        inns = state.get("selected_inns") or []
+        question = str(state.get("question") or "")
+        inns = list(state.get("turn_inns") or state.get("selected_inns") or [])
         cards = [c for c in (build_card(tools_layer, inn) for inn in inns) if c]
+        kind_hint, _ = question_kind_hint(question)
+        if kind_hint == "comparison" and len(cards) >= 2 and draft.kind != "comparison":
+            draft = draft.model_copy(
+                update={"kind": "comparison"}
+            )  # несколько компаний — сравнение
         answer = Answer(
             kind=draft.kind,
             text_md=draft.text_md,
@@ -141,7 +151,9 @@ def make_nodes(llm: LLM, tools: list[Any], source: ReportSource) -> dict[str, No
         answer = state["answer"]
         assert answer is not None
         real = [c for c in answer.citations if not is_meta_path(c.source_path)]
-        checks = validate_citations(source, state.get("selected_inns") or [], real)
+        checks = validate_citations(
+            source, list(state.get("turn_inns") or state.get("selected_inns") or []), real
+        )
         invalid = [c for c in checks if not c.ok]
         verdict_problem = (
             empty_problem(answer)

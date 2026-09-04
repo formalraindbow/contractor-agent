@@ -34,3 +34,4 @@ class AgentState(MessagesState):
     answer: Answer | None
     citation_retry: int
     question: str  # вопрос текущего хода — для подсказки вида ответа и проверки формы
+    turn_inns: list[str]  # компании из вызовов инструментов текущего хода (для карточек и цитат)
