@@ -33,3 +33,4 @@ class AgentState(MessagesState):
     draft: Draft | None
     answer: Answer | None
     citation_retry: int
+    question: str  # вопрос текущего хода — для подсказки вида ответа и проверки формы

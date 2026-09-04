@@ -237,9 +237,23 @@ def test_forbidden_phrase_is_flagged_and_scrubbed() -> None:
 def test_question_kind_hint() -> None:
     from contractor_agent.agent.nodes import question_kind_hint
 
-    assert "comparison" in question_kind_hint("Сравни 5032257375 и 6165169320")
-    assert "answer" in question_kind_hint("А сколько у них сейчас висит долгов у приставов?")
-    assert "answer" in question_kind_hint("Хочу отгрузить ГДК с отсрочкой. Сколько у них судов?")
-    assert "card" in question_kind_hint("Проверь ООО «МАКСМАРКЕТ»: можно ли с ней работать?")
-    assert "card" in question_kind_hint("У него светофор красный, а ЗСК зелёный — кому верить?")
-    assert question_kind_hint("Привет") is None
+    assert question_kind_hint("Сравни 5032257375 и 6165169320")[0] == "comparison"
+    assert question_kind_hint("А сколько у них сейчас висит долгов у приставов?")[0] == "answer"
+    assert question_kind_hint("Хочу отгрузить ГДК с отсрочкой. Сколько у них судов?")[0] == "answer"
+    assert question_kind_hint("Проверь ООО «МАКСМАРКЕТ»: можно ли с ней работать?")[0] == "card"
+    assert question_kind_hint("У него светофор красный, а ЗСК зелёный — кому верить?")[0] == "card"
+    assert question_kind_hint("Привет") == (None, None)
+
+
+def test_format_problem_flags_summary_for_section_question() -> None:
+    from contractor_agent.agent.nodes import format_problem
+    from contractor_agent.agent.schema import Answer
+
+    q = "А сколько у них сейчас висит долгов у приставов?"
+    card_like = Answer(kind="card", text_md="Оценки банка… На что обратить внимание: …")
+    assert format_problem(card_like, q)
+    short = Answer(
+        kind="answer", text_md="54 действующих производства на 4 млн ₽. Дата отчёта 31.07.2026."
+    )
+    assert format_problem(short, q) is None
+    assert format_problem(card_like, "Проверь компанию") is None
