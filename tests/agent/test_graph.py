@@ -433,3 +433,27 @@ def test_refusal_with_data_triggers_repair() -> None:
     assert refusal_problem(refusal, trace)
     assert refusal_problem(refusal, []) is None
     assert refusal_problem(Answer(kind="answer", text_md="Выручка 748 млн ₽."), trace) is None
+
+
+def test_details_problem_requires_roles_and_split() -> None:
+    from contractor_agent.agent.nodes import details_problem
+    from contractor_agent.agent.schema import Answer
+
+    courts = "Сколько у них судов?"
+    assert details_problem(Answer(kind="answer", text_md="Всего 278 дел."), courts)
+    assert (
+        details_problem(Answer(kind="answer", text_md="258 дел, где компания ответчик."), courts)
+        is None
+    )
+    bailiff = "Сколько долгов у приставов?"
+    assert details_problem(Answer(kind="answer", text_md="54 действующих производства."), bailiff)
+    assert (
+        details_problem(
+            Answer(kind="answer", text_md="54 действующих на 4 млн ₽; завершённых 453."), bailiff
+        )
+        is None
+    )
+    assert (
+        details_problem(Answer(kind="answer", text_md="Выручка 60 млн ₽."), "Что с финансами?")
+        is None
+    )
