@@ -150,12 +150,12 @@
       <div id="card"></div>
       <div class="chips" id="chips">
         <span class="lbl">Спросить агента:</span>
-        <button class="chip" type="button" data-ask="Объясни рекомендацию: почему такой вывод? Коротко, по фактам.">Объясни рекомендацию</button>
+        <button class="chip" type="button" data-ask="Почему такой вывод?">Объясни рекомендацию</button>
         <button class="chip" type="button" data-ask="Что запросить у контрагента до договора?">Что запросить у контрагента?</button>
-        <button class="chip" type="button" data-ask="А суды у них? Сколько дел, кто с кем?">Суды</button>
-        <button class="chip" type="button" data-ask="Сколько у них сейчас долгов у приставов?">Долги у приставов</button>
-        <button class="chip" type="button" data-ask="Что с финансами: выручка, прибыль, капитал?">Финансы</button>
-        <button class="chip" type="button" data-ask="Можно ли давать им отсрочку платежа?">Можно давать отсрочку?</button>
+        <button class="chip" type="button" data-ask="Что с судами: сколько дел и кто с кем?">Суды</button>
+        <button class="chip" type="button" data-ask="Есть ли долги у приставов?">Долги у приставов</button>
+        <button class="chip" type="button" data-ask="Что с финансами?">Финансы</button>
+        <button class="chip" type="button" data-ask="Можно давать отсрочку платежа?">Можно давать отсрочку?</button>
       </div>
       <div class="thread" id="thread"></div>
       <form class="ask" id="askform">
@@ -180,10 +180,10 @@
       <div id="cmpBody"></div>
       <div class="chips" id="cmpChips">
         <span class="lbl">Спросить агента:</span>
-        <button class="chip" type="button" data-ask="С кем из них лучше работать, с кем только на условиях, кого не стоит без дополнительной проверки? Коротко по каждой, по фактам.">С кем лучше работать?</button>
-        <button class="chip" type="button" data-ask="Что запросить у каждой компании до договора?">Что запросить у каждой?</button>
-        <button class="chip" type="button" data-ask="Сравни их суды и долги у приставов.">Суды и долги</button>
-        <button class="chip" type="button" data-ask="Сравни их финансы: выручка, прибыль, капитал.">Финансы</button>
+        <button class="chip" type="button" data-ask="С кем из них лучше работать?">С кем лучше работать?</button>
+        <button class="chip" type="button" data-ask="Что запросить у каждой из них?">Что запросить у каждой?</button>
+        <button class="chip" type="button" data-ask="Что у них с судами и долгами у приставов?">Суды и долги</button>
+        <button class="chip" type="button" data-ask="Что с финансами?">Финансы</button>
       </div>
       <div class="thread" id="cmpThread"></div>
       <form class="ask" id="cmpAskForm">
@@ -216,7 +216,7 @@ function setBusy(b) {
 
 function md(text) {
   const out = []; let list = null;
-  const inline = (s) => esc(s).replace(/\*\*(.+?)\*\*/g, "<b>$1</b>").replace(/\s*\[report\.[^\s\]]*(?:\[\d+\][^\s\]]*)*\]/g, "").replace(/\s*\[report\.[^\]]*$/g, "");
+  const inline = (s) => esc(s).replace(/\*\*(.+?)\*\*/g, "<b>$1</b>").replace(/\s*\[\s*report\.[A-Za-z0-9_.]+(?:\[\d+\][A-Za-z0-9_.]*)*\s*\]/g, "").replace(/\s*\[\s*report\.[^\]]*$/g, "").replace(/\s*\binn\s*[:=]?\s*\d{10,12}\b/gi, "").replace(/\s+([.,;:])/g, "$1");
   for (const raw of String(text).split("\n")) {
     const line = raw.trim();
     const m = line.match(/^(?:[-•*]|\d+[.)])\s+(.*)$/);
@@ -397,15 +397,15 @@ function askFree(q) {
 }
 
 // вопрос агенту про текущую компанию: ИНН добавляем к первому вопросу в сессии, дальше он помнит
-function askOne(q) {
+function askOne(q, label) {
   if (!current) return;
   const first = $("#thread").children.length === 0;
-  stream($("#thread"), first ? `${q} Речь о компании ${current.name}, ИНН ${current.inn}.` : q, q);
+  stream($("#thread"), first ? `${q} Речь о компании ${current.name}, ИНН ${current.inn}.` : q, label || q);
 }
-function askMany(q) {
+function askMany(q, label) {
   if (chosen.length < 2) return;
   const first = $("#cmpThread").children.length === 0;
-  stream($("#cmpThread"), first ? `${q} Компании: ${chosenList()}.` : q, q);
+  stream($("#cmpThread"), first ? `${q} Компании: ${chosenList()}.` : q, label || q);
 }
 
 // ---------- события
@@ -419,12 +419,12 @@ $("#tabMany").addEventListener("click", () => switchMode(true));
 $("#search").addEventListener("submit", (e) => { e.preventDefault(); const q = $("#q").value; if (q.trim()) check(q); });
 document.querySelectorAll("#modeOne .hint button").forEach((b) => b.addEventListener("click", () => { $("#q").value = b.dataset.q; check(b.dataset.q); }));
 $("#askform").addEventListener("submit", (e) => { e.preventDefault(); const q = $("#ask").value.trim(); if (!q) return; $("#ask").value = ""; askOne(q); });
-$("#chips").querySelectorAll("button[data-ask]").forEach((b) => b.addEventListener("click", () => askOne(b.dataset.ask)));
+$("#chips").querySelectorAll("button[data-ask]").forEach((b) => b.addEventListener("click", () => askOne(b.dataset.ask, b.textContent.trim())));
 $("#addform").addEventListener("submit", (e) => { e.preventDefault(); addCompany($("#addq").value); });
 $("#cmpgo").addEventListener("click", compare);
 $("#cmpExample").addEventListener("click", async () => { chosen = []; renderChosen(); for (const inn of ["6165169320", "1684017097", "2311304742"]) await addCompany(inn); });
 $("#cmpAskForm").addEventListener("submit", (e) => { e.preventDefault(); const q = $("#cmpAsk").value.trim(); if (!q) return; $("#cmpAsk").value = ""; askMany(q); });
-$("#cmpChips").querySelectorAll("button[data-ask]").forEach((b) => b.addEventListener("click", () => askMany(b.dataset.ask)));
+$("#cmpChips").querySelectorAll("button[data-ask]").forEach((b) => b.addEventListener("click", () => askMany(b.dataset.ask, b.textContent.trim())));
 $("#reset").addEventListener("click", () => {
   thread = newThread(); current = null; chosen = [];
   $("#company").hidden = true; $("#agent").hidden = true; $("#thread").innerHTML = ""; $("#q").value = ""; $("#picker").hidden = true;

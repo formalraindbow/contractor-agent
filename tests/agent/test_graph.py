@@ -387,8 +387,9 @@ def test_tidy_text_removes_field_names_and_repeats() -> None:
     )
     out = tidy_text(raw)
     assert "verdict_ru" not in out and "(svetofor)" not in out and "claim:" not in out
-    assert "- Открытые иски к компании – 2 дела [report.arbitrationByStatus.x]" in out
+    assert "- Открытые иски к компании – 2 дела" in out and "report." not in out
     assert "недостоверным (Адрес" not in out and "Оценки банка" in out
+    assert "[report" not in out
 
 
 def test_drop_invalid_lines_removes_unverified_numbers() -> None:
@@ -406,3 +407,12 @@ def test_drop_invalid_lines_removes_unverified_numbers() -> None:
     out = drop_invalid_lines(text, [bad])
     assert "7 152 200" not in out and "258 завершённых" in out and "Дата отчёта" in out
     assert "Убрано утверждений" in out
+
+
+def test_tidy_text_strips_field_paths_and_inn() -> None:
+    from contractor_agent.agent.nodes import tidy_text
+
+    raw = "Капитал 22,8 млн ₽ [report.finReports[0].liabilities.capitals][report.finReports[0].common.proceeds] inn 1684017097 – можно работать"
+    out = tidy_text(raw)
+    assert "report." not in out and "1684017097" not in out and "]" not in out
+    assert out.startswith("Капитал 22,8 млн ₽") and "можно работать" in out
