@@ -38,9 +38,7 @@ class CitationCheck:
     inn: str | None = None
 
 
-_ABSENCE = re.compile(
-    r"нет сведений|нет данных|не указан|отсутству|не заполнен|не сдан|нет строки", re.I
-)
+_ABSENCE = re.compile(r"\bнет\b|\bне\s|отсутству|пуст", re.I)  # утверждение об отсутствии
 _PATH = re.compile(r"report\.[A-Za-z_]\w*(?:\[\d+\])?(?:\.[A-Za-z_]\w*(?:\[\d+\])?)*")
 _CLAIM_TAIL = re.compile(
     r"[\s\[(«\"'`:;,\-—•*]*(?:source_path|адрес|путь)?[\s\[(«\"'`:;,\-—•*]*$", re.IGNORECASE

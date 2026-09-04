@@ -121,3 +121,11 @@ def test_absence_claim_with_empty_field_is_valid(snapshot):
         claim="Прибыль за 2025 год 120 000 ₽", source_path="report.finReports[0].common.profit"
     )
     assert not check_citation(snapshot, ["2100006761"], c2).ok
+
+
+def test_absence_claim_variants_with_empty_field(snapshot):
+    from contractor_agent.agent.citations import check_citation
+
+    for claim in ("В отчётности за 2023 год нет прибыли", "Численность за 2023 год не указана"):
+        c = Citation(claim=claim, source_path="report.finReports[0].common.profit")
+        assert check_citation(snapshot, ["2100006761"], c).ok, claim
