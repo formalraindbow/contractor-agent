@@ -389,3 +389,20 @@ def test_tidy_text_removes_field_names_and_repeats() -> None:
     assert "verdict_ru" not in out and "(svetofor)" not in out and "claim:" not in out
     assert "- Открытые иски к компании – 2 дела [report.arbitrationByStatus.x]" in out
     assert "недостоверным (Адрес" not in out and "Оценки банка" in out
+
+
+def test_drop_invalid_lines_removes_unverified_numbers() -> None:
+    from contractor_agent.agent.nodes import drop_invalid_lines
+    from contractor_agent.agent.schema import Citation
+
+    text = (
+        "- 258 завершённых дел на 2,6 млрд ₽ [report.arbitrationByStatus.x.dfAmount]\n"
+        "- 7 152 200 % от чистых активов [report.arbitrationByStatus.x.dfAmount]\n"
+        "- Дата отчёта: 31.07.2026"
+    )
+    bad = Citation(
+        claim="7 152 200 % от чистых активов", source_path="report.arbitrationByStatus.x.dfAmount"
+    )
+    out = drop_invalid_lines(text, [bad])
+    assert "7 152 200" not in out and "258 завершённых" in out and "Дата отчёта" in out
+    assert "Убрано утверждений" in out
