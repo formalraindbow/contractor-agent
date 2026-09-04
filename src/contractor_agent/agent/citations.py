@@ -123,8 +123,35 @@ def check_citation(source: ReportSource, inns: list[str], citation: Citation) ->
     return CitationCheck(citation, False, last_error)
 
 
+_ABSENCE_STRICT = re.compile(
+    r"нет сведений|сведений нет|не найдено|нет данных|данных нет|отсутству|нет ни одного", re.I
+)
+
+
+def _positive_counts(value: Any) -> bool:
+    """В сводке (объект с счётчиками) есть число больше нуля — раздел не пустой."""
+    if hasattr(value, "model_dump"):
+        value = value.model_dump()
+    if isinstance(value, dict):
+        return any(_positive_counts(v) for v in value.values())
+    if isinstance(value, bool):
+        return False
+    if isinstance(value, int | float | Decimal):
+        return value > 0
+    return False
+
+
 def _check_value(citation: Citation, path: str, value: Any, inn: str) -> CitationCheck:
     claimed = numbers_in(citation.claim)
+    if _ABSENCE_STRICT.search(citation.claim):
+        # «сведений о судах нет» со ссылкой на сводку, где счётчики > 0, — выдуманное отсутствие
+        filled = (
+            isinstance(value, int | float | Decimal) and not isinstance(value, bool) and value > 0
+        ) or (not isinstance(value, list | str) and _positive_counts(value))
+        if filled:
+            return CitationCheck(
+                citation, False, "утверждение об отсутствии, а поле заполнено", value, inn
+            )
     if isinstance(value, bool) or not isinstance(value, int | float | Decimal):
         if value is None and claimed and not _ABSENCE.search(citation.claim):
             # «нет сведений о прибыли за 2024–2025» с пустым полем — верная цитата: годы не значения
