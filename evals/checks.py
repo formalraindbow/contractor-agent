@@ -45,7 +45,8 @@ def _has(text: str, needle: str) -> bool:
 
 _REFUSAL_RE = re.compile(
     r"(оценить|сказать|определить|посчитать|рассчитать|ответить)[^.\n]{0,60}(нельзя|невозможно)"
-    r"|не указан|не раскрыт|пробел в данных|невозможно оценить",
+    r"|не указан|не раскрыт|пробел в данных|невозможно оценить"
+    r"|сведений[^.\n]{0,40}\bнет\b|данных[^.\n]{0,30}\bнет\b|перечня[^.\n]{0,30}\bнет\b",
     re.I,
 )
 
@@ -86,6 +87,9 @@ def check(question: GoldQuestion, answer: Answer, report_date: str) -> CheckResu
         if not refused:
             failures.append("нет корректного отказа — ответ по существу при отсутствии данных")
         for needle in question.must_mention:
+            marker_list = any(m in needle for m in REFUSAL_MARKERS)
+            if marker_list and refused:  # список маркеров отказа: любая формулировка засчитана
+                continue
             if not _has(text, needle):
                 failures.append(f"в отказе нет «{needle}»")
     else:

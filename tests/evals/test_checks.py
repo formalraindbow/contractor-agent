@@ -156,3 +156,15 @@ def test_refusal_detected_with_words_between():
     )
     assert is_refusal(a)
     assert not is_refusal(Answer(kind="answer", text_md="Долг 4 млн ₽ по 54 производствам."))
+
+
+def test_refusal_with_reordered_words():
+    from evals.checks import is_refusal
+
+    from contractor_agent.agent.schema import Answer
+
+    a = Answer(
+        kind="answer",
+        text_md="Кто подавал и за что — в отчёте сведений нет: только суммы по годам.",
+    )
+    assert is_refusal(a)
