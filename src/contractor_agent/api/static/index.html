@@ -489,7 +489,13 @@ async function stream(container, question, shown, onEnd) {
         let env; try { env = JSON.parse(data); } catch (e) { continue; }
         type = type || env.type;
         if (type === "token") { tokens += env.data.text || ""; body.innerHTML = md(tokens); }
-        else if (type === "tool") { const d = env.data; const s = document.createElement("span"); s.textContent = (TOOLS[d.name] || d.name) + (d.available === false ? " (нет данных)" : ""); steps.appendChild(s); }
+        else if (type === "tool") {  // один и тот же шаг не повторяем: модель зовёт инструмент дважды
+          const d = env.data;
+          const label = (TOOLS[d.name] || d.name) + (d.available === false ? " (нет данных)" : "");
+          if (![...steps.children].some((c) => c.textContent === label)) {
+            const s = document.createElement("span"); s.textContent = label; steps.appendChild(s);
+          }
+        }
         else if (type === "end") {
           ended = true; clearInterval(timer);
           const a = env.data.output;

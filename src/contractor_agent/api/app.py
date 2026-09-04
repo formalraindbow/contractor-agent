@@ -83,8 +83,12 @@ def create_app(runtime_factory: Callable[[], AgentRuntime] | None = None) -> Fas
     app = FastAPI(title="kontragent-agent", version=__version__, lifespan=lifespan)
 
     @app.get("/", response_class=HTMLResponse)
-    def index() -> str:
-        return (STATIC / "index.html").read_text(encoding="utf-8")
+    def index() -> HTMLResponse:
+        # без кэша: страницу правим по ходу демо, у коллег не должно остаться старой версии
+        return HTMLResponse(
+            (STATIC / "index.html").read_text(encoding="utf-8"),
+            headers={"Cache-Control": "no-store, must-revalidate"},
+        )
 
     web_password = Settings().web_password
     if web_password:  # публичная ссылка: в данных ИНН физлиц, закрываем паролем
