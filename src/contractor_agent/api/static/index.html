@@ -1496,9 +1496,9 @@
             a.citations
               .map(
                 (c) =>
-                  '<div class="fact"><p>' +
-                  esc(c.claim) +
-                  '</p><div class="meta">ИНН ' +
+                  '<div class="fact">' +
+                  md(c.claim) +
+                  '<div class="meta">ИНН ' +
                   esc(c.inn || Object.keys(a.report_dates || {})[0] || "") +
                   '</div><button class="quiet source-button" data-inn="' +
                   esc(c.inn || Object.keys(a.report_dates || {})[0] || "") +
