@@ -36,7 +36,7 @@ from contractor_agent.agent.prompt import (
     citation_repair_prompt,
 )
 from contractor_agent.agent.schema import Answer, Attention, Card, CardLabels, Citation, Draft
-from contractor_agent.agent.section_answer import render_sections
+from contractor_agent.agent.section_answer import asks_registration_status, render_sections
 from contractor_agent.agent.state import AgentState, ToolCallTrace
 from contractor_agent.data.loader import ReportSource
 from contractor_agent.mcp_server.tools import Tools
@@ -235,7 +235,12 @@ def make_nodes(llm: LLM, tools: list[Any], source: ReportSource) -> dict[str, No
         inns = list(state.get("turn_inns") or state.get("selected_inns") or [])
         cards = [c for c in (build_card(tools_layer, inn) for inn in inns) if c]
         kind_hint, _ = question_kind_hint(question)
-        if structured_failed and len(inns) == 1:
+        focused_fallback = kind_hint == "answer" and (
+            draft.kind == "card"
+            or re.search(r"\bпол[ея]\s+[*`_]*[a-z_]\w*", draft.text_md, re.I)
+            or (asks_registration_status(question) and re.search(r"\bCURRENT\b", draft.text_md))
+        )
+        if (structured_failed or focused_fallback) and len(inns) == 1:
             fallback, facts = render_sections(
                 tools_layer,
                 inns[0],
@@ -502,9 +507,9 @@ def tool_subset(question: str) -> list[str] | None:
     matched = [
         tool for name, rx in _SECTION_HINTS if rx.search(question) for tool in _SECTION_TOOLS[name]
     ]
-    return (
-        list(dict.fromkeys(["search_company", "get_report_summary", *matched])) if matched else None
-    )
+    if matched or asks_registration_status(question):
+        return list(dict.fromkeys(["search_company", "get_report_summary", *matched]))
+    return None
 
 
 _ABUSE_RE = re.compile(
@@ -570,6 +575,11 @@ def question_kind_hint(question: str) -> tuple[str | None, str | None]:
                 "существу с числами, карточку не повторяй; если спрашивают, можно ли работать "
                 "или давать отсрочку — добавь вывод verdict_ru одной строкой."
             )
+    if asks_registration_status(question):
+        return "answer", (
+            "Вопрос только о статусе контрагента: get_report_summary, kind «answer». "
+            "Укажи статус и дату отчёта. Общую карточку, суды и пробелы других разделов не повторяй."
+        )
     if _CARD_RE.search(question):
         return "card", "Подсказка: просят оценить, можно ли работать с компанией — kind «card»."
     return None, None
@@ -870,7 +880,20 @@ def build_card(tools: Tools, inn: str) -> Card | None:
         asks.append(
             "Запросите пояснения по отмеченным обязательствам и документы об их текущем состоянии."
         )
-    asks = list(dict.fromkeys([*asks, *(g["ask"] for g in data["gaps"] if g.get("ask"))]))
+    # A missing field is not automatically an instruction to collect more documents.
+    # Only gaps that change the recommendation justify an action in the overview.
+    asks = list(
+        dict.fromkeys(
+            [
+                *asks,
+                *(
+                    g["ask"]
+                    for g in data["gaps"]
+                    if g.get("ask") and g.get("affects_recommendation")
+                ),
+            ]
+        )
+    )
     return Card(
         inn=inn,
         name=info["short_name"],
@@ -1027,8 +1050,15 @@ def render_card(card: Card, tools: Tools) -> tuple[str, list[Citation]]:
         citations.append(signal_citation(card, item.claim, tools))
     if card.ask_before:
         lines.extend(["", "Следующий шаг: " + card.ask_before[0]])
-    if card.gaps:
-        lines.extend(["", "Пробелы данных: " + " ".join(card.gaps)])
+    # Full limitations remain in Card.gaps for the report drawer. In the chat
+    # overview retain only the gaps needed to explain the recommendation.
+    data = tools.get_risk_signals(card.inn).data
+    for gap in data["gaps"]:
+        if gap.get("affects_recommendation"):
+            lines.extend(["", gap["text"]])
+            citations.append(
+                Citation(inn=card.inn, claim=gap["text"], source_path=gap["source_path"])
+            )
     lines.extend(["", "Отчёт от " + card.report_date.strftime("%d.%m.%Y") + "."])
     return "\n".join(lines), citations
 

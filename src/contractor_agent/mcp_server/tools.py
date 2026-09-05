@@ -517,6 +517,7 @@ def _gap_data(g) -> dict[str, Any]:
         "reason": g.reason.value,
         "text": g.text_ru,
         "ask": g.ask_ru,
+        "affects_recommendation": g.floor_check,
         "source_path": g.source_path,
     }
 

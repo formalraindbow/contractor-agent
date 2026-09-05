@@ -185,7 +185,7 @@ cards:
     question: Сколько у них сотрудников? Хочу понять, потянут ли они мой заказ.
     topic: other
     expected_value: 'В отчёте нет сведений о численности сотрудников (baseInfo.staff пусто) — по этому критерию
-      оценить нельзя; спросить у контрагента напрямую. Что в отчёте есть для оценки ресурсов: размер — микропредприятие
+      оценить нельзя. Совет обращаться к контрагенту не обязателен. Что в отчёте есть для оценки ресурсов: размер — микропредприятие
       (baseInfo.companySize), активов всего 14 000 руб. на конец 2025, выручка 293 000 руб. за 2025. Дата отчёта
       05.08.2026.'
     source_path: report.baseInfo.staff
@@ -205,8 +205,8 @@ cards:
       = null) — придуманное число сотрудников'
     evidence: 'get_report_summary(''2100006761'').data: staff=None, paths.staff=''report.baseInfo.staff'', company_size=''Микропредприятие'';
       get_risk_signals(''2100006761'').gaps[0]={criterion:''численность персонала'', reason:''field_absent'', text:''В
-      отчёте нет сведений о численности сотрудников — оценить по этому критерию нельзя.'', ask:''Спросите у контрагента
-      о штате напрямую.'', source_path:''report.baseInfo.staff''}; get_financials: years[0]={year:2025, proceeds:293000,
+      отчёте нет сведений о численности сотрудников.'', ask:null, affects_recommendation:false,
+      source_path:''report.baseInfo.staff''}; get_financials: years[0]={year:2025, proceeds:293000,
       total_assets:14000}'
   - id: rado-label-vs-exclusion
     inn: '2100006761'
@@ -509,10 +509,10 @@ cards:
     - составила
     expected_verdict: null
     catches: '§5 «Данных нет, а агент ответил по существу» (0): раздела finReports нет вовсе (ИП), любая сумма выручки
-      — выдумка. Корректный ответ — пробел not_applicable с советом запросить декларацию/выписку.'
+      — выдумка. Корректный ответ — краткое ограничение not_applicable. Совет запросить документы не обязателен.'
     evidence: 'get_financials(''052500690823''): available=False, reason=''not_applicable'', note=''Контрагент —
-      индивидуальный предприниматель: бухгалтерской отчётности в отчёте нет, оценить выручку, прибыль и устойчивость
-      по этому критерию нельзя.''; get_section(''052500690823'',''finReports''): available=False, reason=''section_absent'';
+      индивидуальный предприниматель. В отчёте нет бухгалтерской отчётности для оценки выручки и прибыли.'';
+      get_section(''052500690823'',''finReports''): available=False, reason=''section_absent'';
       get_risk_signals gap: criterion=''финансовая отчётность'', source_path=''report.finReports''.'
   - id: yanpolov-labels
     follow_up: true

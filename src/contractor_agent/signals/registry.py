@@ -86,11 +86,7 @@ def run(report: Report) -> RuleResult:
                 criterion="численность персонала",
                 reason=GapReason.FIELD_ABSENT,
                 source_path="report.baseInfo.staff",
-                text_ru=(
-                    "В отчёте нет сведений о численности сотрудников — "
-                    "оценить по этому критерию нельзя."
-                ),
-                ask_ru="Спросите у контрагента о штате напрямую.",
+                text_ru="В отчёте нет сведений о численности сотрудников.",
             )
         )
     return RuleResult(signals, gaps)

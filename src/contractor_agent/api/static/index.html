@@ -1421,9 +1421,13 @@
           (c.attention.length
             ? ""
             : '<p class="empty-note">Дополнительных факторов риска по доступным данным не выделено.</p>') +
-          '<h3>Чего не хватает в данных</h3><ul class="gap-list">' +
-          c.gaps.map((x) => "<li>" + esc(x) + "</li>").join("") +
-          "</ul>" +
+          (c.gaps.length
+            ? '<details class="report-limitations"><summary>Ограничения отчёта · ' +
+              c.gaps.length +
+              '</summary><ul class="gap-list">' +
+              c.gaps.map((x) => "<li>" + esc(x) + "</li>").join("") +
+              "</ul></details>"
+            : "") +
           (c.ask_before.length
             ? '<h3>Что запросить</h3><ul class="gap-list">' +
               c.ask_before.map((x) => "<li>" + esc(x) + "</li>").join("") +

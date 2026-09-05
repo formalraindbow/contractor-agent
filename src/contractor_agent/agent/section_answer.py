@@ -12,6 +12,13 @@ from contractor_agent.mcp_server.tools import Tools
 from contractor_agent.signals.text import plural, rub
 
 
+def asks_registration_status(question: str) -> bool:
+    return bool(
+        re.search(r"\bстатус|действует ли|закрыт[ао]? ли", question, re.I)
+        and not re.search(r"суд|арбитраж|иск|производств|лиценз|сч[её]т|плат[её]ж", question, re.I)
+    )
+
+
 def render_sections(
     tools: Tools, inn: str, question: str, called: set[str]
 ) -> tuple[str, list[Citation]]:
@@ -22,6 +29,18 @@ def render_sections(
         lines.append(text)
         citations.append(Citation(inn=inn, claim=text, source_path=path))
 
+    if asks_registration_status(question) and "get_report_summary" in called:
+        response = tools.get_report_summary(inn)
+        if response.available:
+            if response.data["status_reason"]:
+                fact(
+                    "Статус в отчёте: «" + response.data["status_reason"] + "».",
+                    "report.status.reasonName",
+                )
+            elif response.data["status"] == "CURRENT":
+                fact("В отчёте контрагент указан как действующий.", "report.status.status")
+            else:
+                lines.append("В отчёте нет пояснения статуса контрагента.")
     if re.search(r"сотрудник|штат|численност", question, re.I) and called & {
         "get_report_summary",
         "get_section",
