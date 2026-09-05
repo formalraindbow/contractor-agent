@@ -76,7 +76,8 @@
       .shell {
         display: grid;
         grid-template-columns: 244px minmax(0, 1fr);
-        min-height: 100dvh;
+        height: 100dvh;
+        overflow: hidden;
       }
       .sidebar {
         background: var(--white);
@@ -87,6 +88,8 @@
         position: sticky;
         top: 0;
         height: 100dvh;
+        overflow-y: auto;
+        overscroll-behavior: contain;
       }
       .brand {
         display: flex;
@@ -164,7 +167,8 @@
         min-width: 0;
         display: flex;
         flex-direction: column;
-        min-height: 100dvh;
+        height: 100dvh;
+        min-height: 0;
       }
       .topbar {
         display: flex;
@@ -173,6 +177,7 @@
         padding: 22px 36px;
         border-bottom: 1px solid var(--line);
         gap: 12px;
+        flex-shrink: 0;
       }
       .topbar-title {
         font-size: 14px;
@@ -200,40 +205,77 @@
         padding: 7px 10px;
       }
       .workspace {
-        width: min(900px, 100%);
-        padding: 0 36px;
+        width: min(860px, 100%);
+        padding: 0 28px;
         margin: 0 auto;
         flex: 1;
         min-width: 0;
+        min-height: 0;
+        display: flex;
+        flex-direction: column;
+      }
+      .conversation {
+        flex: 1;
+        min-height: 0;
+        overflow-y: auto;
+        overscroll-behavior-y: contain;
+        scrollbar-gutter: stable;
+        padding: 0 8px;
+        margin: 0 -8px;
+      }
+      .workspace:not(.has-messages) {
+        justify-content: flex-start;
+        padding-top: clamp(20px, 7vh, 64px);
+        padding-bottom: 16px;
+      }
+      .workspace:not(.has-messages) .conversation {
+        flex: 0 1 auto;
       }
       .welcome {
-        padding: clamp(60px, 13vh, 138px) 0 32px;
-      }
-      .welcome .intro {
-        font-size: 14px;
-        color: var(--red);
-        font-weight: 600;
-        margin: 0 0 15px;
+        padding: 24px 0 18px;
       }
       .welcome h1 {
-        font-size: clamp(30px, 3.2vw, 44px);
-        line-height: 1.16;
+        font-size: clamp(26px, 2.6vw, 34px);
+        line-height: 1.2;
         font-weight: 600;
-        letter-spacing: -1.2px;
-        margin: 0 0 20px;
-        max-width: 670px;
+        letter-spacing: -0.7px;
+        margin: 0 0 12px;
       }
       .welcome p {
-        font-size: 16px;
-        max-width: 550px;
+        font-size: 15px;
+        max-width: 580px;
         color: var(--muted);
         margin: 0;
       }
-      .prompts {
+      .start-examples {
+        margin: 14px 0 0;
+      }
+      .start-examples p {
+        font-size: 12px;
+        color: var(--muted);
+        margin: 0 0 7px;
+      }
+      .example-questions {
         display: flex;
         flex-wrap: wrap;
-        gap: 9px;
-        margin-top: 30px;
+        gap: 6px 20px;
+      }
+      .example-questions button {
+        background: none;
+        border: 0;
+        padding: 5px 0;
+        text-align: left;
+        font-size: 13px;
+        text-decoration: underline;
+        text-underline-offset: 4px;
+        text-decoration-color: #b5bfc9;
+      }
+      .example-questions button:hover {
+        color: var(--red);
+        text-decoration-color: currentColor;
+      }
+      .has-messages .start-examples {
+        display: none;
       }
       .chip {
         background: var(--white);
@@ -248,13 +290,20 @@
         background: #f9fafb;
       }
       .chat {
-        padding: 24px 0;
+        padding: 18px 0 8px;
+      }
+      .chat:empty {
+        display: none;
       }
       .message {
-        margin: 0 0 32px;
+        margin: 0 0 22px;
         overflow-wrap: anywhere;
       }
+      .message:last-child {
+        margin-bottom: 8px;
+      }
       .message.user {
+        margin-bottom: 16px;
         display: flex;
         justify-content: flex-end;
       }
@@ -262,14 +311,14 @@
         max-width: 88%;
         background: #e6ebf0;
         border-radius: 14px 14px 3px 14px;
-        padding: 13px 18px;
+        padding: 10px 15px;
         white-space: pre-wrap;
       }
       .assistant-label {
         display: flex;
         align-items: center;
         gap: 9px;
-        margin-bottom: 12px;
+        margin-bottom: 8px;
         font-size: 12px;
         font-weight: 600;
         color: var(--muted);
@@ -286,7 +335,7 @@
       }
       .answer-text {
         font-size: 15px;
-        line-height: 1.75;
+        line-height: 1.65;
       }
       .answer-text p {
         margin: 0 0 13px;
@@ -312,7 +361,7 @@
         display: flex;
         flex-wrap: wrap;
         gap: 9px;
-        margin-top: 18px;
+        margin-top: 12px;
       }
       .answer-actions button {
         background: var(--white);
@@ -331,6 +380,9 @@
         gap: 7px;
         flex-wrap: wrap;
         margin-top: 15px;
+      }
+      .message.assistant:not(:last-child) .next-actions {
+        display: none;
       }
       .next-actions .chip {
         background: transparent;
@@ -359,19 +411,36 @@
         }
       }
       .composer-area {
-        position: sticky;
-        bottom: 0;
-        background: linear-gradient(transparent, var(--paper) 22px);
-        padding: 24px 0 19px;
+        position: relative;
+        flex-shrink: 0;
+        background: var(--paper);
+        padding: 10px 0 14px;
         z-index: 2;
       }
       .composer {
         position: relative;
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) auto;
+        align-items: end;
+        gap: 10px;
         background: var(--white);
         border: 1px solid #b5bfc9;
-        border-radius: 14px;
-        padding: 14px 15px 11px;
-        box-shadow: 0 4px 20px #17233108;
+        border-radius: 12px;
+        padding: 10px 12px;
+        box-shadow: 0 3px 14px #17233106;
+      }
+      .jump-latest {
+        position: absolute;
+        bottom: calc(100% + 8px);
+        left: 50%;
+        transform: translateX(-50%);
+        white-space: nowrap;
+        padding: 7px 12px;
+        border: 1px solid var(--line);
+        border-radius: 18px;
+        background: var(--white);
+        box-shadow: 0 2px 10px #17233110;
+        font-size: 12px;
       }
       .composer:focus-within {
         border-color: var(--ink);
@@ -382,9 +451,10 @@
         width: 100%;
         min-width: 0;
         resize: none;
-        min-height: 52px;
-        max-height: 180px;
-        padding: 0;
+        min-height: 40px;
+        max-height: 140px;
+        padding: 8px 0;
+        overflow-y: auto;
         border: 0;
         background: transparent;
         line-height: 1.5;
@@ -397,15 +467,10 @@
         color: #778392;
       }
       .composer-bottom {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        gap: 10px;
-        margin-top: 8px;
+        display: contents;
       }
       .composer-hint {
-        font-size: 11px;
-        color: var(--muted);
+        display: none;
       }
       .send {
         border: 0;
@@ -418,6 +483,7 @@
         gap: 7px;
         font-weight: 600;
         font-size: 13px;
+        min-height: 40px;
       }
       .send:hover {
         background: #cf251d;
@@ -691,23 +757,20 @@
           padding: 0 18px;
         }
         .welcome {
-          padding-top: 55px;
+          padding-top: 18px;
         }
         .welcome h1 {
-          font-size: 33px;
+          font-size: 27px;
         }
         .welcome p {
           font-size: 14px;
         }
-        .welcome .intro {
-          font-size: 13px;
+        .example-questions {
+          flex-direction: column;
+          gap: 3px;
         }
-        .prompts {
-          gap: 7px;
-          margin-top: 24px;
-        }
-        .prompts .chip {
-          font-size: 12px;
+        .send-label {
+          display: none;
         }
         .composer-area {
           padding-bottom: max(12px, env(safe-area-inset-bottom));
@@ -777,44 +840,36 @@
       <main class="main">
         <header class="topbar">
           <span class="topbar-title">Проверка контрагента</span
-          ><span class="snapshot" id="conversation-context">По данным отчётов</span
+          ><span class="snapshot" id="conversation-context"
+            >По данным отчётов</span
           ><button class="mobile-new" data-new>Новая проверка</button>
         </header>
-        <div class="workspace">
-          <section class="welcome" id="welcome">
-            <p class="intro">Разобраться до решения</p>
-            <h1>Что важно знать<br />о вашем контрагенте?</h1>
-            <p>
-              Назовите компанию и задайте вопрос. Помощник найдёт факты в
-              отчёте, объяснит риски и покажет основания.
-            </p>
-            <div class="prompts">
-              <button
-                class="chip"
-                data-fill="Я бухгалтер. Нужно проверить компанию перед оплатой: "
-              >
-                Перед оплатой</button
-              ><button
-                class="chip"
-                data-fill="Я юрист. Готовлю претензию к компании: "
-              >
-                Для претензии</button
-              ><button
-                class="chip"
-                data-fill="Я закупщик. Проверяю поставщика: "
-              >
-                Проверить поставщика
-              </button>
-            </div>
-          </section>
-          <section
-            class="chat"
-            id="chat"
-            aria-label="Разговор с помощником"
-            aria-live="polite"
-            aria-relevant="additions"
-          ></section>
+        <div class="workspace" id="workspace">
+          <div
+            class="conversation"
+            id="conversation"
+            tabindex="0"
+            aria-label="История разговора"
+          >
+            <section class="welcome" id="welcome">
+              <h1>Что проверить по компании?</h1>
+              <p>
+                Укажите название или ИНН. Спросите о статусе, финансах и судах
+                или сравните нескольких контрагентов.
+              </p>
+            </section>
+            <section
+              class="chat"
+              id="chat"
+              aria-label="Разговор с помощником"
+              aria-live="polite"
+              aria-relevant="additions"
+            ></section>
+          </div>
           <div class="composer-area">
+            <button class="jump-latest" id="jump-latest" type="button" hidden>
+              В конец диалога ↓
+            </button>
             <form class="composer" id="form">
               <div
                 class="suggestions"
@@ -826,22 +881,44 @@
                 >Компания, ИНН или вопрос по отчёту</label
               ><textarea
                 id="question"
-                rows="2"
+                rows="1"
                 maxlength="8000"
-                placeholder="Компания, ИНН или вопрос по отчёту…"
+                placeholder="Название компании или ИНН…"
                 autocomplete="off"
               ></textarea>
               <div class="composer-bottom">
                 <span class="composer-hint"
                   >Можно спросить о нескольких компаниях</span
-                ><button class="send" id="send" type="submit">
-                  Спросить
+                ><button
+                  class="send"
+                  id="send"
+                  type="submit"
+                  aria-label="Спросить"
+                >
+                  <span class="send-label">Спросить</span>
                   <svg viewBox="0 0 24 24" aria-hidden="true">
                     <path d="M12 19V5m-6 6 6-6 6 6" />
                   </svg>
                 </button>
               </div>
             </form>
+            <div class="start-examples">
+              <p>Начните с вопроса по демобазе</p>
+              <div class="example-questions">
+                <button
+                  type="button"
+                  data-prompt="Что важно знать о МАКСМАРКЕТ, ИНН 5032257375, перед взаимодействием?"
+                >
+                  Какие риски у МАКСМАРКЕТ?
+                </button>
+                <button
+                  type="button"
+                  data-prompt="Какие судебные дела и исполнительные производства у ГДК, ИНН 6165169320?"
+                >
+                  Какие суды и долги у ГДК?
+                </button>
+              </div>
+            </div>
             <p class="composer-note">
               Сведения относятся к дате отчёта. Отсутствие данных не означает
               отсутствие риска.
@@ -893,6 +970,9 @@
         searchGeneration = 0,
         lastQuestion = "",
         restoring = false;
+      let followResponse = true,
+        activeTurn = null,
+        touchY = null;
       const answers = [];
       const toolLabels = {
         search_company: "Ищу компанию в базе",
@@ -932,11 +1012,112 @@
         }
         return html + (list ? "</ul>" : "");
       }
+      const conversation = $("conversation");
+      const reducedMotion = window.matchMedia(
+        "(prefers-reduced-motion: reduce)",
+      );
+      function setConversationMode(hasMessages) {
+        $("welcome").hidden = hasMessages;
+        $("workspace").classList.toggle("has-messages", hasMessages);
+        $("question").placeholder = hasMessages
+          ? "Вопрос по отчёту…"
+          : "Название компании или ИНН…";
+      }
+      function resizeQuestion() {
+        const input = $("question");
+        input.style.height = "40px";
+        if (input.value)
+          input.style.height = Math.min(140, input.scrollHeight) + "px";
+      }
+      function updateJump() {
+        $("jump-latest").hidden =
+          conversation.scrollHeight -
+            conversation.clientHeight -
+            conversation.scrollTop <
+          100;
+      }
+      function revealTurn(behavior = "smooth") {
+        if (!activeTurn?.isConnected) return;
+        const top =
+          activeTurn.getBoundingClientRect().top -
+          conversation.getBoundingClientRect().top +
+          conversation.scrollTop -
+          12;
+        conversation.scrollTo({
+          top,
+          behavior: reducedMotion.matches ? "instant" : behavior,
+        });
+        updateJump();
+      }
+      function revealResponse(gen) {
+        requestAnimationFrame(() => {
+          if (gen === generation && followResponse) revealTurn();
+          updateJump();
+        });
+      }
+      let previousScrollTop = 0;
+      conversation.addEventListener(
+        "scroll",
+        () => {
+          if (
+            conversation.scrollTop > previousScrollTop + 1 &&
+            conversation.scrollHeight -
+              conversation.clientHeight -
+              conversation.scrollTop <
+              80
+          ) {
+            followResponse = true;
+          }
+          previousScrollTop = conversation.scrollTop;
+          updateJump();
+        },
+        { passive: true },
+      );
+      conversation.addEventListener(
+        "wheel",
+        (event) => {
+          if (event.deltaY < 0) followResponse = false;
+        },
+        { passive: true },
+      );
+      conversation.addEventListener(
+        "touchstart",
+        (event) => {
+          touchY = event.touches[0]?.clientY;
+        },
+        { passive: true },
+      );
+      conversation.addEventListener(
+        "touchmove",
+        (event) => {
+          const y = event.touches[0]?.clientY;
+          if (touchY !== null && y > touchY) followResponse = false;
+          touchY = y;
+        },
+        { passive: true },
+      );
+      conversation.addEventListener("pointerdown", (event) => {
+        if (event.target === conversation) followResponse = false;
+      });
+      conversation.addEventListener("keydown", (event) => {
+        if (["ArrowUp", "PageUp", "Home"].includes(event.key))
+          followResponse = false;
+      });
+      $("jump-latest").onclick = () => {
+        followResponse = true;
+        conversation.scrollTo({
+          top: conversation.scrollHeight,
+          behavior: reducedMotion.matches ? "instant" : "smooth",
+        });
+      };
+      new ResizeObserver(updateJump).observe(conversation);
       function rememberThread() {
         const url = new URL(location.href);
         url.searchParams.set("chat", thread);
         window.history.replaceState(null, "", url);
-        try { sessionStorage.setItem("contractor-chat", thread); } catch {}
+        try {
+          sessionStorage.setItem("contractor-chat", thread);
+        } catch {}
       }
       function showContext(inns) {
         $("conversation-context").textContent = inns?.length
@@ -950,7 +1131,9 @@
         const status = bubble("assistant", "");
         busy(status, "Восстанавливаю разговор");
         try {
-          const res = await fetch("/v1/threads/" + encodeURIComponent(thread) + "/state");
+          const res = await fetch(
+            "/v1/threads/" + encodeURIComponent(thread) + "/state",
+          );
           if (!res.ok) throw Error("restore");
           const state = await res.json();
           if (gen !== generation) return;
@@ -962,7 +1145,7 @@
               showAnswer(el, message.output || { text_md: message.content });
             else lastQuestion = message.content;
           }
-          $("welcome").hidden = !!state.messages?.length;
+          setConversationMode(!!state.messages?.length);
           showContext(state.selected_inns);
           if (state.messages?.at(-1)?.role === "user") {
             const unfinished = bubble("assistant", "");
@@ -971,6 +1154,9 @@
           }
           restoring = false;
           $("send").disabled = false;
+          activeTurn = [...$("chat").querySelectorAll(".message.user")].at(-1);
+          followResponse = true;
+          revealResponse(gen);
         } catch {
           if (gen !== generation) return;
           status.querySelector(".answer-text").innerHTML =
@@ -987,12 +1173,16 @@
         showContext([]);
         answers.length = 0;
         $("chat").replaceChildren();
-        $("welcome").hidden = false;
+        setConversationMode(false);
+        activeTurn = null;
+        followResponse = true;
+        $("jump-latest").hidden = true;
         $("send").disabled = false;
         $("suggestions").hidden = true;
         $("question").value = "";
-        $("question").focus();
-        window.scrollTo({ top: 0, behavior: "instant" });
+        resizeQuestion();
+        $("question").focus({ preventScroll: true });
+        conversation.scrollTo({ top: 0, behavior: "instant" });
       }
       function bubble(role, text) {
         const el = document.createElement("article");
@@ -1018,15 +1208,20 @@
         const signal = controller.signal;
         rememberThread();
         lastQuestion = text;
-        $("welcome").hidden = true;
+        setConversationMode(true);
         $("question").value = "";
         $("suggestions").hidden = true;
         searchGeneration++;
         $("send").disabled = true;
-        bubble("user", text);
+        activeTurn = bubble("user", text);
+        followResponse = true;
+        resizeQuestion();
+        if (window.matchMedia("(pointer: coarse)").matches)
+          $("question").blur();
+        else $("question").focus({ preventScroll: true });
         const el = bubble("assistant", "");
         busy(el, "Читаю вопрос");
-        el.scrollIntoView({ block: "nearest", behavior: "smooth" });
+        revealResponse(gen);
         let done = false;
         try {
           const response = await fetch("/v1/runs/stream", {
@@ -1072,6 +1267,7 @@
               if (event.type === "end") {
                 showAnswer(el, event.data.output);
                 showContext(event.data.output.active_inns);
+                revealResponse(gen);
                 done = true;
               }
               if (event.type === "error")
@@ -1087,16 +1283,18 @@
           if (error.name !== "AbortError" && gen === generation) {
             el.querySelector(".answer-text").innerHTML =
               '<div class="error">' +
-              esc(error instanceof TypeError
-                ? "Не удалось связаться с сервером. Контекст разговора сохраняется; повторите запрос после подключения."
-                : error.message) +
+              esc(
+                error instanceof TypeError
+                  ? "Не удалось связаться с сервером. Контекст разговора сохраняется; повторите запрос после подключения."
+                  : error.message,
+              ) +
               '</div><div class="answer-actions"><button data-retry>Повторить запрос</button></div>';
           }
         } finally {
           if (gen === generation) {
             controller = null;
             $("send").disabled = false;
-            $("question").focus();
+            revealResponse(gen);
           }
         }
       }
@@ -1139,11 +1337,18 @@
         v.textContent = answer.verification?.rejected_citations
           ? "Часть утверждений не прошла проверку. Они исключены из ответа."
           : "Основания доступны по ссылкам на поля и расчёты.";
-        if (answer.verification?.checked_citations || answer.verification?.rejected_citations) el.append(v);
-        if (answer.next_actions?.length) {
+        if (
+          answer.verification?.checked_citations ||
+          answer.verification?.rejected_citations
+        )
+          el.append(v);
+        const followups = (answer.next_actions || []).filter(
+          (text) => text !== "Покажи основания" || !answer.citations?.length,
+        );
+        if (followups.length) {
           const n = document.createElement("div");
           n.className = "next-actions";
-          answer.next_actions.forEach((text) => {
+          followups.forEach((text) => {
             const b = document.createElement("button");
             b.className = "chip";
             b.textContent = text;
@@ -1167,7 +1372,7 @@
       function closeDrawer() {
         $("overlay").hidden = true;
         document.body.style.overflow = "";
-        lastFocus?.focus();
+        lastFocus?.focus({ preventScroll: true });
       }
       function date(s) {
         return s?.split("-").reverse().join(".") || "не указана";
@@ -1366,6 +1571,7 @@
         if (e.key === "Escape") $("suggestions").hidden = true;
       });
       $("question").addEventListener("input", () => {
+        resizeQuestion();
         clearTimeout(searchTimer);
         const query = $("question").value.trim(),
           version = ++searchGeneration;
@@ -1404,13 +1610,12 @@
         if (!b) return;
         if (b.hasAttribute("data-new")) reset();
         if (b.dataset.prompt) ask(b.dataset.prompt);
-        if (b.dataset.fill) {
-          $("question").value = b.dataset.fill;
-          $("question").focus();
-        }
         if (b.hasAttribute("data-retry")) {
           const previous = b.closest(".message")?.previousElementSibling;
-          ask(previous?.querySelector(".user-bubble")?.textContent || lastQuestion);
+          ask(
+            previous?.querySelector(".user-bubble")?.textContent ||
+              lastQuestion,
+          );
         }
         if (b.hasAttribute("data-restore")) {
           b.closest(".message")?.remove();
@@ -1479,9 +1684,12 @@
           $("drawer-content").textContent = "Не удалось загрузить сведения.";
         }
       };
+      resizeQuestion();
       let savedThread = new URL(location.href).searchParams.get("chat");
       if (!savedThread) {
-        try { savedThread = sessionStorage.getItem("contractor-chat"); } catch {}
+        try {
+          savedThread = sessionStorage.getItem("contractor-chat");
+        } catch {}
       }
       if (savedThread && /^[a-zA-Z0-9_-]{1,128}$/.test(savedThread)) {
         thread = savedThread;
