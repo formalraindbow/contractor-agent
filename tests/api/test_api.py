@@ -2,6 +2,7 @@
 import json
 from collections.abc import Iterable
 
+import pytest
 from fastapi.testclient import TestClient
 from langchain_core.messages import AIMessage
 from tests.agent.fakes import scripted_llm, tool_call
@@ -24,6 +25,28 @@ def _settings(tmp_path) -> Settings:
 
 def _runtime(snapshot: Snapshot, tmp_path, responses: list) -> AgentRuntime:
     return AgentRuntime(_settings(tmp_path), source=snapshot, llm=scripted_llm(responses))
+
+
+@pytest.mark.parametrize("scheme", ["http", "https"])
+def test_link_login_preserves_browser_origin_and_chat(snapshot, tmp_path, scheme):
+    settings = _settings(tmp_path).model_copy(update={"web_password": "test-stand-key"})
+    app = create_app(lambda: _runtime(snapshot, tmp_path, []), settings=settings)
+    # HTTP also models TLS termination at a proxy that omits X-Forwarded-Proto.
+    with TestClient(app, base_url=f"{scheme}://stand.example") as client:
+        assert client.get("/").status_code == 401
+        assert client.get("/?k=wrong", follow_redirects=False).status_code == 401
+        response = client.get(
+            "/?k=test-stand-key&chat=existing-chat", follow_redirects=False
+        )
+        assert response.status_code == 303
+        assert response.headers["location"] == "/?chat=existing-chat"
+        assert "HttpOnly" in response.headers["set-cookie"]
+        page = client.get(response.headers["location"])
+        assert page.status_code == 200
+        assert str(page.url) == f"{scheme}://stand.example/?chat=existing-chat"
+        assert "Проверка контрагента" in page.text
+        response = client.get("/?k=test-stand-key", follow_redirects=False)
+        assert response.headers["location"] == "/"
 
 
 def _sse(lines: Iterable[str]) -> list[tuple[str, dict]]:
