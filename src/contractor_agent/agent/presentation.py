@@ -58,6 +58,8 @@ def public_text(text: str) -> str:
         )
     text = re.sub(r"【[^】\n]*】", "", text)
     text = _PATH.sub("", text)
+    # Removing a bold internal annotation can leave empty emphasis after a fact.
+    text = re.sub(r"(?<=\S)[ \t]+\*{4}(?=[ \t]*(?:\n|$))", "", text)
     text = re.sub(r"\s*\((?:defendant|plaintiff)\)", "", text, flags=re.I)
     text = re.sub(r"\b(?:source_paths?|verdict_ru|signal_counts)\s*[:=]?", "", text)
     text = re.sub(r"\b[ZЗ](?:SK|СК)\b", "ЗСК", text, flags=re.I)

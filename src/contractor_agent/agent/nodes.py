@@ -35,7 +35,7 @@ from contractor_agent.agent.schema import Answer, Attention, Card, CardLabels, C
 from contractor_agent.agent.scoped_answers import scoped_answer
 from contractor_agent.agent.section_answers import section_answer
 from contractor_agent.agent.state import AgentState, ToolCallTrace
-from contractor_agent.data.loader import ReportSource
+from contractor_agent.data.loader import ReportSource, normalize_name, strip_legal_form
 from contractor_agent.mcp_server.tools import Tools
 from contractor_agent.signals.model import VERDICT_RU, Severity, Verdict
 
@@ -58,6 +58,21 @@ def make_nodes(llm: LLM, tools: list[Any], source: ReportSource) -> dict[str, No
     tool_node = ToolNode(tools, handle_tool_errors=True)
     tools_layer = Tools(source)
 
+    def answer_inns(state: AgentState) -> list[str]:
+        question = str(state.get("question") or "")
+        candidates = list(
+            dict.fromkeys(
+                [
+                    *(state.get("turn_inns") or []),
+                    *(state.get("selected_inns") or []),
+                    *re.findall(r"\b\d{10,12}\b", question),
+                ]
+            )
+        )
+        return requested_inns(question, candidates, source) or list(
+            state.get("turn_inns") or state.get("selected_inns") or []
+        )
+
     async def guard(state: AgentState) -> dict[str, Any]:
         """Короткий ответ без модели и инструментов: посторонний ввод не повод собирать карточку."""
         reply = offtopic_reply(str(state.get("question") or "")) or _CAPABILITIES
@@ -74,6 +89,15 @@ def make_nodes(llm: LLM, tools: list[Any], source: ReportSource) -> dict[str, No
         question = str(state.get("question") or "")
         history = visible_history(state["messages"], question)
         messages = [SystemMessage(content=SYSTEM_PROMPT), *history]
+        focus = requested_inns(question, answer_inns(state), source)
+        if focus:
+            messages.append(
+                SystemMessage(
+                    content="Компании текущего вопроса (ИНН): "
+                    + ", ".join(focus)
+                    + ". Отвечай о них; общий список прошлого сравнения не расширяет этот вопрос."
+                )
+            )
         response = await tools_for(question).ainvoke(messages)
         return {"messages": [response]}
 
@@ -126,22 +150,22 @@ def make_nodes(llm: LLM, tools: list[Any], source: ReportSource) -> dict[str, No
         ):
             hint = ((hint + " ") if hint else "") + FOLLOW_UP_HINT
         question = str(state.get("question") or "")
-        inns = list(state.get("turn_inns") or state.get("selected_inns") or [])
+        inns = answer_inns(state)
         cards = [c for c in (build_card(tools_layer, inn) for inn in inns) if c]
-        identities = ", ".join(state.get("turn_inns") or state.get("selected_inns") or [])
+        identities = ", ".join(inns)
         history = finalization_history(state["messages"], question)
         messages = [
             SystemMessage(content=SYSTEM_PROMPT),
             *history,
             HumanMessage(
                 content=f"{FINALIZE_PROMPT}\n\n{hint or ''}\n\n"
-                f"Компании в разговоре (ИНН): {identities}.\n"
+                f"Компании текущего вопроса (ИНН): {identities}. Отвечай только о них.\n"
                 f"Текущий вопрос, на который нужно ответить: {question}"
             ),
         ]
         try:
             # Narrow policy answers still use current report evidence and the same validator.
-            turn_inns = list(state.get("turn_inns") or [])
+            turn_inns = inns
             draft = (
                 comparison_followup(cards, question)
                 or section_answer(tools_layer, turn_inns, question)
@@ -164,13 +188,14 @@ def make_nodes(llm: LLM, tools: list[Any], source: ReportSource) -> dict[str, No
                 citations.append(extra)
                 seen_paths.add(extra.source_path)
         question = str(state.get("question") or "")
-        inns = list(state.get("turn_inns") or state.get("selected_inns") or [])
         kind_hint, _ = question_kind_hint(question)
         if kind_hint == "comparison" and len(cards) >= 2 and draft.kind != "comparison":
             draft = draft.model_copy(
                 update={"kind": "comparison"}
             )  # несколько компаний — сравнение
-        elif kind_hint == "answer" and draft.kind == "card":
+        elif (kind_hint == "answer" and draft.kind == "card") or (
+            len(inns) == 1 and draft.kind == "comparison"
+        ):
             draft = draft.model_copy(update={"kind": "answer"})
         elif kind_hint == "card" and cards and draft.kind in ("refusal", "answer"):
             # просили проверить компанию, карточка собрана кодом: пробелы в отчёте не повод
@@ -186,7 +211,7 @@ def make_nodes(llm: LLM, tools: list[Any], source: ReportSource) -> dict[str, No
                 inn: day for inn, day in (state.get("report_dates") or {}).items() if inn in inns
             },
         )
-        return {"draft": draft, "answer": answer}
+        return {"draft": draft, "answer": answer, "turn_inns": inns}
 
     async def validate(state: AgentState) -> dict[str, Any]:
         answer = state["answer"]
@@ -368,14 +393,36 @@ _DECISION_RE = re.compile(
     re.I,
 )
 _DOCUMENTS_Q = re.compile(r"что (?:запросить|уточнить)|какие документы|список документов", re.I)
-_EXPLAIN_Q = re.compile(r"почему такой вывод|объясни.{0,20}(?:рекомендац|вывод)", re.I)
+_EXPLAIN_Q = re.compile(
+    r"почему.{0,70}(?:вывод|сигнал|риск)|объясни.{0,20}(?:рекомендац|вывод)", re.I
+)
 _HEAD_Q = re.compile(r"руковод|управляющ|директор|сколько лет|возраст компан", re.I)
 _LABEL_Q = re.compile(r"зск|светофор|метк[аиу]|оценк[аиу] банка", re.I)
 
 
 def question_subject(question: str) -> str:
     # The UI appends company identity and goal; those are context, not another question.
-    return question.split("Речь о компании", 1)[0].strip()
+    return re.split(r"Речь о компании|(?:Контекст сравнения|Компании):", question, maxsplit=1)[
+        0
+    ].strip()
+
+
+def requested_inns(question: str, candidates: list[str], source: ReportSource) -> list[str]:
+    """Named companies narrow this turn; the comparison remains in session memory."""
+    subject = normalize_name(question_subject(question))
+    if re.search(r"остальн|другими|всеми|у всех|каждой|обоих|из них|с кем", subject):
+        return []
+    mentioned = []
+    for inn in dict.fromkeys(candidates):
+        report = source.get(inn)
+        if report is None:
+            continue
+        name = strip_legal_form(normalize_name(report.base_info.short_name))
+        if re.search(rf"\b{re.escape(inn)}\b", subject) or (
+            name and re.search(rf"\b{re.escape(name)}(?:а|у|ом|е)?\b", subject)
+        ):
+            mentioned.append(inn)
+    return mentioned
 
 
 def comparison_needs_verdict(question: str) -> bool:
@@ -480,7 +527,7 @@ def question_kind_hint(question: str) -> tuple[str | None, str | None]:
     if _EXPLAIN_Q.search(question):
         return (
             "answer",
-            "Объясни вывод из get_risk_signals и 3–4 факта, которые к нему привели. Это вывод помощника, не рекомендация банка.",
+            "Ответь, почему получился такой вывод, по get_risk_signals. Если сигналов не выделено, объясни результат проверки доступных сведений и существенные ограничения; пропуски данных не означают благополучия. Не заполняй ответ выдуманными фактами. Это вывод помощника, не рекомендация банка.",
         )
     if _DECISION_RE.search(
         question

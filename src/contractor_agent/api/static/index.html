@@ -82,6 +82,10 @@ button:focus-visible,a:focus-visible,input:focus-visible,textarea:focus-visible,
 @keyframes pulse { 50% { opacity:.3; } }
 .actions { display:flex; flex-wrap:wrap; gap:8px; margin-top:12px; padding:0 22px 14px; } .answer .actions { padding:0; }
 .quiet { background:none; border:1px solid var(--line); border-radius:7px; padding:6px 10px; font-size:12px; } .quiet:hover { background:var(--surface); }
+.copy-answer { display:inline-flex; align-items:center; justify-content:center; width:34px; height:34px; padding:0; border:0; border-radius:7px; background:transparent; color:var(--muted); }
+.copy-answer:hover { color:var(--text); background:var(--surface); }
+.copy-status { position:absolute; width:1px; height:1px; padding:0; overflow:hidden; clip-path:inset(50%); white-space:nowrap; }
+@media(pointer:coarse) { .copy-answer { width:44px; height:44px; } }
 .ask { display:flex; gap:10px; padding:15px 20px; position:sticky; bottom:0; z-index:2; background:rgba(255,255,255,.98); border-top:1px solid var(--line); border-radius:0 0 14px 14px; box-shadow:0 -6px 18px #17233105; }
 .ask textarea { display:block; resize:none; flex:1; min-width:0; min-height:48px; max-height:150px; border:1px solid #b6c0cc; border-radius:10px; padding:11px 13px; background:#fff; line-height:1.5; }
 .ask button { align-self:end; border:0; border-radius:9px; background:var(--accent); color:#fff; padding:12px 16px; font-weight:600; }
@@ -442,7 +446,6 @@ document.addEventListener('keydown',e=>{
   }
 });
 const money = n => n == null ? 'В отчёте не указано' : Number(n).toLocaleString('ru-RU',{maximumFractionDigits:2})+' ₽';
-const displayValue = value => value == null ? 'В отчёте не указано' : typeof value==='object' ? JSON.stringify(value,null,2) : String(value);
 function answerText(a) {
   // Also remove obsolete boilerplate when restoring a saved conversation.
   let text=(a.text_md || '').replace(/работать только на условиях: предоплата и подтверждающие документы/gi,'есть существенные риски')
@@ -461,8 +464,6 @@ function openReports(cards) {
 function answerActions(el,a) {
   if(!el) return;
   const actions=document.createElement('div'); actions.className='actions';
-  const sources=document.createElement('button'); sources.type='button'; sources.className='quiet';
-  sources.textContent='Показать основания'+(a.citations?.length ? ` · ${a.citations.length}` : ''); sources.onclick=()=>openSources(a); actions.append(sources);
   const inns=[...new Set([...Object.keys(a.report_dates || {}),...(a.citations || []).map(c=>c.inn).filter(Boolean)])];
   if(inns.length===1) {
     const report=document.createElement('button'); report.type='button'; report.className='quiet'; report.textContent='Открыть отчёт';
@@ -472,27 +473,17 @@ function answerActions(el,a) {
     reports.onclick=()=>openReports(inns.map(inn=>({...((a.cards || []).find(c=>c.inn===inn) || chosen.find(c=>c.inn===inn)?.card || {inn}),report_date:a.report_dates?.[inn]})));
     actions.append(reports);
   }
-  const copy=document.createElement('button'); copy.type='button'; copy.className='quiet'; copy.textContent='Копировать ответ';
-  copy.onclick=async()=>{try {await navigator.clipboard.writeText(answerText(a)); copy.textContent='Скопировано';} catch {copy.textContent='Не удалось скопировать';} setTimeout(()=>copy.textContent='Копировать ответ',1600);};
-  actions.append(copy); el.append(actions);
-}
-function openSources(a) {
-  const dates=a.report_dates || {}, sole=Object.keys(dates).length===1 ? Object.keys(dates)[0] : null;
-  const citations=(a.citations || []).filter(c=>c.source_path);
-  openDrawer('Основания ответа',citations.length ? '<p class="meta">Факты и расчёты из банковского отчёта. Раскройте основание, чтобы сверить исходные значения.</p>'+citations.map((c,i)=>{
-    const inn=c.inn || sole;
-    return `<article class="fact"><div>${md(c.claim)}</div><div class="meta">${inn ? `ИНН ${esc(inn)}` : 'Компания не указана в основании'}${dates[inn] ? ` · отчёт от ${dateRu(dates[inn])}` : ''}</div><details class="source-block" data-source="${i}"><summary>Поле отчёта и расчёт</summary><div class="source-data"></div></details></article>`;
-  }).join('') : '<p class="meta">В этом ответе нет ссылок на конкретные поля отчёта. Для общих пояснений и уточняющих вопросов они могут не требоваться.</p>');
-  $('#drawerContent').querySelectorAll('[data-source]').forEach(details=>details.addEventListener('toggle',async()=>{
-    if(!details.open || details.dataset.loaded) return;
-    const c=citations[+details.dataset.source],inn=c.inn || sole,box=details.querySelector('.source-data');
-    if(!inn) {box.textContent='Нельзя однозначно связать это основание с компанией.'; return;}
-    details.dataset.loaded='1'; box.textContent='Загружаю основание…';
-    try {
-      const e=await fetchJson(`/report/${encodeURIComponent(inn)}/source?`+new URLSearchParams({path:c.source_path,...(c.code ? {signal:c.code} : {})}));
-      box.innerHTML=(e.calculation ? `<p>${esc(e.calculation.description)}</p><b>Значения для расчёта</b><pre>${esc(displayValue(e.calculation.values))}</pre>` : '')+`<b>Поле</b><pre>${esc(e.path)}</pre><b>Значение в отчёте</b><pre>${esc(displayValue(e.value))}</pre>`+(e.basis?.length ? `<details><summary>Все поля, участвующие в расчёте</summary>${e.basis.map(b=>`<pre>${esc(b.path)}\n${esc(displayValue(b.value))}</pre>`).join('')}</details>` : '');
-    } catch {details.dataset.loaded=''; box.innerHTML='<p class="error-message">Не удалось получить основание. Закройте и откройте этот пункт, чтобы повторить.</p>';}
-  }));
+  const copy=document.createElement('button'); copy.type='button'; copy.className='copy-answer';
+  const icon='<svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="8" width="12" height="13" rx="3"/><path d="M9 8V6a3 3 0 0 1 3-3h6a3 3 0 0 1 3 3v8a3 3 0 0 1-3 3h-2"/></svg>';
+  const status=document.createElement('span'); status.className='copy-status'; status.setAttribute('role','status');
+  const reset=()=>{copy.innerHTML=icon;copy.title='Скопировать ответ';copy.setAttribute('aria-label','Скопировать ответ');};
+  reset();
+  copy.onclick=async()=>{
+    try {await navigator.clipboard.writeText(answerText(a));copy.innerHTML='<svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 12 4 4L19 6"/></svg>';copy.title='Скопировано';copy.setAttribute('aria-label','Скопировано');status.textContent='Ответ скопирован';}
+    catch {copy.title='Не удалось скопировать';copy.setAttribute('aria-label','Не удалось скопировать. Повторить');status.textContent='Не удалось скопировать ответ';}
+    setTimeout(()=>{reset();status.textContent='';},1600);
+  };
+  actions.append(copy,status); el.append(actions);
 }
 async function openReport(card) {
   const version=openDrawer('Отчёт компании','<p class="meta">Загружаю данные…</p>');
@@ -504,8 +495,7 @@ async function openReport(card) {
     $('#drawerTitle').textContent=c.name;
     $('#drawerContent').innerHTML=`<p class="meta">ИНН ${esc(c.inn)} · отчёт от ${dateRu(c.report_date)}</p><p>Сводка исходных данных из отчёта банка.</p><h3>Сведения о компании</h3><table>${item('Адрес',d.address)}${item('Регистрация',dateRu(d.registered))}${item('Статус',d.status_reason || 'Основание статуса не указано')}${item('Руководитель',d.head ? `${d.head.name} · ${d.head.position}${d.head.since ? ' · с '+dateRu(d.head.since) : ''}` : null)}${item('Сотрудники',d.staff)}${item('Светофор банка',c.labels.riskLevel)}${item('ЗСК',c.labels.zskRiskLevel)}</table><h3>Финансовая отчётность</h3>`+
       (years.length ? years.map(y=>`<h3>${esc(y.year)} год</h3><table>${item('Выручка',money(y.proceeds))}${item('Прибыль / убыток',money(y.profit))}${item('Капитал и резервы',money(y.capitals))}${item('Текущая ликвидность',y.current_liquidity == null ? 'Не рассчитать: нет необходимых данных об оборотных активах или краткосрочных обязательствах' : Number(y.current_liquidity).toLocaleString('ru-RU',{maximumFractionDigits:3}))}</table>`).join('') : `<p>${esc(fin.note || 'Бухгалтерской отчётности нет — оценить финансовое положение нельзя.')}</p>`)+
-      `<h3>Что отмечено в отчёте</h3><ul>${c.attention.map(f=>`<li>${esc(f.claim)}</li>`).join('') || '<li>Существенные факторы риска по правилам проверки не выделены.</li>'}</ul>${c.gaps.length ? `<h3>Ограничения данных</h3><ul>${c.gaps.map(g=>`<li>${esc(g)}</li>`).join('')}</ul>` : ''}<div class="actions"><button type="button" class="quiet" id="reportSources">Показать основания</button></div>`;
-    $('#reportSources').onclick=()=>openSources(cardCitations(c));
+      `<h3>Что отмечено в отчёте</h3><ul>${c.attention.map(f=>`<li>${esc(f.claim)}</li>`).join('') || '<li>Существенные факторы риска по правилам проверки не выделены.</li>'}</ul>${c.gaps.length ? `<h3>Ограничения данных</h3><ul>${c.gaps.map(g=>`<li>${esc(g)}</li>`).join('')}</ul>` : ''}`;
     revealDrawerContent();
   } catch { if(version===drawerVersion) $('#drawerContent').innerHTML='<p class="error-message">Не удалось загрузить отчёт. Попробуйте открыть его ещё раз.</p>'; }
 }
@@ -570,16 +560,10 @@ function renderCard(c) {
   if (gaps.length || asks.length) html += '<div class="card-extra">' +
     (gaps.length ? `<div class="gaps"><b>Чего не хватает для оценки</b><ul>${gaps.map(g => `<li>${esc(g)}</li>`).join('')}</ul></div>` : '') +
     (asks.length ? `<div class="gaps"><b>Что можно запросить</b><ul>${asks.map(a => `<li>${esc(a)}</li>`).join('')}</ul></div>` : '') + '</div>';
-  html += '<div class="actions"><button type="button" class="quiet" id="openReport">Открыть отчёт</button><button type="button" class="quiet" id="cardSources">Показать основания</button></div>';
+  html += '<div class="actions"><button type="button" class="quiet" id="openReport">Открыть отчёт</button></div>';
   $('#cardDetails').innerHTML = html;
   $('#openReport').onclick = () => openReport(c);
-  $('#cardSources').onclick = () => openSources(cardCitations(c));
 }
-function cardCitations(c) { return {citations:[
-  ...(c.attention || []).map(a=>({...a,inn:c.inn})),
-  {claim:`Светофор банка: ${c.labels.riskLevel}`,inn:c.inn,source_path:'report.baseInfo.riskLevel'},
-  {claim:`ЗСК: ${c.labels.zskRiskLevel}`,inn:c.inn,source_path:'report.zskRiskLevel'},
-], report_dates:{[c.inn]:c.report_date}}; }
 function withoutCardEcho(a) { return a.text_md || ''; }
 
 function showCompany(c) {
@@ -653,10 +637,9 @@ function renderComparison(cards) {
   html += row("Главное", (c) => `<td>${(c.attention || []).length ? `<ul>${c.attention.slice(0, 3).map((a) => `<li>${esc(a.claim)}</li>`).join("")}</ul>` : `<span class="muted">сигналов не найдено</span>`}</td>`);
   html += row("Чего нет в отчёте", (c) => `<td class="muted">${(c.gaps || []).length ? esc(c.gaps.join(" · ")) : "пробелов нет"}</td>`);
   html += `</tbody></table></div>`;
-  html += `<div class="actions"><button type="button" class="quiet" id="cmpReports">Отчёты · ${cards.length}</button><button type="button" class="quiet" id="cmpSources">Показать основания сравнения</button></div>`;
+  html += `<div class="actions"><button type="button" class="quiet" id="cmpReports">Отчёты · ${cards.length}</button></div>`;
   $("#cmpBody").innerHTML = html;
   $('#cmpReports').onclick=()=>openReports(cards);
-  $('#cmpSources').onclick=()=>openSources({citations:cards.flatMap(c=>cardCitations(c).citations),report_dates:Object.fromEntries(cards.map(c=>[c.inn,c.report_date]))});
 }
 
 function compare() {
@@ -668,7 +651,6 @@ function compare() {
   chatPut({mode:"many", chosen, name:chosen.map(c => c.name).join(", "), turns:[]});
   $("#cmpPanel").scrollIntoView({ block: "start", behavior: reducedMotion.matches ? "instant" : "smooth" });
 }
-const chosenList = () => chosen.map((c) => `${c.name} (ИНН ${c.inn})`).join(", ");
 
 // ---------- поток ответа агента
 function scrollRoot() { return window.innerWidth <= 720 ? document.scrollingElement : $('#workspace'); }
@@ -862,7 +844,16 @@ function askOne(q, label) {
 }
 function askMany(q, label) {
   if (chosen.length < 2) return;
-  stream($("#cmpThread"), `${q} Компании: ${chosenList()}.`, label || q);
+  const normalize=s=>s.toLocaleLowerCase('ru').replace(/ё/g,'е').replace(/[«»"“”]/g,'').replace(/\s+/g,' ').trim();
+  const text=normalize(q);
+  const named=chosen.filter(c=>{
+    const name=normalize(c.name).replace(/^(?:(?:ооо|пао|зао|оао|ао|ип) )+/, '');
+    const escaped=name.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
+    return text.includes(c.inn) || new RegExp(`(^|[^а-яa-z0-9])${escaped}(?:а|у|ом|е)?($|[^а-яa-z0-9])`,'i').test(text);
+  });
+  const scope=/остальн|другими|всеми|у всех|каждой|обоих|из них|с кем/i.test(q) || !named.length ? chosen : named;
+  const context=scope.length===1 ? `Речь о компании ${scope[0].name}, ИНН ${scope[0].inn}.` : `Контекст сравнения: ${scope.map(c=>`${c.name} (ИНН ${c.inn})`).join(', ')}.`;
+  stream($("#cmpThread"), `${q} ${context}`, label || q);
 }
 
 // ---------- события

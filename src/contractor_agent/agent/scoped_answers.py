@@ -29,7 +29,7 @@ ZSK_EXPLANATION = (
 def scoped_answer(tools: Tools, inns: list[str], question: str) -> Draft | None:
     if len(inns) != 1:
         return None
-    q = question.split("Речь о компании", 1)[0]
+    q = re.split(r"Речь о компании|(?:Контекст сравнения|Компании):", question, maxsplit=1)[0]
     inn = inns[0]
     response = tools.get_report_summary(inn)
     if not response.available:
@@ -42,7 +42,58 @@ def scoped_answer(tools: Tools, inns: list[str], question: str) -> Draft | None:
     def cite(claim, path):
         citations.append(Citation(claim=claim, source_path=path, inn=inn))
 
-    if STAFF.search(q) and not re.search(r"финанс|суд|пристав|руковод|зск|светофор", q, re.I):
+    if (
+        re.search(r"почему|что значит|что означает", q, re.I)
+        and re.search(r"(?:не найден|не выявлен|нет).{0,25}(?:сигнал|риск)", q, re.I)
+        and not re.search(r"покажи|сколько|документ|что запросить|оплат|отсроч", q, re.I)
+    ):
+        risk_response = tools.get_risk_signals(inn)
+        if not risk_response.available or any(risk_response.data["signals"].values()):
+            return None
+        lines = [
+            f"### Почему у {summary['short_name']} не найдено сигналов",
+            "По доступным сведениям отчёта помощник не выявил факторов, "
+            "которые срабатывают при проверке рисков.",
+            "",
+            "### Что есть в отчёте",
+        ]
+        facts = []
+        if summary["status"] == "CURRENT":
+            facts.append(("Компания указана как действующая.", "report.status.status"))
+        if summary["sections"].get("arbitrationByStatus") == "empty":
+            facts.append(("В судебной сводке нет записей о делах.", "report.arbitrationByStatus"))
+        if summary["sections"].get("executionProceedings") == "empty":
+            facts.append(
+                ("Нет записей об исполнительных производствах.", "report.executionProceedings")
+            )
+        if (
+            summary["sections"].get("reputationalRisks") == "present"
+            and summary["counts"]["negative_flags"] == 0
+        ):
+            facts.append(
+                (
+                    "В разделе репутационных рисков нет отмеченных негативных факторов.",
+                    "report.reputationalRisks",
+                )
+            )
+        for claim, path in facts:
+            lines.append("- " + claim)
+            cite(claim, path)
+        if not facts:
+            lines.append("Доступные сведения не дали оснований выделить отдельные факторы риска.")
+        gaps = risk_response.data["gaps"]
+        if gaps:
+            lines += ["", "### Что оценить не удалось"]
+            for gap in gaps:
+                lines.append("- " + gap["text"])
+                cite(gap["text"], gap["source_path"])
+            lines += [
+                "",
+                "Пропущенные данные не считаются положительными результатами проверки. "
+                "Поэтому отсутствие выявленных сигналов не означает, что компания "
+                "проверена по всем критериям.",
+            ]
+    elif STAFF.search(q) and not re.search(r"финанс|суд|пристав|руковод|зск|светофор", q, re.I):
         if summary["staff"] is not None:
             return None
         lines = ["В отчёте нет сведений о численности сотрудников — оценить штат нельзя."]

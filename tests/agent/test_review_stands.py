@@ -184,6 +184,14 @@ def test_date_cleanup_keeps_words_intact():
     assert tidy_text("Срок — 31 марта 2026 года.") == "Срок — 31.03.2026."
 
 
+def test_internal_annotations_do_not_leave_empty_bold_markup():
+    text = "Строка прибыли отсутствует. **(report.finReports[0].common.profit)**"
+    assert public_text(text) == "Строка прибыли отсутствует."
+    assert public_text("**Важный факт**\n\n****\n\nПродолжение") == (
+        "**Важный факт**\n\n****\n\nПродолжение"
+    )
+
+
 def test_comparison_removes_only_report_date_paragraphs():
     from contractor_agent.agent.presentation import comparison_text
 
@@ -286,3 +294,64 @@ def test_section_citations_resolve_for_both_roles_and_known_amounts(snapshot, in
         (c.citation.claim, c.why) for c in checks if not c.ok
     ]
     assert "54 54" not in result.text_md and "1 1 дело" not in result.text_md
+
+
+def test_named_company_narrows_comparison_context(snapshot):
+    from contractor_agent.agent.nodes import requested_inns
+
+    inns = ["6165169320", "1684017097", "2311304742"]
+    context = " Компании: ГДК (ИНН 6165169320), ТЕХПРОФ (ИНН 1684017097), БИЛД-ЮГ (ИНН 2311304742)."
+    question = "почему у ТЕХПРОФ не найдено сигналов?" + context
+    assert requested_inns(question, inns, snapshot) == ["1684017097"]
+    assert question_kind_hint(question)[0] == "answer"
+    assert "get_risk_signals" in tool_subset(question)
+    assert "compare_companies" not in tool_subset(question)
+    assert requested_inns("Что с судами у 1684017097?" + context, inns, snapshot) == ["1684017097"]
+    assert requested_inns("Сравни ГДК и ТЕХПРОФ" + context, inns, snapshot) == inns[:2]
+    assert requested_inns("Сравни ТЕХПРОФ с остальными" + context, inns, snapshot) == []
+
+
+def test_no_signal_explanation_distinguishes_checked_and_missing_data(snapshot):
+    from contractor_agent.agent.citations import validate_citations
+    from contractor_agent.agent.scoped_answers import scoped_answer
+
+    tools = Tools(snapshot)
+    q = "Почему у ТЕХПРОФ не найдено сигналов?"
+    draft = scoped_answer(tools, ["1684017097"], q)
+    assert "помощник" in draft.text_md
+    assert "Компания указана как действующая" in draft.text_md
+    assert "нет записей о делах" in draft.text_md
+    assert "Что оценить не удалось" in draft.text_md
+    assert "не считаются положительными результатами" in draft.text_md
+    assert "вердикт банка" not in draft.text_md.lower() and "signals" not in draft.text_md
+    assert all(c.ok for c in validate_citations(snapshot, ["1684017097"], draft.citations))
+    assert scoped_answer(tools, ["6165169320"], q) is None
+    assert scoped_answer(tools, ["1684017097"], q + " Покажи суды.") is None
+
+
+async def test_single_company_followup_keeps_comparison_memory(snapshot, tmp_path):
+    inns = ["6165169320", "1684017097", "2311304742"]
+    llm = scripted_llm(
+        [
+            tool_call("compare_companies", "all", inns=inns),
+            AIMessage(content="Данные получены."),
+            Draft(
+                kind="comparison",
+                lines=["У ООО «ТЕХПРОФ» по данным отчёта не выделены существенные факторы риска."],
+            ),
+        ]
+    )
+    settings = Settings(session_db_path=tmp_path / "s.sqlite", runs_dir=tmp_path / "runs")
+    async with AgentRuntime(settings, source=snapshot, llm=llm) as runtime:
+        answer = await runtime.ask(
+            "Почему у ТЕХПРОФ не найдено сигналов? Компании: ГДК (ИНН 6165169320), "
+            "ТЕХПРОФ (ИНН 1684017097), БИЛД-ЮГ (ИНН 2311304742).",
+            "focused",
+        )
+        state = await runtime.graph.aget_state({"configurable": {"thread_id": "focused"}})
+    assert answer.kind == "answer"
+    assert answer.cards == []
+    assert answer.report_dates == {"1684017097": "2026-08-28"}
+    assert "ГДК" not in answer.text_md and "БИЛД" not in answer.text_md
+    assert state.values["selected_inns"] == inns
+    assert state.values["turn_inns"] == ["1684017097"]
