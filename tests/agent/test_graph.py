@@ -567,3 +567,12 @@ def test_absence_problem_catches_more_phrasings() -> None:
     assert absence_problem("Никаких действующих производств не зафиксировано.")
     assert absence_problem("Действующих производств не зафиксировано.")
     assert absence_problem("В отчёте не найдено производств — это не значит, что их нет.") is None
+
+
+def test_tidy_strips_severity_labels() -> None:
+    """Сильная модель подписывает строки тяжестью сигнала — в интерфейсе это плашка."""
+    from contractor_agent.agent.nodes import tidy_text
+
+    assert tidy_text("Критический сигнал — статус «банкрот»") == "Статус «банкрот»"
+    assert tidy_text("- Умеренный сигнал — 258 дел") == "- 258 дел"
+    assert tidy_text("Сигнал светофора — зелёный") == "Сигнал светофора — зелёный"
