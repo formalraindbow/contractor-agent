@@ -10,6 +10,7 @@ from __future__ import annotations
 
 import json
 from collections.abc import Sequence
+from contextlib import AsyncExitStack
 from datetime import UTC, datetime
 from typing import Any
 
@@ -18,7 +19,7 @@ from langgraph.checkpoint.base import BaseCheckpointSaver
 from mcp.client.client import Client
 from mcp.client.stdio import StdioServerParameters
 
-from contractor_agent.agent.graph import build_graph, initial_state
+from contractor_agent.agent.graph import build_graph, initial_state, sqlite_saver
 from contractor_agent.agent.llm import LLM, make_llm
 from contractor_agent.agent.schema import Answer
 from contractor_agent.agent.tools import load_tools
@@ -42,11 +43,17 @@ class AgentRuntime:
         self.llm = llm or make_llm(self.settings)
         self.checkpointer = checkpointer
         self.mcp_stdio = mcp_stdio
+        self._stack = AsyncExitStack()
         self.client: Client | None = None
         self.graph = None
         self.tools: list[Any] = []
 
     async def __aenter__(self) -> AgentRuntime:
+        if self.checkpointer is None and self.settings.session_store == "sqlite":
+            # диалоги переживают перезапуск: память графа лежит в файле, а не в процессе
+            self.checkpointer = await self._stack.enter_async_context(
+                sqlite_saver(self.settings.session_db_path)
+            )
         if self.mcp_stdio:
             params = StdioServerParameters(
                 command="uv",
@@ -63,6 +70,7 @@ class AgentRuntime:
     async def __aexit__(self, *exc: Any) -> None:
         if self.client is not None:
             await self.client.__aexit__(*exc)
+        await self._stack.aclose()
 
     async def ask(
         self, question: str, thread_id: str = "cli", *, history: Sequence[BaseMessage] = ()

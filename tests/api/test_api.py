@@ -13,12 +13,17 @@ from contractor_agent.data.loader import Snapshot
 from contractor_agent.settings import Settings
 
 
-def _runtime(snapshot: Snapshot, tmp_path, responses: list) -> AgentRuntime:
-    return AgentRuntime(
-        Settings(runs_dir=tmp_path / "runs", openrouter_api_key="x"),
-        source=snapshot,
-        llm=scripted_llm(responses),
+def _settings(tmp_path) -> Settings:
+    return Settings(
+        runs_dir=tmp_path / "runs",
+        openrouter_api_key="x",
+        session_db_path=tmp_path / "sessions.sqlite",  # свои диалоги у каждого теста
+        web_password=None,  # пароль стенда не мешает тестам
     )
+
+
+def _runtime(snapshot: Snapshot, tmp_path, responses: list) -> AgentRuntime:
+    return AgentRuntime(_settings(tmp_path), source=snapshot, llm=scripted_llm(responses))
 
 
 def _sse(lines: Iterable[str]) -> list[tuple[str, dict]]:
@@ -51,7 +56,9 @@ CARD_SCRIPT = [
 
 
 def test_stream_contract_and_reference_endpoints(snapshot: Snapshot, tmp_path) -> None:
-    app = create_app(lambda: _runtime(snapshot, tmp_path, CARD_SCRIPT))
+    app = create_app(
+        lambda: _runtime(snapshot, tmp_path, CARD_SCRIPT), settings=_settings(tmp_path)
+    )
     with TestClient(app) as client:
         health = client.get("/v1/health").json()
         assert (
@@ -127,7 +134,9 @@ def test_stream_contract_and_reference_endpoints(snapshot: Snapshot, tmp_path) -
 
 
 def test_inn_input_and_error_event(snapshot: Snapshot, tmp_path) -> None:
-    app = create_app(lambda: _runtime(snapshot, tmp_path, []))  # сценарий пуст → модель падает
+    app = create_app(
+        lambda: _runtime(snapshot, tmp_path, []), settings=_settings(tmp_path)
+    )  # сценарий пуст → модель падает
     with TestClient(app) as client:
         body = {"thread_id": "t2", "input": {"inn": "1684017097"}}
         with client.stream("POST", "/v1/runs/stream", json=body) as response:
@@ -138,7 +147,7 @@ def test_inn_input_and_error_event(snapshot: Snapshot, tmp_path) -> None:
 
 def test_mcp_info_lists_tools_and_config(snapshot: Snapshot, tmp_path) -> None:
     """Вкладка «Для агентов банка» берёт отсюда описания функций и готовый конфиг."""
-    app = create_app(lambda: _runtime(snapshot, tmp_path, []))
+    app = create_app(lambda: _runtime(snapshot, tmp_path, []), settings=_settings(tmp_path))
     with TestClient(app) as client:
         info = client.get("/v1/mcp/info").json()
     names = [t["name"] for t in info["tools"]]
