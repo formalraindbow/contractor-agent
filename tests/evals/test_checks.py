@@ -137,7 +137,7 @@ def test_judge_sees_card_only_for_card_questions():
 def test_verdict_in_text_falls_back_to_phrase():
     from evals.checks import verdict_in_text
 
-    assert verdict_in_text("Рекомендация: стоит проверить до договора.") == "check"
+    assert verdict_in_text("Рекомендация: нужна дополнительная проверка.") == "check"
     assert (
         verdict_in_text("сделки могут быть оспорены, обязательства не исполнены")
         == "not_recommended"

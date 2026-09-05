@@ -23,7 +23,7 @@ async def test_card_flow_with_one_citation_repair(snapshot: Snapshot, tmp_path) 
                 lines=[
                     "Компания банкрот [report.status.reasonName], 54 производства [report.executionProceedings], штат 100 человек.",
                     "",
-                    "Стоит проверить до договора.",
+                    "Нужна дополнительная проверка.",
                 ],
                 citations=[
                     Citation(claim="признана банкротом", source_path="report.status.reasonName"),
@@ -149,7 +149,7 @@ def test_enforce_verdict_replaces_and_appends() -> None:
     from contractor_agent.agent.nodes import enforce_verdict
     from contractor_agent.signals.model import Verdict
 
-    text = "Итог: Стоит проверить до договора. Отчёт от 01.08.2026."
+    text = "Итог: Нужна дополнительная проверка. Отчёт от 01.08.2026."
     fixed = enforce_verdict(text, Verdict.NOT_RECOMMENDED)
     assert "существенные риски" in fixed and "проверить до договора." not in fixed
     assert enforce_verdict("Без вывода.", Verdict.OK).endswith("**Рекомендация:** можно работать.")
@@ -231,7 +231,7 @@ def test_forbidden_phrase_is_flagged_and_scrubbed() -> None:
         text, "есть существенные риски"
     )
     assert "нельзя" not in scrubbed and "есть существенные риски" in scrubbed
-    assert forbidden_problem("Стоит проверить до договора.") is None
+    assert forbidden_problem("Нужна дополнительная проверка.") is None
 
 
 def test_question_kind_hint() -> None:

@@ -1,0 +1,24 @@
+const {chromium}=require('playwright');const assert=require('node:assert/strict');
+(async()=>{const b=await chromium.launch({headless:true,executablePath:'/Applications/Google Chrome.app/Contents/MacOS/Google Chrome'});try{
+// A goal in the first message must survive company resolution, even without a question mark.
+const first=await b.newPage();const card=await (await first.request.get('http://127.0.0.1:8084/report/9705152496/card')).json();let firstRequest;
+await first.route('**/v1/runs/stream',route=>{firstRequest=route.request().postDataJSON();return route.fulfill({contentType:'text/event-stream',body:'data: '+JSON.stringify({type:'end',data:{output:{kind:'card',text_md:'Нужна дополнительная проверка перед оплатой.',card,report_dates:{[card.inn]:card.report_date},citations:[]}}})+'\n\n'});});
+await first.goto('http://127.0.0.1:8084');await first.locator('#q').fill('Хочу оплатить счёт ООО СПОРТ, ИНН 9705152496');await first.locator('#q').press('Enter');await first.locator('#card .verdict.check').waitFor();
+assert.match(firstRequest.input.messages[0].content,/Хочу оплатить счёт/);assert.equal(await first.locator('#goals .on').getAttribute('data-goal'),'pay');assert.match(await first.locator('#card .v').textContent(),/^Перед оплатой/);
+await first.getByRole('button',{name:'Просто смотрю',exact:true}).click();assert.equal(await first.locator('#card .v').textContent(),'Нужна дополнительная проверка');await first.close();
+const p=await b.newPage({viewport:{width:1440,height:1000}}), errors=[];p.on('pageerror',e=>errors.push(e.message));let request;
+await p.goto('http://127.0.0.1:8084');await p.locator('#q').fill('9705152496');await p.locator('#go').click();await p.locator('#card .verdict.check').waitFor();
+assert.equal(await p.locator('#card .v').textContent(),'Нужна дополнительная проверка');assert.equal(await p.locator('#card .bank-rating').count(),2);
+assert.equal(await p.locator('#card .bank-rating strong').first().evaluate(e=>getComputedStyle(e).fontSize),'18px');
+const verdict=await p.locator('#card .verdict').boundingBox(),bank=await p.locator('#card .bank-ratings').boundingBox();assert.ok(Math.abs(verdict.y-bank.y)<3 && bank.x>verdict.x);
+await p.screenshot({path:'deliverables/interim/develop-review/bank-ratings.png'});
+await p.route('**/v1/runs/stream',route=>{request=route.request().postDataJSON();return route.fulfill({contentType:'text/event-stream',body:'data: '+JSON.stringify({type:'end',data:{output:{kind:'answer',text_md:'Факты по указанной цели.',report_dates:{'9705152496':'2026-08-06'},citations:[]}}})+'\n\n'});});
+await p.locator('#ask').fill('Хочу оплатить счёт, что нужно учесть?');await p.locator('#ask').press('Enter');await p.locator('#thread .answer .actions').waitFor();
+assert.equal(await p.locator('#goals .on').getAttribute('data-goal'),'pay');assert.match(await p.locator('#card .v').textContent(),/^Перед оплатой/);assert.match(request.input.messages[0].content,/Мне нужно сейчас оплатить/);
+await p.reload();await p.locator('#thread .answer .actions').waitFor();assert.match(await p.locator('#card .v').textContent(),/^Перед оплатой/);assert.equal(await p.locator('#goals .on').getAttribute('data-goal'),'pay');
+await p.getByRole('button',{name:'Просто смотрю',exact:true}).click();assert.equal(await p.locator('#card .v').textContent(),'Нужна дополнительная проверка');assert.ok(!(await p.locator('#chips').innerHTML()).includes('до договора'));
+assert.equal(await p.evaluate(()=>statedGoal('Если я хочу оплатить счёт, как будет выглядеть ответ?')),null);assert.equal(await p.evaluate(()=>statedGoal('Не хочу оплатить счёт')),null);
+await p.setViewportSize({width:390,height:844});const mobileBank=await p.locator('.bank-ratings').boundingBox(), mobileVerdict=await p.locator('#card .verdict').boundingBox(), mobileGoals=await p.locator('#goals').boundingBox();assert.ok(mobileBank.y<mobileVerdict.y && mobileVerdict.y<mobileGoals.y);assert.ok(await p.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));await p.screenshot({path:'deliverables/interim/develop-review/bank-ratings-mobile.png',fullPage:true});
+await p.setViewportSize({width:1440,height:1000});await p.locator('#tabMany').click();await p.locator('#cmpExample').click();await p.waitForFunction(()=>!document.querySelector('#cmpgo').disabled && document.querySelectorAll('#selected .chip').length===3);await p.locator('#cmpgo').click();assert.equal(await p.locator('#cmpBody .bank-rating').count(),6);assert.match(await p.locator('#cmpBody tbody tr').first().textContent(),/^Оценки банка/);assert.equal(errors.length,0);
+console.log('PASS: goal in first message without question mark, prominent bank labels, neutral default, explicit payment goal, persisted goal, general-view reset, hypothetical/negative intent ignored, mobile ordering, comparison labels first.');
+}finally{await b.close();}})().catch(e=>{console.error(e);process.exit(1)});

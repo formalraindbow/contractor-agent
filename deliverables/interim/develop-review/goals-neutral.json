@@ -1,0 +1,162 @@
+[
+  {
+    "question": "Проверь ООО СПОРТ, ИНН 9705152496. Просто смотрю компанию, конкретной цели пока нет.",
+    "seconds": 8.58,
+    "answer": {
+      "kind": "card",
+      "text_md": "## ООО «СПОРТ» (ИНН 9705152496)\n- **Метки банка**: зелёный (LOW), ЗСК — серый\n- **Вердикт**: нужна дополнительная проверка\n- **Ключевые факты**:\n - Убыток за 2025 год — 6,5 млн ₽ (moderate)\n - Убытки за 3 из 3 лет отчётности (2023‑2025) (info)\n - Руководитель в должности менее года (8 мес.) (info)\n - Отсутствуют данные о выручке за 2024‑2025 годы (info)\n - Отсутствуют сведения о численности персонала (info)\n- **Дата отчёта**: 30.07.2026",
+      "card": {
+        "inn": "9705152496",
+        "name": "ООО «СПОРТ»",
+        "labels": {
+          "riskLevel": "зелёный",
+          "zskRiskLevel": "серый"
+        },
+        "verdict": "check",
+        "terminal": false,
+        "attention": [
+          {
+            "claim": "По отчётности за 2025 год — убыток 6,5 млн ₽.",
+            "severity": "moderate",
+            "source_path": "report.finReports[0].common.profit",
+            "code": "fin_loss",
+            "source_paths": []
+          },
+          {
+            "claim": "Руководитель КАМАЕВ ИГОРЬ СЕРГЕЕВИЧ в должности с 10.11.2025 — 8 месяцев на дату отчёта.",
+            "severity": "info",
+            "source_path": "report.foundersInfo.authPerson.positionDate",
+            "code": "director_recent",
+            "source_paths": [
+              "report.foundersInfo.authPerson.name"
+            ]
+          },
+          {
+            "claim": "Убыток в 3 из 3 лет отчётности: 2023, 2024, 2025.",
+            "severity": "info",
+            "source_path": "report.finReports",
+            "code": "fin_loss_streak",
+            "source_paths": [
+              "report.finReports[0].common.profit",
+              "report.finReports[1].common.profit",
+              "report.finReports[2].common.profit"
+            ]
+          }
+        ],
+        "ask_before": [],
+        "gaps": [
+          "В отчёте нет сведений о численности сотрудников — оценить по этому критерию нельзя.",
+          "В отчётности за 2024–2025 годы нет строки «выручка» — оценить по этому критерию нельзя."
+        ],
+        "report_date": "2026-07-30"
+      },
+      "cards": [],
+      "citations": [
+        {
+          "claim": "Убыток за 2025 год — 6,5 млн ₽",
+          "source_path": "report.finReports[0].common.profit",
+          "inn": "9705152496"
+        },
+        {
+          "claim": "Убытки за 2023, 2024, 2025 годы",
+          "source_path": "report.finReports",
+          "inn": "9705152496"
+        },
+        {
+          "claim": "Руководитель в должности с 10.11.2025 (8 месяцев)",
+          "source_path": "report.foundersInfo.authPerson.positionDate",
+          "inn": "9705152496"
+        },
+        {
+          "claim": "Отсутствуют данные о выручке за 2024‑2025",
+          "source_path": "report.finReports[0].common.proceeds",
+          "inn": "9705152496"
+        },
+        {
+          "claim": "Отсутствуют сведения о численности персонала",
+          "source_path": "report.baseInfo.staff",
+          "inn": "9705152496"
+        }
+      ],
+      "invalid_citations": [],
+      "report_dates": {
+        "9705152496": "2026-07-30"
+      }
+    }
+  },
+  {
+    "question": "Хочу оплатить счёт ООО СПОРТ, ИНН 9705152496. Что нужно учесть перед оплатой?",
+    "seconds": 9.43,
+    "answer": {
+      "kind": "card",
+      "text_md": "## ООО «СПОРТ» (ИНН 9705152496)\n\n**Метки банка**: зелёный (LOW), серый\n\n**Вывод**: нужна дополнительная проверка\n\n**Ключевые сигналы**:\n- Убыток за 2025 год — 6,5 млн ₽ \n- Убытки за 3 из 3 лет отчётности (2023‑2025) \n- Руководитель в должности менее года (8 мес.) \n\n**Что учесть перед оплатой**:\n- Возможные финансовые риски из‑за последовательных убытков\n- Недостаточная информация о выручке и численности персонала (отсутствуют в отчёте)\n- Отсутствие данных о текущих судебных или исполнительных производствах (разделы пусты)\n- Несмотря на зелёный свет банка, требуется уточнение финансовой стабильности и подтверждение отсутствия блокировок счёта\n\nОтчёт от 30.07.2026.",
+      "card": {
+        "inn": "9705152496",
+        "name": "ООО «СПОРТ»",
+        "labels": {
+          "riskLevel": "зелёный",
+          "zskRiskLevel": "серый"
+        },
+        "verdict": "check",
+        "terminal": false,
+        "attention": [
+          {
+            "claim": "По отчётности за 2025 год — убыток 6,5 млн ₽.",
+            "severity": "moderate",
+            "source_path": "report.finReports[0].common.profit",
+            "code": "fin_loss",
+            "source_paths": []
+          },
+          {
+            "claim": "Руководитель КАМАЕВ ИГОРЬ СЕРГЕЕВИЧ в должности с 10.11.2025 — 8 месяцев на дату отчёта.",
+            "severity": "info",
+            "source_path": "report.foundersInfo.authPerson.positionDate",
+            "code": "director_recent",
+            "source_paths": [
+              "report.foundersInfo.authPerson.name"
+            ]
+          },
+          {
+            "claim": "Убыток в 3 из 3 лет отчётности: 2023, 2024, 2025.",
+            "severity": "info",
+            "source_path": "report.finReports",
+            "code": "fin_loss_streak",
+            "source_paths": [
+              "report.finReports[0].common.profit",
+              "report.finReports[1].common.profit",
+              "report.finReports[2].common.profit"
+            ]
+          }
+        ],
+        "ask_before": [],
+        "gaps": [
+          "В отчёте нет сведений о численности сотрудников — оценить по этому критерию нельзя.",
+          "В отчётности за 2024–2025 годы нет строки «выручка» — оценить по этому критерию нельзя."
+        ],
+        "report_date": "2026-07-30"
+      },
+      "cards": [],
+      "citations": [
+        {
+          "claim": "Убыток за 2025 год — 6,5 млн ₽",
+          "source_path": "report.finReports[0].common.profit",
+          "inn": "9705152496"
+        },
+        {
+          "claim": "Убытки за 3 из 3 лет отчётности (2023‑2025)",
+          "source_path": "report.finReports",
+          "inn": "9705152496"
+        },
+        {
+          "claim": "Руководитель в должности менее года (8 мес.)",
+          "source_path": "report.foundersInfo.authPerson.positionDate",
+          "inn": "9705152496"
+        }
+      ],
+      "invalid_citations": [],
+      "report_dates": {
+        "9705152496": "2026-07-30"
+      }
+    }
+  }
+]
