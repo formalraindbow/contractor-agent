@@ -1,0 +1,12 @@
+[Unit]
+Description=Back up Kontragent conversations
+ConditionPathExists=/opt/contractor-agent/state/sessions.sqlite
+
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/python3 /opt/contractor-agent/deploy/backup_sessions.py /opt/contractor-agent/state/sessions.sqlite /opt/contractor-agent/backups
+UMask=0077
+ProtectSystem=strict
+ReadWritePaths=/opt/contractor-agent/state /opt/contractor-agent/backups
+PrivateTmp=true
+NoNewPrivileges=true

@@ -1,0 +1,10 @@
+{$SITE_HOST} {
+	header {
+		X-Content-Type-Options nosniff
+		Referrer-Policy no-referrer
+	}
+	reverse_proxy agent-api:8080 {
+		# Deliver SSE events immediately, including on mobile connections.
+		flush_interval -1
+	}
+}

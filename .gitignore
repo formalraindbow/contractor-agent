@@ -2,6 +2,9 @@
 __pycache__/
 *.pyc
 .env
+.env.production
+state/
+backups/
 .venv/
 venv/
 node_modules/
@@ -13,6 +16,7 @@ runs/
 .pytest_cache/
 .ruff_cache/
 web/dist/
+dist/
 .idea/
 .cache/
 
