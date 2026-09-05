@@ -163,8 +163,6 @@ def scoped_answer(tools: Tools, inns: list[str], question: str) -> Draft | None:
             lines += [
                 "",
                 "Вывод помощника по отчёту: " + VERDICT_RU[Verdict(risks["verdict"])] + ".",
-                "Эта общая формулировка не означает, что плательщику следует отправлять "
-                "предоплату при неуточнённых ограничениях.",
             ]
     elif DOCUMENTS.search(q) and not re.search(r"сколько|кто руковод|почему", q, re.I):
         risk_response = tools.get_risk_signals(inn)
