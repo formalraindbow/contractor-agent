@@ -154,9 +154,11 @@ def create_app(
             """Пускаем по ключу в ссылке (?k=…, дальше cookie) или по паре логин-пароль."""
             key = request.query_params.get("k")
             if key and secrets.compare_digest(key, web_password):
-                response = RedirectResponse(
-                    str(request.url.remove_query_params("k")), status_code=303
-                )
+                # Keep the browser's HTTPS origin even when a tunnel forwards plain HTTP.
+                target = request.url.remove_query_params("k")
+                path = "/" + target.path.lstrip("/")
+                location = path + (f"?{target.query}" if target.query else "")
+                response = RedirectResponse(location, status_code=303)
                 response.set_cookie("kontragent_key", web_password, httponly=True, max_age=86400)
                 return response
             cookie = request.cookies.get("kontragent_key", "")
