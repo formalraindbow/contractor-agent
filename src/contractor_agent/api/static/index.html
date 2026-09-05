@@ -36,8 +36,21 @@ button:focus-visible,a:focus-visible,input:focus-visible,textarea:focus-visible,
 .empty { color:var(--muted); font-size:14px; }
 .company { scroll-margin-top:75px; display:flex; flex-wrap:wrap; justify-content:space-between; align-items:start; gap:16px; margin-bottom:20px; }
 .company h1 { margin:0; font-size:25px; line-height:1.3; letter-spacing:-.4px; } .meta { color:var(--muted); font-size:13px; margin-top:6px; }
-.pills { display:flex; flex-wrap:wrap; gap:12px; } .pill { display:inline-flex; align-items:center; gap:7px; color:var(--muted); font-size:12px; }
-.pill .dot { width:7px; height:7px; border-radius:50%; background:currentColor; } .pill.g { color:var(--ok); } .pill.y { color:var(--mod); } .pill.r { color:var(--crit); }
+.assessment { display:grid; grid-template-columns:minmax(0,1.15fr) minmax(300px,1fr); border-bottom:1px solid var(--line); }
+.assessment-label { font-size:13px; font-weight:600; margin:0 0 10px; color:var(--text); }
+.bank-ratings { padding:18px 22px; border-left:1px solid var(--line); }
+.bank-marks { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+.bank-rating { min-width:0; padding:10px 13px; background:var(--gray-bg); border:1px solid #c3cbd4; border-radius:8px; }
+.bank-rating span { display:block; font-size:12px; color:var(--text); }
+.bank-rating strong { display:flex; gap:8px; align-items:center; font-size:18px; line-height:1.5; font-weight:650; color:var(--gray); }
+.bank-rating strong::before { content:""; width:9px; height:9px; border-radius:50%; background:currentColor; flex:none; }
+.bank-rating.g { background:var(--ok-bg); border-color:#95c4aa; } .bank-rating.g strong { color:var(--ok); }
+.bank-rating.y { background:var(--mod-bg); border-color:#d4b67d; } .bank-rating.y strong { color:var(--mod); }
+.bank-rating.r { background:var(--crit-bg); border-color:#db9c98; } .bank-rating.r strong { color:var(--crit); }
+.bank-marks.compact { grid-template-columns:1fr; gap:6px; }
+.compact .bank-rating { display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:4px 8px; padding:7px 10px; }
+.compact .bank-rating strong { font-size:14px; }
+@media(max-width:1050px) { .assessment { grid-template-columns:1fr; } .bank-ratings { order:-1; border-left:0; border-bottom:1px solid var(--line); } }
 .panel { background:#fff; border:1px solid var(--line); border-radius:14px; margin-top:20px; }
 .head { display:flex; justify-content:space-between; gap:12px; align-items:center; padding:15px 22px; border-bottom:1px solid var(--line); } .head .t { font-size:14px; font-weight:600; } .head .d { color:var(--muted); font-size:12px; }
 .verdict { padding:18px 22px; border-left:3px solid transparent; } .verdict .v { font-weight:700; font-size:20px; line-height:1.4; max-width:70ch; } .verdict .s { margin-top:6px; font-size:14px; max-width:74ch; }
@@ -119,11 +132,12 @@ button:focus-visible,a:focus-visible,input:focus-visible,textarea:focus-visible,
 
     <section class="company" id="company" hidden>
       <div><h1 id="cname"></h1><div class="meta" id="cmeta"></div></div>
-      <div class="pills" id="cpills"></div>
     </section>
 
     <section class="panel" id="agent" hidden>
-      <div class="head"><span class="t">Рекомендация по отчёту</span><span class="d" id="ahead"></span></div>
+      <div class="head"><span class="t">Результат проверки</span><span class="d" id="ahead"></span></div>
+      <div id="card">
+      <div id="cardAssessment"></div>
       <div class="chips goals" id="goals">
         <span class="lbl">Зачем проверяете?</span>
         <button class="chip" type="button" data-goal="pay">Плачу по счёту</button>
@@ -132,12 +146,13 @@ button:focus-visible,a:focus-visible,input:focus-visible,textarea:focus-visible,
         <button class="chip" type="button" data-goal="legal">Готовлю претензию</button>
         <button class="chip" type="button" data-goal="look">Просто смотрю</button>
       </div>
-      <div id="card"></div>
+      <div id="cardDetails"></div>
+      </div>
 
       <div class="chips" id="chips">
         <span class="lbl">Спросить агента:</span>
         <button class="chip" type="button" data-ask="Почему такой вывод?">Объясни рекомендацию</button>
-        <button class="chip" type="button" data-ask="Что запросить у контрагента до договора?">Что запросить у контрагента?</button>
+        <button class="chip" type="button" data-ask="Что запросить у контрагента?">Что запросить у контрагента?</button>
         <button class="chip" type="button" data-ask="Что с судами: сколько дел и кто с кем?">Суды</button>
         <button class="chip" type="button" data-ask="Есть ли долги у приставов?">Долги у приставов</button>
         <button class="chip" type="button" data-ask="Что с финансами?">Финансы</button>
@@ -217,8 +232,8 @@ button:focus-visible,a:focus-visible,input:focus-visible,textarea:focus-visible,
 
 <script>
 const $ = (s) => document.querySelector(s);
-const VERDICT = { ok: "Можно работать", check: "Стоит проверить до договора", not_recommended: "Есть существенные риски" };
-const VERDICT_SHORT = { ok: "Можно работать", check: "Проверить до договора", not_recommended: "Существенные риски" };
+const VERDICT = { ok: "Можно работать", check: "Нужна дополнительная проверка", not_recommended: "Есть существенные риски" };
+const VERDICT_SHORT = { ok: "Можно работать", check: "Нужна дополнительная проверка", not_recommended: "Существенные риски" };
 const SEV = { critical: "важно", moderate: "стоит учесть", info: "к сведению" };
 const TOOLS = { search_company: "ищу компанию", get_report_summary: "читаю сводку", get_risk_signals: "проверяю, на что обратить внимание", get_financials: "смотрю финансы", get_enforcement_summary: "смотрю долги у приставов", get_arbitration_summary: "смотрю суды", get_section: "читаю раздел отчёта", compare_companies: "сравниваю компании" };
 const newThread = () => crypto.randomUUID();
@@ -287,8 +302,8 @@ async function openChat(id) {
   if (many) { renderChosen(); renderComparison(chosen.map(c => c.card)); $('#cmpPanel').hidden = false; }
   else if (chat.inn) {
     try { showCompany(await fetchJson(`/report/${chat.inn}/card`)); }
-    catch { $('#agent').hidden = false; $('#card').innerHTML = '<p class="gaps">Не удалось загрузить карточку. Обновите страницу, чтобы повторить.</p>'; }
-  } else { $('#agent').hidden = false; $('#company').hidden = true; $('#card').innerHTML = ''; }
+    catch { $('#agent').hidden = false; clearCard('<p class="gaps">Не удалось загрузить карточку. Обновите страницу, чтобы повторить.</p>'); }
+  } else { $('#agent').hidden = false; $('#company').hidden = true; clearCard(); }
   $('#goals').querySelectorAll('[data-goal]').forEach(x => x.classList.toggle('on', x.dataset.goal === goal));
   renderAsks(); renderChats();
   history.replaceState(null, '', '?chat=' + encodeURIComponent(id));
@@ -424,6 +439,7 @@ const displayValue = value => value == null ? 'В отчёте не указан
 function answerText(a) {
   // Also remove obsolete boilerplate when restoring a saved conversation.
   let text=(a.text_md || '').replace(/работать только на условиях: предоплата и подтверждающие документы/gi,'есть существенные риски')
+    .replace(/стоит проверить до договора/gi,'Нужна дополнительная проверка')
     .replace(/требуют предоплаты с подтверждающими документами/gi,'требуют дополнительной проверки');
   if(Object.keys(a.report_dates || {}).length>1) {
     text=text.replace(/^[ \t]*(?:[-•] )?(?:\*\*)?(?:Отч[её]т|Дата отч[её]та)(?: по ИНН \d{10,12})?\s*(?:от|:)\s*(?:\d{2}\.\d{2}\.\d{4}|\d{4}-\d{2}-\d{2})[.]?(?:\*\*)?[ \t]*$/gim,'');
@@ -512,12 +528,32 @@ function cardRequests(c) {
   if (goal === 'legal') return [];
   return c.ask_before || [];
 }
+function bankMarks(labels, compact=false) {
+  return `<div class="bank-marks${compact ? ' compact' : ''}">`+[['Светофор',labels.riskLevel],['ЗСК',labels.zskRiskLevel]].map(([label,value])=>{
+    const word=String(value || 'Не указан');
+    return `<div class="bank-rating ${pillClass(value)}"><span>${label}</span><strong>${esc(word.charAt(0).toUpperCase()+word.slice(1))}</strong></div>`;
+  }).join('')+'</div>';
+}
+function recommendationText(c) {
+  if(c.verdict!=='check') return VERDICT[c.verdict];
+  return {
+    pay:'Перед оплатой нужна дополнительная проверка',
+    deal:'Перед предоставлением отсрочки нужна дополнительная проверка',
+    supply:'Перед заказом нужна дополнительная проверка',
+    legal:'Для подготовки претензии стоит уточнить сведения',
+  }[goal] || VERDICT.check;
+}
+function clearCard(html='') {
+  $('#cardAssessment').innerHTML = '';
+  $('#cardDetails').innerHTML = html;
+}
 function renderCard(c) {
   const facts = orderedFacts(c);
   const li = a => `<li>${esc(a.claim)}</li>`;
   const sub = c.terminal ? 'Компания в процедуре банкротства или исключается из реестра: сделки могут быть оспорены, обязательства не исполнены.' :
     c.verdict === 'ok' ? 'По доступным данным существенных факторов риска не выделено. Ограничения отчёта приведены ниже.' : '';
-  let html = `<div class="verdict ${c.verdict}"><div class="v">${VERDICT[c.verdict]}</div>${sub ? `<div class="s">${sub}</div>` : ''}</div>`;
+  $('#cardAssessment').innerHTML = `<div class="assessment"><div class="verdict ${c.verdict}"><div class="assessment-label">Рекомендация помощника</div><div class="v">${recommendationText(c)}</div>${sub ? `<div class="s">${sub}</div>` : ''}</div><section class="bank-ratings" aria-label="Оценки банка"><div class="assessment-label">Оценки банка</div>${bankMarks(c.labels)}</section></div>`;
+  let html = '';
   const primary = goal && goal !== 'look' ? facts : facts.filter(a => a.severity !== 'info');
   const rest = facts.filter(a => !primary.includes(a));
   html += primary.length ? `<ul class="facts">${primary.map(li).join('')}</ul>` :
@@ -528,7 +564,7 @@ function renderCard(c) {
     (gaps.length ? `<div class="gaps"><b>Чего не хватает для оценки</b><ul>${gaps.map(g => `<li>${esc(g)}</li>`).join('')}</ul></div>` : '') +
     (asks.length ? `<div class="gaps"><b>Что можно запросить</b><ul>${asks.map(a => `<li>${esc(a)}</li>`).join('')}</ul></div>` : '') + '</div>';
   html += '<div class="actions"><button type="button" class="quiet" id="openReport">Открыть отчёт</button><button type="button" class="quiet" id="cardSources">Показать основания</button></div>';
-  $('#card').innerHTML = html;
+  $('#cardDetails').innerHTML = html;
   $('#openReport').onclick = () => openReport(c);
   $('#cardSources').onclick = () => openSources(cardCitations(c));
 }
@@ -547,7 +583,6 @@ function showCompany(c) {
   $("#company").hidden = false; $("#agent").hidden = false;
   $("#cname").textContent = c.name;
   $("#cmeta").textContent = `ИНН ${c.inn} · отчёт банка от ${dateRu(c.report_date)}`;
-  $("#cpills").innerHTML = `<span class="pill ${pillClass(c.labels.riskLevel)}"><span class="dot"></span>Оценка банка: ${esc(c.labels.riskLevel)}</span><span class="pill ${pillClass(c.labels.zskRiskLevel)}"><span class="dot"></span>ЗСК: ${esc(c.labels.zskRiskLevel)}</span>`;
   $("#ahead").textContent = "";
   renderCard(c);
   $("#ask").focus({preventScroll:true});
@@ -559,7 +594,7 @@ const isQuestion = (q) => /\?|(^|[^а-яёa-z])(можно|сколько|что
 
 async function check(q) {
   if (busy || !q.trim()) return;
-  if (isQuestion(q) && !/^\d{10,12}$/.test(q.trim())) return askFree(q.trim());
+  if ((isQuestion(q) || statedGoal(q)) && !/^\d{10,12}$/.test(q.trim())) return askFree(q.trim());
   setBusy(true);
   try {
     const res = await resolveCompany(q); $('#picker').hidden = true;
@@ -605,8 +640,8 @@ async function addCompany(q) {
 function renderComparison(cards) {
   const row = (label, cell) => `<tr><td>${label}</td>${cards.map(cell).join("")}</tr>`;
   let html = `<div class="cmpwrap"><table class="cmp"><thead><tr><th></th>${cards.map((c) => `<th>${esc(c.name)}<small>отчёт от ${dateRu(c.report_date)}</small></th>`).join("")}</tr></thead><tbody>`;
-  html += row("Вывод", (c) => `<td><div class="comparison-verdict ${c.verdict}">${VERDICT_SHORT[c.verdict]}</div></td>`);
-  html += row("Оценки банка", (c) => `<td>${esc(c.labels.riskLevel)} · ЗСК ${esc(c.labels.zskRiskLevel)}</td>`);
+  html += row("Оценки банка", (c) => `<td>${bankMarks(c.labels,true)}</td>`);
+  html += row("Рекомендация помощника", (c) => `<td><div class="comparison-verdict ${c.verdict}">${VERDICT_SHORT[c.verdict]}</div></td>`);
   html += row("Главное", (c) => `<td>${(c.attention || []).length ? `<ul>${c.attention.slice(0, 3).map((a) => `<li>${esc(a.claim)}</li>`).join("")}</ul>` : `<span class="muted">сигналов не найдено</span>`}</td>`);
   html += row("Чего нет в отчёте", (c) => `<td class="muted">${(c.gaps || []).length ? esc(c.gaps.join(" · ")) : "пробелов нет"}</td>`);
   html += `</tbody></table></div>`;
@@ -758,7 +793,29 @@ const GOALS = {
   },
 };
 let goal = null, sentGoal = false;
-const DEFAULT_ASKS = [["Объясни рекомендацию", "Почему такой вывод?"], ["Что запросить у контрагента?", "Что запросить у контрагента до договора?"], ["Суды", "Что с судами: сколько дел и кто с кем?"], ["Долги у приставов", "Есть ли долги у приставов?"], ["Финансы", "Что с финансами?"], ["Можно давать отсрочку?", "Можно давать отсрочку платежа?"]];
+const DEFAULT_ASKS = [["Объясни рекомендацию", "Почему такой вывод?"], ["Что запросить у контрагента?", "Что запросить у контрагента?"], ["Суды", "Что с судами: сколько дел и кто с кем?"], ["Долги у приставов", "Есть ли долги у приставов?"], ["Финансы", "Что с финансами?"], ["Можно давать отсрочку?", "Можно давать отсрочку платежа?"]];
+
+function statedGoal(text) {
+  if(/если|допустим|например|фраз|не\s+(?:хочу|планирую|собираюсь|буду|плачу|оплачиваю)/i.test(text)) return null;
+  const patterns=[
+    ['look',/просто (?:смотрю|изучаю)|без конкретной (?:цели|задачи)/i],
+    ['legal',/готовлю (?:претензию|иск)|(?:хочу|планирую|собираюсь) подать (?:претензию|иск)|для (?:претензии|иска)/i],
+    ['deal',/(?:даю|предоставляю) отсрочку|(?:хочу|планирую|собираюсь|нужно) (?:дать|предоставить) .{0,20}отсрочку/i],
+    ['pay',/плачу|оплачиваю|(?:хочу|планирую|собираюсь|нужно|надо) (?:оплатить|платить)|для оплаты/i],
+    ['supply',/заказываю|(?:хочу|планирую|собираюсь|нужно) заказать|для (?:поставки|заказа)/i],
+  ];
+  return patterns.find(([,pattern])=>pattern.test(text))?.[0] || null;
+}
+function setGoal(next) {
+  goal=next; sentGoal=false;
+  $('#goals').querySelectorAll('[data-goal]').forEach(b=>b.classList.toggle('on',b.dataset.goal===goal));
+  renderAsks();
+  if(current) {renderCard(current.card);chatPut({goal});}
+}
+function applyStatedGoal(question) {
+  const next=statedGoal(question);
+  if(next && next!==goal) setGoal(next);
+}
 
 function renderAsks() {
   const asks = goal ? GOALS[goal].asks : DEFAULT_ASKS;
@@ -774,8 +831,9 @@ function renderAsks() {
 
 // свободный вопрос без выбранной компании: агент сам находит компанию, сводка по правилам подтягивается по его ответу
 function askFree(q) {
+  applyStatedGoal(q);
   $("#agent").hidden = false;
-  if (!current) $("#card").innerHTML = '<div class="empty" style="padding:12px 20px">Сводка по правилам появится, как только агент определит компанию.</div>';
+  if (!current) clearCard('<div class="empty" style="padding:12px 20px">Сводка по правилам появится, как только агент определит компанию.</div>');
   stream($("#thread"), q, q, async (a) => {
     const inn = (a.card && a.card.inn) || Object.keys(a.report_dates || {})[0];
     if (!inn || (current && current.inn === inn)) return;
@@ -786,6 +844,7 @@ function askFree(q) {
 // вопрос агенту про текущую компанию: ИНН добавляем к первому вопросу в сессии, дальше он помнит
 function askOne(q, label) {
   if (busy) return;
+  applyStatedGoal(q);
   if (!current) return askFree(q);
   // ИНН добавляем к каждому вопросу, а не только к первому: после обрыва связи сессия
   // на сервере может не увидеть прошлый ход, и агент переспрашивал, о какой компании речь
@@ -871,10 +930,7 @@ $("#search").addEventListener("submit", (e) => { e.preventDefault(); const q = $
 document.querySelectorAll("#modeOne .hint button").forEach((b) => b.addEventListener("click", () => { $("#q").value = b.dataset.q; check(b.dataset.q); }));
 $("#askform").addEventListener("submit", (e) => { e.preventDefault(); const q = $("#ask").value.trim(); if (!q || busy) return; $("#ask").value = ""; askOne(q); });
 $("#goals").querySelectorAll("button[data-goal]").forEach((b) => b.addEventListener("click", () => {
-  goal = goal === b.dataset.goal ? null : b.dataset.goal; sentGoal = false;
-  $("#goals").querySelectorAll("button[data-goal]").forEach((x) => x.classList.toggle("on", x.dataset.goal === goal));
-  renderAsks();
-  if(current) { renderCard(current.card); chatPut({goal}); }
+  setGoal(goal===b.dataset.goal ? null : b.dataset.goal);
 }));
 $("#addform").addEventListener("submit", (e) => { e.preventDefault(); addCompany($("#addq").value); });
 $("#cmpgo").addEventListener("click", compare);

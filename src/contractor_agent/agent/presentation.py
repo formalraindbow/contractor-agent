@@ -37,6 +37,7 @@ def public_text(text: str) -> str:
     Ordinary brackets (dates, company names, explanations) remain intact.
     """
     text = _BANNER.sub("", text)
+    text = re.sub(r"стоит проверить до договора", "нужна дополнительная проверка", text, flags=re.I)
     text = re.sub(r"`(?:report|critical|moderate|info)`", "", text)
     text = re.sub(
         r"работать только на условиях: предоплата и подтверждающие документы",

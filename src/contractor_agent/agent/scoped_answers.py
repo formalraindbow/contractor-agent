@@ -178,7 +178,7 @@ def scoped_answer(tools: Tools, inns: list[str], question: str) -> Draft | None:
             if docs
             else [
                 "В отчёте не выделены обстоятельства, требующие отдельного списка документов. "
-                "Состав документов зависит от условий планируемого договора."
+                "Состав документов зависит от цели проверки."
             ]
         )
         for group in risks["signals"].values():

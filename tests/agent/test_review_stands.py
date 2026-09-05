@@ -200,6 +200,18 @@ def test_obsolete_verdict_does_not_prescribe_payment_terms():
     assert "предоплат" not in " ".join(VERDICT_RU.values())
 
 
+def test_default_recommendation_does_not_assume_a_contract(snapshot):
+    from contractor_agent.agent.nodes import enforce_verdict, verdict_present
+    from contractor_agent.signals.model import VERDICT_RU, Verdict
+
+    card = build_card(Tools(snapshot), "9705152496")
+    assert card.verdict == Verdict.CHECK
+    text = enforce_verdict("Есть факты, которые нужно уточнить.", card.verdict)
+    assert VERDICT_RU[Verdict.CHECK] in text and "договор" not in text
+    assert verdict_present(text, Verdict.CHECK)
+    assert public_text("Стоит проверить до договора.") == "нужна дополнительная проверка."
+
+
 async def test_comparison_documents_do_not_append_verdicts_or_report_lines(snapshot, tmp_path):
     text = (
         "ГДК: подтверждение текущих ограничений по счетам. ТЕХПРОФ: отчёт о финансовых результатах."

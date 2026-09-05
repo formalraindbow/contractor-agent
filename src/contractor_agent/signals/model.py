@@ -55,13 +55,13 @@ class Verdict(StrEnum):
     """
 
     OK = "ok"  # можно работать
-    CHECK = "check"  # до договора проверить
+    CHECK = "check"  # требуется дополнительная проверка
     NOT_RECOMMENDED = "not_recommended"  # существенные риски
 
 
 VERDICT_RU: dict[Verdict, str] = {
     Verdict.OK: "можно работать",
-    Verdict.CHECK: "стоит проверить до договора",
+    Verdict.CHECK: "нужна дополнительная проверка",
     Verdict.NOT_RECOMMENDED: "есть существенные риски",
 }
 TERMINAL_RU = (  # штатный исход + причина: валидатор находит фразу исхода, судья — оговорку

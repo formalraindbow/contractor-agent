@@ -767,7 +767,7 @@ def enforce_comparison(text: str, cards: list[Card]) -> str:
 
 _VERDICT_CORE = {
     Verdict.OK: re.compile(r"можно работать|работать можно", re.I),
-    Verdict.CHECK: re.compile(r"стоит проверить", re.I),
+    Verdict.CHECK: re.compile(r"нужна дополнительная проверка", re.I),
     Verdict.NOT_RECOMMENDED: re.compile(r"(?:есть |выявлены )?существенные риски", re.I),
 }
 
