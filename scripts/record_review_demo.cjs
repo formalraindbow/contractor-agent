@@ -34,8 +34,8 @@ const output=path.resolve('deliverables/interim/develop-review');
    if(pass===1) {await page.locator('#thread .turn').last().scrollIntoViewIfNeeded();await page.screenshot({path:path.join(output,/приставов/.test(question)?'enforcement.png':'court-2025.png')});await page.waitForTimeout(1500);}
   }
   if(pass===1) {
-   await page.locator('#thread .answer').last().getByRole('button',{name:/Показать основания/}).click();
-   if(await page.locator('[data-source]').count()) {await page.locator('[data-source]').first().locator('summary').first().click();await page.locator('.source-data pre').first().waitFor();}
+   await page.locator('#thread .answer').last().getByRole('button',{name:'Открыть отчёт',exact:true}).click();
+   await page.getByRole('heading',{name:'Сведения о компании',exact:true}).waitFor();
    await page.screenshot({path:path.join(output,'evidence.png')});await page.waitForTimeout(1500);await page.keyboard.press('Escape');
   }
   record.status='passed';runs.push(record);const video=page.video();await context.close();

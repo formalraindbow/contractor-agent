@@ -12,7 +12,9 @@ _DOCS = re.compile(r"какие документы|что запросить", r
 def comparison_followup(cards: list[Card], question: str) -> Draft | None:
     if len(cards) < 2:
         return None
-    question = re.split(r"Компании:|Речь о компании", question, maxsplit=1)[0]
+    question = re.split(r"(?:Контекст сравнения|Компании):|Речь о компании", question, maxsplit=1)[
+        0
+    ]
     documents = bool(_DOCS.search(question))
     choice = bool(_CHOICE.search(question))
     # Mixed questions still need the model to cover their other parts.
