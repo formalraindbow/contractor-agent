@@ -379,6 +379,8 @@ function renderCard(c) {
 function withoutCardEcho(a) {
   const card = a.card;
   if (!card) return a.text_md || "";
+  // карточка про другую компанию (агент нашёл не ту) — свой вывод не подставляем
+  if (current && card.inn !== current.inn) return a.text_md || "";
   const tail = "Подробности — в карточке выше. Спросите, что важно именно вам: суды, долги у приставов, финансы или что запросить у контрагента.";
   return `**${VERDICT[card.verdict]}.** ${card.terminal ? "Компания в процедуре банкротства или исключается из реестра: сделки могут быть оспорены, обязательства не исполнены." : ""}\n\n${tail}`;
 }
@@ -472,8 +474,9 @@ function compare() {
 const chosenList = () => chosen.map((c) => `${c.name} (ИНН ${c.inn})`).join(", ");
 
 // ---------- поток ответа агента
-async function stream(container, question, shown, onEnd) {
-  if (busy) return; setBusy(true);
+async function stream(container, question, shown, onEnd, attempt) {
+  if (busy && !attempt) return;
+  setBusy(true);
   container.insertAdjacentHTML("beforeend", `<div class="turn user"><div class="who">Вы</div><div class="bubble">${esc(shown || question)}</div></div>`);
   const turn = document.createElement("div"); turn.className = "turn";
   turn.innerHTML = `<div class="who">Агент</div><div class="answer"><div class="status">агент работает… 0 с</div><div class="steps"></div><div class="body"></div></div>`;
@@ -522,7 +525,17 @@ async function stream(container, question, shown, onEnd) {
         else if (type === "error") { ended = true; clearInterval(timer); status.textContent = "Не удалось получить ответ, попробуйте ещё раз."; status.title = (env.data && env.data.message) || ""; }
       }
     }
-  } catch (e) { clearInterval(timer); status.textContent = "Связь с сервисом прервалась, попробуйте ещё раз."; status.title = e.message; ended = true; }
+  } catch (e) {  // связь оборвалась до ответа — один раз повторяем сами, это чаще всего туннель
+    clearInterval(timer); ended = true;
+    if (!attempt && !tokens) {
+      turn.remove();
+      const prev = container.lastElementChild;
+      if (prev && prev.classList.contains("user")) prev.remove();
+      return stream(container, question, shown, onEnd, 1);
+    }
+    status.textContent = "Связь со стендом прервалась, попробуйте ещё раз.";
+    status.title = e.message;
+  }
   finally { clearInterval(timer); if (!ended) status.textContent = "Ответ не дошёл, попробуйте ещё раз."; setBusy(false); turn.scrollIntoView({ block: "nearest" }); }
 }
 
@@ -582,10 +595,11 @@ function askFree(q) {
 // вопрос агенту про текущую компанию: ИНН добавляем к первому вопросу в сессии, дальше он помнит
 function askOne(q, label) {
   if (!current) return;
-  const first = $("#thread").children.length === 0;
-  const ctx = [first ? `Речь о компании ${current.name}, ИНН ${current.inn}.` : "", goal && !sentGoal ? GOALS[goal].text : ""].filter(Boolean).join(" ");
+  // ИНН добавляем к каждому вопросу, а не только к первому: после обрыва связи сессия
+  // на сервере может не увидеть прошлый ход, и агент переспрашивал, о какой компании речь
+  const ctx = [`Речь о компании ${current.name}, ИНН ${current.inn}.`, goal && !sentGoal ? GOALS[goal].text : ""].filter(Boolean).join(" ");
   if (goal) sentGoal = true;
-  stream($("#thread"), ctx ? `${q} ${ctx}` : q, label || q);
+  stream($("#thread"), `${q} ${ctx}`, label || q);
 }
 function askMany(q, label) {
   if (chosen.length < 2) return;
