@@ -16,7 +16,7 @@ const output=path.resolve('deliverables/interim/develop-review');
   const page=await context.newPage();const record={pass,started:new Date().toISOString(),surface:'Local Chrome, fresh profile',turns:[],errors:[]};page.on('pageerror',e=>record.errors.push(e.message));
   await page.goto(base);await page.getByRole('button',{name:'МАКСМАРКЕТ',exact:true}).click();await page.locator('#company').waitFor({state:'visible'});
   record.card=await page.locator('#card').innerText();
-  assert.match(record.card,/Есть существенные риски/);
+  assert.match(record.card,/В отчёте есть факты, требующие особого внимания/);
   await page.getByRole('button',{name:'Плачу по счёту',exact:true}).click();
   if(pass===1) await page.screenshot({path:path.join(output,'card.png')});
   for(const question of ['А сколько у них сейчас висит долгов у приставов?','С кем они судились в 2025 году и за что?']) {

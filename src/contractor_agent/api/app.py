@@ -41,6 +41,7 @@ from contractor_agent.data.paths import PathNotFoundError
 from contractor_agent.mcp_server.server import DESCRIPTIONS
 from contractor_agent.mcp_server.tools import Tools
 from contractor_agent.settings import Settings
+from contractor_agent.signals.model import LEGACY_VERDICT_RU, VERDICT_RU
 
 STATIC = Path(__file__).parent / "static"
 
@@ -133,6 +134,10 @@ def create_app(
                         "labels": PUBLIC_LABELS,
                         "phrases": PUBLIC_PHRASES,
                         "annotations": PUBLIC_ANNOTATIONS,
+                        "verdicts": VERDICT_RU,
+                        "verdict_phrases": {
+                            old: VERDICT_RU[verdict] for old, verdict in LEGACY_VERDICT_RU.items()
+                        },
                     },
                     ensure_ascii=False,
                 ),

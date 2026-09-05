@@ -11,7 +11,7 @@ import re
 from dataclasses import dataclass, field
 
 from contractor_agent.agent.schema import Answer
-from contractor_agent.signals.model import TERMINAL_RU, VERDICT_RU, Verdict
+from contractor_agent.signals.model import VERDICT_RU, Verdict, normalize_verdict_text
 from evals.gold import FORBIDDEN_LABELS, REFUSAL_MARKERS, GoldQuestion
 
 
@@ -24,8 +24,9 @@ class CheckResult:
 
 def verdict_in_text(text: str) -> str | None:
     """Исход по формулировке в тексте, когда карточки нет (ответ на вопрос, а не проверка)."""
-    lowered = text.casefold()
-    if TERMINAL_RU.split("— ")[-1].casefold() in lowered:  # хвост терминальной фразы
+    lowered = normalize_verdict_text(text).casefold()
+    # Compatibility with historical evaluation runs; no longer generated.
+    if "сделки могут быть оспорены, обязательства не исполнены" in lowered:
         return Verdict.NOT_RECOMMENDED.value
     for verdict in (Verdict.NOT_RECOMMENDED, Verdict.CHECK, Verdict.OK):
         if VERDICT_RU[verdict].casefold() in lowered:
