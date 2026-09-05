@@ -14,6 +14,7 @@ import json
 import re
 from collections.abc import Awaitable, Callable
 from typing import Any
+from uuid import uuid4
 
 from langchain_core.messages import AIMessage, BaseMessage, HumanMessage, SystemMessage, ToolMessage
 from langgraph.graph import END
@@ -98,11 +99,35 @@ def make_nodes(llm: LLM, tools: list[Any], source: ReportSource) -> dict[str, No
         context = "Выбранные ИНН: " + ", ".join(state.get("selected_inns") or [])
         context += ". Цель: " + (state.get("purpose") or "пока не названа")
         context += ". Ожидаемое уточнение: " + (state.get("pending_clarification") or "нет")
+        _, hint = question_kind_hint(question)
         messages = [
-            SystemMessage(content=SYSTEM_PROMPT + "\n\nКонтекст разговора: " + context),
+            SystemMessage(
+                content=SYSTEM_PROMPT + "\n\nКонтекст разговора: " + context + "\n" + (hint or "")
+            ),
             *history,
         ]
         response = await tools_for(question).ainvoke(messages)
+        # A compound section question must not finish after fetching only one topic.
+        # These read-only tools need only the unambiguous INN. Attempt each at most once;
+        # unavailable sections and tool errors must not create an automatic retry loop.
+        required = [
+            name
+            for name in tool_subset(question) or []
+            if name in {"get_financials", "get_arbitration_summary", "get_enforcement_summary"}
+        ]
+        selected = list(state.get("selected_inns") or [])
+        if not response.tool_calls and len(required) > 1 and len(selected) == 1:
+            inn = selected[0]
+            attempted = {t.name for t in state.get("trace") or [] if t.args.get("inn") == inn}
+            missing = [name for name in required if name not in attempted and name in by_name]
+            if missing and source.get(inn) is not None:
+                response = AIMessage(
+                    content="",
+                    tool_calls=[
+                        {"name": name, "args": {"inn": inn}, "id": "section_" + uuid4().hex}
+                        for name in missing
+                    ],
+                )
         return {"messages": [response]}
 
     async def tools_(state: AgentState) -> dict[str, Any]:
@@ -576,13 +601,13 @@ def question_kind_hint(question: str) -> tuple[str | None, str | None]:
             "Подсказка: просят решение (можно ли работать, давать отсрочку, кому верить) — "
             "kind «card» с выводом из verdict_ru; факты по разделу из вопроса — первыми."
         )
-    for name, rx in _SECTION_HINTS:
-        if rx.search(question):
-            return "answer", (
-                f"Подсказка: вопрос про один раздел ({name}) — kind «answer»: сначала ответ по "
-                "существу с числами, карточку не повторяй; если спрашивают, можно ли работать "
-                "или давать отсрочку — добавь вывод verdict_ru одной строкой."
-            )
+    sections = [name for name, rx in _SECTION_HINTS if rx.search(question)]
+    if sections:
+        return "answer", (
+            f"Подсказка: запрошены разделы ({', '.join(sections)}) — kind «answer». "
+            "Получи данные каждого запрошенного раздела. Ответь по каждому в своём блоке "
+            "с числами, карточку не повторяй. Для короткого ответа по одной теме заголовок не нужен."
+        )
     if asks_registration_status(question):
         return "answer", (
             "Вопрос только о статусе контрагента: get_report_summary, kind «answer». "

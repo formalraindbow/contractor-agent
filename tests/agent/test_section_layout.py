@@ -1,7 +1,7 @@
 from langchain_core.messages import AIMessage
 
 from contractor_agent.agent.citations import check_citation
-from contractor_agent.agent.nodes import uncovered_numeric_lines
+from contractor_agent.agent.nodes import question_kind_hint, uncovered_numeric_lines
 from contractor_agent.agent.runtime import AgentRuntime
 from contractor_agent.agent.schema import Draft
 from contractor_agent.agent.section_answer import needs_section_layout, render_sections
@@ -85,3 +85,49 @@ async def test_valid_but_fragmented_model_draft_is_grouped_without_another_llm_c
     assert "**4 дела**; сумма требований — **92 992 ₽**" in answer.text_md
     assert answer.invalid_citations == []
     assert len(answer.citations) == 14
+
+
+async def test_compound_question_fetches_the_section_omitted_by_the_model(snapshot, tmp_path):
+    kind, hint = question_kind_hint(QUESTION)
+    assert kind == "answer" and "суды" in hint and "приставов" in hint
+    llm = scripted_llm(
+        [
+            tool_call("get_enforcement_summary", "enforcement", inn=INN),
+            AIMessage(content="Готов ответить только про приставов."),
+            # The agent obtains the missing court section before allowing finalize.
+            AIMessage(content="Теперь получены оба раздела."),
+            {"bad_format": True},
+        ]
+    )
+    async with AgentRuntime(
+        Settings(_env_file=None, runs_dir=tmp_path), source=snapshot, llm=llm
+    ) as runtime:
+        answer = await runtime.ask(f"{QUESTION}, ИНН {INN}")
+    assert answer.text_md.count("### ") == 3
+    assert "**4 дела**" in answer.text_md and "**3 производства**" in answer.text_md
+    assert answer.invalid_citations == []
+
+
+async def test_unavailable_requested_sections_do_not_repeat_automatic_calls(snapshot, tmp_path):
+    report = snapshot.get(INN).model_copy(deep=True)
+    report.arbitration_by_status = None
+    report.arbitration_cases = None
+    source = Snapshot([CompanyRecord(Source.JSON, report)])
+    llm = scripted_llm(
+        [
+            tool_call("get_enforcement_summary", "enforcement", inn=INN),
+            AIMessage(content="Готов ответить."),
+            AIMessage(content="Арбитражный раздел недоступен."),
+            Draft(kind="card", lines=["Общая карточка."]),
+            # Existing citation repair may ask again about missing roles. It must not
+            # trigger another automatic fetch of the known unavailable section.
+            AIMessage(content="В отчёте нет раздела об арбитражных делах."),
+            Draft(kind="card", lines=["Общая карточка."]),
+        ]
+    )
+    async with AgentRuntime(
+        Settings(_env_file=None, runs_dir=tmp_path), source=source, llm=llm
+    ) as runtime:
+        answer = await runtime.ask(f"{QUESTION}, ИНН {INN}")
+    assert "нет раздела об арбитражных делах" in answer.text_md
+    assert "### Производства у приставов" in answer.text_md
