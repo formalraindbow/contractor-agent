@@ -15,17 +15,15 @@ from contextlib import AsyncExitStack
 from datetime import UTC, datetime
 from typing import Any
 
-import aiosqlite
 from langchain_core.messages import BaseMessage
 from langgraph.checkpoint.base import BaseCheckpointSaver
-from langgraph.checkpoint.serde.jsonplus import JsonPlusSerializer
-from langgraph.checkpoint.sqlite.aio import AsyncSqliteSaver
 from mcp.client.client import Client
 from mcp.client.stdio import StdioServerParameters
 
-from contractor_agent.agent.graph import ALLOWED_STATE_TYPES, build_graph, initial_state
+from contractor_agent.agent.graph import build_graph, initial_state
 from contractor_agent.agent.llm import LLM, make_llm
 from contractor_agent.agent.schema import Answer
+from contractor_agent.agent.sessions import SessionStorage
 from contractor_agent.agent.telemetry import RunMetrics, build_fingerprint
 from contractor_agent.agent.tools import load_tools
 from contractor_agent.data.loader import ReportSource
@@ -53,6 +51,7 @@ class AgentRuntime:
         self.tools: list[Any] = []
         self.fingerprint = build_fingerprint()
         self._stack: AsyncExitStack | None = None
+        self.sessions = SessionStorage(self.settings)
 
     async def __aenter__(self) -> AgentRuntime:
         self._stack = AsyncExitStack()
@@ -64,17 +63,7 @@ class AgentRuntime:
 
     async def _open(self) -> AgentRuntime:
         assert self._stack is not None
-        checkpointer = self.checkpointer
-        if checkpointer is None and self.settings.session_store == "sqlite":
-            path = self.settings.session_database
-            path.parent.mkdir(parents=True, exist_ok=True)
-            # Local durable storage; no pickle fallback for graph state.
-            path.touch(mode=0o600, exist_ok=True)
-            conn = await self._stack.enter_async_context(aiosqlite.connect(path))
-            checkpointer = AsyncSqliteSaver(
-                conn, serde=JsonPlusSerializer(allowed_msgpack_modules=ALLOWED_STATE_TYPES)
-            )
-            await checkpointer.setup()
+        checkpointer = await self.sessions.open(self._stack, self.checkpointer)
         if self.mcp_stdio:
             params = StdioServerParameters(
                 command="uv",
@@ -102,8 +91,9 @@ class AgentRuntime:
             "configurable": {"thread_id": thread_id},
             "recursion_limit": self.settings.recursion_limit,
         }
-        async with asyncio.timeout(self.settings.run_timeout_s):
-            result = await self.graph.ainvoke(initial_state(question, history), config=config)
+        async with await self.sessions.acquire(thread_id):
+            async with asyncio.timeout(self.settings.run_timeout_s):
+                result = await self.graph.ainvoke(initial_state(question, history), config=config)
         answer: Answer = result["answer"]
         answer.runtime = {
             **metrics.result(),

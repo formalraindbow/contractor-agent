@@ -1,15 +1,27 @@
+import asyncio
+
+import pytest
 from fastapi.testclient import TestClient
 from langchain_core.messages import AIMessage
 from tests.agent.fakes import scripted_llm, tool_call
 from tests.api.test_api import CARD_SCRIPT, _sse
 
 from contractor_agent.agent.runtime import AgentRuntime
+from contractor_agent.agent.sessions import initialize_postgres
 from contractor_agent.api.app import create_app
 from contractor_agent.settings import Settings
 
 
-def test_conversation_survives_runtime_restart_and_keeps_company(snapshot, tmp_path):
+@pytest.mark.parametrize(
+    "backend", ["sqlite", pytest.param("postgres", marks=pytest.mark.postgres)]
+)
+def test_conversation_survives_runtime_restart_and_keeps_company(
+    snapshot, tmp_path, backend, request
+):
     settings = Settings(_env_file=None, runs_dir=tmp_path)
+    if backend == "postgres":
+        settings = request.getfixturevalue("postgres_settings")
+        asyncio.run(initialize_postgres(settings))
 
     def app(script):
         return create_app(
@@ -29,6 +41,9 @@ def test_conversation_survives_runtime_restart_and_keeps_company(snapshot, tmp_p
         assert before["purpose"]
 
     # A new app and MCP client, a new LLM, a newly opened database connection.
+    if backend == "postgres":
+        # A replacement pod has none of the previous pod's local files.
+        settings = settings.model_copy(update={"runs_dir": tmp_path / "replacement-pod"})
     llm = scripted_llm(
         [
             tool_call("get_report_summary", "status", inn="5032257375"),

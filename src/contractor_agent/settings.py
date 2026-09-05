@@ -8,6 +8,7 @@ from __future__ import annotations
 from pathlib import Path
 from typing import Literal
 
+from pydantic import Field, SecretStr
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 from contractor_agent.data.loader import ReportSource, load_snapshot
@@ -48,8 +49,11 @@ class Settings(BaseSettings):
     llm_api_key_override: str | None = None  # LLM_API_KEY_OVERRIDE: ключ для произвольного base_url
     recursion_limit: int = 32  # two companies, sequential tools and one repair; time stays bounded
     runs_dir: Path = Path("runs")
-    session_store: Literal["sqlite", "memory"] = "sqlite"
+    session_store: Literal["sqlite", "postgres", "memory"] = "sqlite"
     session_db_path: Path | None = None
+    session_database_url: SecretStr | None = None
+    session_connect_timeout_s: int = Field(default=5, ge=1, le=60)
+    session_pool_size: int = Field(default=5, ge=1, le=50)
 
     @property
     def session_database(self) -> Path:

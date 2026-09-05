@@ -7,6 +7,6 @@ COPY src ./src
 COPY evals ./evals
 RUN uv sync --frozen --no-dev
 COPY data ./data
-ENV PATH="/app/.venv/bin:$PATH" API_HOST=0.0.0.0 MCP_HOST=0.0.0.0
+ENV PATH="/app/.venv/bin:$PATH" API_HOST=0.0.0.0 MCP_HOST=0.0.0.0 SESSION_STORE=postgres
 EXPOSE 8080 8765
 CMD ["kontragent-api"]

@@ -1,0 +1,23 @@
+# Replace the image with the built image in your registry before applying.
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: contractor-db-init
+spec:
+  backoffLimit: 2
+  activeDeadlineSeconds: 300
+  template:
+    spec:
+      restartPolicy: Never
+      containers:
+        - name: migrate
+          image: contractor-agent:review-v4
+          command: ["kontragent-db-init"]
+          env:
+            - name: SESSION_STORE
+              value: postgres
+            - name: SESSION_DATABASE_URL
+              valueFrom:
+                secretKeyRef:
+                  name: contractor-agent
+                  key: SESSION_DATABASE_URL

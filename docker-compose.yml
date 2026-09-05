@@ -1,15 +1,51 @@
 # Два сервиса из одного образа: agent-api (граф + SSE) и mcp-server (streamable-http для демо и внешних клиентов).
-# Ключи — из .env. Postgres-чекпоинтер и профиль observability (Langfuse) — следующий шаг.
+# Ключи и DSN — из .env. PostgreSQL живёт отдельно от API, данные — в именованном томе.
 services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: contractor
+      POSTGRES_USER: contractor
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env}
+    volumes: ["sessions-postgres:/var/lib/postgresql/data"]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U contractor -d contractor"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    restart: unless-stopped
+  db-init:
+    build: .
+    env_file: .env
+    environment:
+      SESSION_STORE: postgres
+      SESSION_DATABASE_URL: ${SESSION_DATABASE_URL:?Set SESSION_DATABASE_URL in .env}
+    command: ["kontragent-db-init"]
+    depends_on:
+      postgres: {condition: service_healthy}
   agent-api:
     build: .
     env_file: .env
     environment:
       API_HOST: 0.0.0.0
+      SESSION_STORE: postgres
+      SESSION_DATABASE_URL: ${SESSION_DATABASE_URL:?Set SESSION_DATABASE_URL in .env}
+    depends_on:
+      db-init: {condition: service_completed_successfully}
     ports: ["8080:8080"]
     volumes: ["./runs:/app/runs"]
+    stop_grace_period: 210s
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8080/v1/ready', timeout=6)"]
+      interval: 10s
+      timeout: 7s
+      retries: 3
+    restart: unless-stopped
   mcp-server:
     build: .
     env_file: .env
     command: ["kontragent-mcp", "--transport", "streamable-http", "--host", "0.0.0.0", "--port", "8765"]
     ports: ["8765:8765"]
+
+volumes:
+  sessions-postgres:

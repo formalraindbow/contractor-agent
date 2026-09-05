@@ -1,0 +1,68 @@
+# External PostgreSQL is configured through Secret contractor-agent.
+# No pod-local volume is used for chat history.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: contractor-agent
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: contractor-agent
+  template:
+    metadata:
+      labels:
+        app: contractor-agent
+    spec:
+      terminationGracePeriodSeconds: 210
+      containers:
+        - name: api
+          image: contractor-agent:review-v4
+          ports:
+            - name: http
+              containerPort: 8080
+          envFrom:
+            - secretRef:
+                name: contractor-agent
+          env:
+            - name: API_HOST
+              value: 0.0.0.0
+            - name: SESSION_STORE
+              value: postgres
+          startupProbe:
+            httpGet:
+              path: /v1/ready
+              port: http
+            timeoutSeconds: 6
+            periodSeconds: 10
+            failureThreshold: 12
+          readinessProbe:
+            httpGet:
+              path: /v1/ready
+              port: http
+            timeoutSeconds: 6
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /v1/live
+              port: http
+            timeoutSeconds: 2
+            periodSeconds: 10
+          resources:
+            requests:
+              cpu: 250m
+              memory: 512Mi
+            limits:
+              cpu: "2"
+              memory: 2Gi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: contractor-agent
+spec:
+  selector:
+    app: contractor-agent
+  ports:
+    - port: 8080
+      targetPort: http

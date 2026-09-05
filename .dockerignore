@@ -1,0 +1,11 @@
+.git
+.env
+.env.*
+.venv
+runs
+.cache
+__pycache__
+*.pyc
+*.sqlite*
+*.db
+deliverables

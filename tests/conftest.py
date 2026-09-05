@@ -1,13 +1,19 @@
 import json
+import os
+import uuid
 from pathlib import Path
 from typing import Any
 
+import psycopg
 import pytest
+from psycopg import sql
+from psycopg.conninfo import make_conninfo
 
 from contractor_agent.data.csv_tree import load_csv_records
 from contractor_agent.data.index import build_index
 from contractor_agent.data.loader import Snapshot, load_snapshot
 from contractor_agent.data.mongo import unwrap
+from contractor_agent.settings import Settings
 
 ROOT = Path(__file__).resolve().parent.parent
 DATA_DIR = ROOT / "data"
@@ -48,6 +54,29 @@ def index_path(snapshot: Snapshot, tmp_path_factory: pytest.TempPathFactory) -> 
 @pytest.fixture
 def anyio_backend() -> str:
     return "asyncio"
+
+
+@pytest.fixture
+def postgres_settings(tmp_path):
+    """A disposable database, never tables in the caller's database."""
+    dsn = os.environ.get("TEST_POSTGRES_URL")
+    if not dsn:
+        pytest.skip("Set TEST_POSTGRES_URL to run real PostgreSQL persistence checks")
+    database = "contractor_test_" + uuid.uuid4().hex
+    with psycopg.connect(dsn, autocommit=True) as conn:
+        conn.execute(
+            sql.SQL("CREATE DATABASE {} TEMPLATE template0").format(sql.Identifier(database))
+        )
+    try:
+        yield Settings(
+            _env_file=None,
+            session_store="postgres",
+            session_database_url=make_conninfo(dsn, dbname=database),
+            runs_dir=tmp_path / "first-pod",
+        )
+    finally:
+        with psycopg.connect(dsn, autocommit=True) as conn:
+            conn.execute(sql.SQL("DROP DATABASE {} WITH (FORCE)").format(sql.Identifier(database)))
 
 
 def pytest_collection_modifyitems(items: list[pytest.Item]) -> None:

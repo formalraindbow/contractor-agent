@@ -2,6 +2,8 @@
 
 > Ветка `codex/review-v4`: актуальные изменения, ограничения и команды сравнения — [docs/REVIEW_V4.md](docs/REVIEW_V4.md). Ниже сохранён исходный контекст проекта.
 
+> Постоянное хранение чатов, PostgreSQL, Compose и Kubernetes — [docs/SESSION_STORAGE.md](docs/SESSION_STORAGE.md).
+
 
 Контекст-пак: один документ, из которого собирается problem statement,
 спецификация и питч. Остальное в репозитории — источники к нему.

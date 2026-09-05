@@ -23,11 +23,13 @@ from fastapi.responses import HTMLResponse, RedirectResponse
 from langchain_core.messages import AIMessage, HumanMessage
 from pydantic import BaseModel, Field
 from sse_starlette.sse import EventSourceResponse
+from starlette.types import Receive, Scope, Send
 
 from contractor_agent import __version__
 from contractor_agent.agent.evidence import evidence_basis, resolve_evidence
 from contractor_agent.agent.nodes import build_card
 from contractor_agent.agent.runtime import AgentRuntime
+from contractor_agent.agent.sessions import SessionStoreUnavailable, ThreadBusy, ThreadLease
 from contractor_agent.agent.stream import CONTRACT_VERSION, new_run_id, stream_run
 from contractor_agent.data.paths import PathNotFoundError
 from contractor_agent.mcp_server.server import DESCRIPTIONS
@@ -47,6 +49,20 @@ QUALITY_NAMES = {  # папки кэша прогонов → понятные �
         "gpt-oss-20b — целевая, текущая версия"
     ),
 }
+
+
+class LeasedEventSourceResponse(EventSourceResponse):
+    """The response owns the lease even if disconnect occurs before iteration starts."""
+
+    def __init__(self, content: Any, lease: ThreadLease) -> None:
+        super().__init__(content)
+        self.lease = lease
+
+    async def __call__(self, scope: Scope, receive: Receive, send: Send) -> None:
+        try:
+            await super().__call__(scope, receive, send)
+        finally:
+            await self.lease.release()
 
 
 class RunInput(BaseModel):
@@ -81,7 +97,6 @@ def create_app(runtime_factory: Callable[[], AgentRuntime] | None = None) -> Fas
         async with runtime:
             app.state.runtime = runtime
             app.state.tools = Tools(runtime.source)
-            app.state.active_threads = set()
             yield
 
     app = FastAPI(title="kontragent-agent", version=__version__, lifespan=lifespan)
@@ -101,6 +116,8 @@ def create_app(runtime_factory: Callable[[], AgentRuntime] | None = None) -> Fas
         @app.middleware("http")
         async def password_gate(request: Request, call_next):
             """Пускаем по ключу в ссылке (?k=…, дальше cookie) или по паре логин-пароль."""
+            if request.method == "GET" and request.url.path in {"/v1/live", "/v1/ready"}:
+                return await call_next(request)
             key = request.query_params.get("k")
             if key and secrets.compare_digest(key, web_password):
                 response = RedirectResponse(
@@ -132,7 +149,18 @@ def create_app(runtime_factory: Callable[[], AgentRuntime] | None = None) -> Fas
             "build": runtime.fingerprint,
             "fallback_models": runtime.settings.fallback_models,
             "provider": runtime.settings.llm_base_url,
+            "session_store": runtime.settings.session_store,
         }
+
+    @app.get("/v1/live")
+    def live() -> dict[str, str]:
+        return {"status": "alive"}
+
+    @app.get("/v1/ready")
+    async def ready(request: Request) -> dict[str, str]:
+        if not await request.app.state.runtime.sessions.ready():
+            raise HTTPException(503, "Хранилище чатов временно недоступно")
+        return {"status": "ready"}
 
     @app.post("/v1/runs/stream")
     async def run_stream(body: RunInput, request: Request) -> EventSourceResponse:
@@ -140,18 +168,18 @@ def create_app(runtime_factory: Callable[[], AgentRuntime] | None = None) -> Fas
         question = body.question()
         run_id = body.run_id or new_run_id()
 
-        if body.thread_id in request.app.state.active_threads:
-            raise HTTPException(409, "Предыдущий запрос в этом разговоре ещё выполняется")
-        request.app.state.active_threads.add(body.thread_id)
+        try:
+            lease = await runtime.sessions.acquire(body.thread_id)
+        except ThreadBusy as error:
+            raise HTTPException(409, str(error)) from None
+        except SessionStoreUnavailable as error:
+            raise HTTPException(503, str(error)) from None
 
         async def frames():
-            try:
-                async for envelope in stream_run(runtime, question, body.thread_id, run_id):
-                    yield {"event": envelope.type, "data": envelope.model_dump_json()}
-            finally:
-                request.app.state.active_threads.discard(body.thread_id)
+            async for envelope in stream_run(runtime, question, body.thread_id, run_id):
+                yield {"event": envelope.type, "data": envelope.model_dump_json()}
 
-        return EventSourceResponse(frames())
+        return LeasedEventSourceResponse(frames(), lease)
 
     @app.get("/v1/threads/{thread_id}/state")
     async def thread_state(thread_id: str, request: Request) -> dict[str, Any]:
