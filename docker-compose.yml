@@ -1,0 +1,19 @@
+# Два сервиса из одного образа: agent-api (граф + SSE) и mcp-server (streamable-http для демо и внешних клиентов).
+# Ключи — из .env. Postgres-чекпоинтер и профиль observability (Langfuse) — следующий шаг.
+services:
+  agent-api:
+    build: .
+    env_file: .env
+    environment:
+      API_HOST: 0.0.0.0
+      SESSION_DB_PATH: /app/sessions/checkpoints.sqlite
+    ports: ["8080:8080"]
+    volumes: ["./runs:/app/runs", "chat-sessions:/app/sessions"]
+  mcp-server:
+    build: .
+    env_file: .env
+    command: ["kontragent-mcp", "--transport", "streamable-http", "--host", "0.0.0.0", "--port", "8765"]
+    ports: ["8765:8765"]
+
+volumes:
+  chat-sessions:

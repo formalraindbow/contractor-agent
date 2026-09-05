@@ -1,0 +1,1160 @@
+[
+  {
+    "question": "Финансы МАКСМАРКЕТ, ИНН 5032257375",
+    "thread": "acceptance-75347e7d-max",
+    "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-120b",
+    "source_sha256": "407ecf54bd9497420d68007861bcf5f6d433bc273656c609fc90fbc02bef4fba",
+    "seconds": 6.4,
+    "event": {
+      "type": "end",
+      "thread_id": "acceptance-75347e7d-max",
+      "run_id": "5e866699bb65414fb5bdfd51064e18d8",
+      "seq": 612,
+      "contract_version": "1.0",
+      "ts": "2026-09-05T16:53:39.380+00:00",
+      "data": {
+        "output": {
+          "kind": "answer",
+          "text_md": "### Финансовые показатели ООО «МАКСМАРКЕТ» (ИНН 5032257375)\n\n**2023 год**\n- Выручка: 116 257 852 000 руб. \n- Прибыль/убыток: строка «прибыль (убыток)» отсутствует, оценить нельзя \n- Капитал и резервы: 365 129 000 руб. \n- Текущая ликвидность: невозможно рассчитать – отсутствуют данные об оборотных активах и краткосрочных обязательствах\n\nПоследняя отчётность в отчёте — за 2023 год; отчётность за 2025 год должна была быть сдана к 31 марта 2026 года.\n\nОтчёт от 31.07.2026.",
+          "card": null,
+          "cards": [],
+          "citations": [
+            {
+              "claim": "Выручка 2023",
+              "source_path": "report.finReports[0].common.proceeds",
+              "inn": "5032257375"
+            },
+            {
+              "claim": "Отсутствие строки прибыль",
+              "source_path": "report.finReports[0].common.profit",
+              "inn": "5032257375"
+            },
+            {
+              "claim": "Капитал и резервы 2023",
+              "source_path": "report.finReports[0].liabilities.capitals",
+              "inn": "5032257375"
+            },
+            {
+              "claim": "Отсутствие данных для расчёта ликвидности",
+              "source_path": "report.finReports[0].assets",
+              "inn": "5032257375"
+            }
+          ],
+          "invalid_citations": [],
+          "report_dates": {
+            "5032257375": "2026-07-31"
+          }
+        },
+        "usage": {
+          "input_tokens": 6677,
+          "output_tokens": 715,
+          "total_tokens": 7392
+        }
+      }
+    }
+  },
+  {
+    "question": "Есть ли действующие исполнительные производства и на какую сумму? Речь о компании МАКСМАРКЕТ, ИНН 5032257375. Мне нужно сейчас оплатить счёт этой компании.",
+    "thread": "acceptance-75347e7d-max",
+    "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-120b",
+    "source_sha256": "407ecf54bd9497420d68007861bcf5f6d433bc273656c609fc90fbc02bef4fba",
+    "seconds": 2.37,
+    "event": {
+      "type": "end",
+      "thread_id": "acceptance-75347e7d-max",
+      "run_id": "d1706e3c038f496a941485665ee84766",
+      "seq": 345,
+      "contract_version": "1.0",
+      "ts": "2026-09-05T16:53:41.748+00:00",
+      "data": {
+        "output": {
+          "kind": "answer",
+          "text_md": "### Производства у приставов\n- Действующие: 54 производства; 3 995 486,53 ₽.\n- Завершённые: 453 производства; не менее 479 742 732,24 ₽; у 11 записей сумма не указана.\n\nЗавершённые производства не относятся к текущим долгам.\n\nОтсутствие записей в отчёте не доказывает отсутствие обязательств.\n\nОтчёт от 31.07.2026.",
+          "card": null,
+          "cards": [],
+          "citations": [
+            {
+              "claim": "Действующие: 54 производства; 3 995 486,53 ₽.",
+              "source_path": "report.executionProceedings",
+              "inn": "5032257375"
+            },
+            {
+              "claim": "Завершённые: 453 производства; не менее 479 742 732,24 ₽; у 11 записей сумма не указана.",
+              "source_path": "report.executionProceedings",
+              "inn": "5032257375"
+            }
+          ],
+          "invalid_citations": [],
+          "report_dates": {
+            "5032257375": "2026-07-31"
+          }
+        },
+        "usage": {
+          "input_tokens": 11836,
+          "output_tokens": 1114,
+          "total_tokens": 12950
+        }
+      }
+    }
+  },
+  {
+    "question": "С кем они судились в 2025 году и за что? Речь о компании МАКСМАРКЕТ, ИНН 5032257375.",
+    "thread": "acceptance-75347e7d-max",
+    "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-120b",
+    "source_sha256": "407ecf54bd9497420d68007861bcf5f6d433bc273656c609fc90fbc02bef4fba",
+    "seconds": 2.12,
+    "event": {
+      "type": "end",
+      "thread_id": "acceptance-75347e7d-max",
+      "run_id": "3d4426864ee74ab0a6afe4af583746f8",
+      "seq": 253,
+      "contract_version": "1.0",
+      "ts": "2026-09-05T16:53:43.866+00:00",
+      "data": {
+        "output": {
+          "kind": "answer",
+          "text_md": "### Арбитражные дела\n\n**2025 год**\n- Ответчик: 1 дело; сумма требований — 21 685 219 ₽.\n- Истец: записей по этой роли в разбивке за год не найдено.\n\nРазбивка за год не указывает, завершены ли эти дела. Стороны и предметы споров (с кем и за что судились) в отчёте не раскрыты.\n\nОтсутствие записей в отчёте не доказывает отсутствие обязательств.\n\nОтчёт от 31.07.2026.",
+          "card": null,
+          "cards": [],
+          "citations": [
+            {
+              "claim": "Ответчик: 1 дело; сумма требований — 21 685 219 ₽.",
+              "source_path": "report.arbitrationCases[0]",
+              "inn": "5032257375"
+            },
+            {
+              "claim": "Истец: записей по этой роли в разбивке за год не найдено.",
+              "source_path": "report.arbitrationCases[0].plaintiffCount",
+              "inn": "5032257375"
+            }
+          ],
+          "invalid_citations": [],
+          "report_dates": {
+            "5032257375": "2026-07-31"
+          }
+        },
+        "usage": {
+          "input_tokens": 16308,
+          "output_tokens": 1488,
+          "total_tokens": 17796
+        }
+      }
+    }
+  },
+  {
+    "question": "Финансы. Речь о компании МАКСМАРКЕТ, ИНН 5032257375.",
+    "thread": "acceptance-75347e7d-max",
+    "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-120b",
+    "source_sha256": "407ecf54bd9497420d68007861bcf5f6d433bc273656c609fc90fbc02bef4fba",
+    "seconds": 5.72,
+    "event": {
+      "type": "end",
+      "thread_id": "acceptance-75347e7d-max",
+      "run_id": "ff25d0da3147437ea7dec98e7379bbc7",
+      "seq": 467,
+      "contract_version": "1.0",
+      "ts": "2026-09-05T16:53:49.589+00:00",
+      "data": {
+        "output": {
+          "kind": "answer",
+          "text_md": "### Финансовые показатели компании МАКСМАРКЕТ (ИНН 5032257375)\n\n**2023 год**\n- Выручка: 116 257 852 000 ₽\n- Прибыль/убыток: строка «прибыль (убыток)» отсутствует в отчёте\n- Капитал и резервы: 365 129 000 ₽\n- Текущая ликвидность: расчёт невозможен – отсутствуют данные об оборотных активах и краткосрочных обязательствах\n\n**Недостающие годы**: в отчёте присутствуют данные только за 2023 год; более свежая отчётность (2025 год) не предоставлена.\n\nПоследняя отчётность в отчёте — за 2023 год; отчётность за 2025 год должна была быть сдана к 31 марта 2026 года.\n\nОтчёт от 31.07.2026.",
+          "card": null,
+          "cards": [],
+          "citations": [
+            {
+              "claim": "Выручка: 116 257 852 000 ₽",
+              "source_path": "report.finReports[0].common.proceeds",
+              "inn": "5032257375"
+            },
+            {
+              "claim": "Строка «прибыль (убыток)» отсутствует в отчёте",
+              "source_path": "report.finReports[0].common.profit",
+              "inn": "5032257375"
+            },
+            {
+              "claim": "Капитал и резервы: 365 129 000 ₽",
+              "source_path": "report.finReports[0].liabilities.capitals",
+              "inn": "5032257375"
+            },
+            {
+              "claim": "Текущая ликвидность: расчёт невозможен – отсутствуют данные об оборотных активах и краткосрочных обязательствах",
+              "source_path": "report.finReports[0].assets",
+              "inn": "5032257375"
+            }
+          ],
+          "invalid_citations": [],
+          "report_dates": {
+            "5032257375": "2026-07-31"
+          }
+        },
+        "usage": {
+          "input_tokens": 20993,
+          "output_tokens": 2018,
+          "total_tokens": 23011
+        }
+      }
+    }
+  },
+  {
+    "question": "Кто сейчас руководитель и сколько лет компании? Речь о компании МАКСМАРКЕТ, ИНН 5032257375.",
+    "thread": "acceptance-75347e7d-max",
+    "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-120b",
+    "source_sha256": "407ecf54bd9497420d68007861bcf5f6d433bc273656c609fc90fbc02bef4fba",
+    "seconds": 3.16,
+    "event": {
+      "type": "end",
+      "thread_id": "acceptance-75347e7d-max",
+      "run_id": "21a6dfce3a874b6b9614c5b4876ca158",
+      "seq": 200,
+      "contract_version": "1.0",
+      "ts": "2026-09-05T16:53:52.747+00:00",
+      "data": {
+        "output": {
+          "kind": "answer",
+          "text_md": "**Руководитель**: Ирина Владимировна Москвина — конкурсный управляющий (с 09.02.2026).\n**Возраст компании**: 9 лет (с 03.10.2016 по дату отчёта 31.07.2026).",
+          "card": null,
+          "cards": [],
+          "citations": [
+            {
+              "claim": "Ирина Владимировна Москвина — конкурсный управляющий (с 09.02.2026)",
+              "source_path": "report.foundersInfo.authPerson",
+              "inn": "5032257375"
+            },
+            {
+              "claim": "9 лет (с 03.10.2016)",
+              "source_path": "report.baseInfo.registrationInfo.yearsFromRegistration",
+              "inn": "5032257375"
+            }
+          ],
+          "invalid_citations": [],
+          "report_dates": {
+            "5032257375": "2026-07-31"
+          }
+        },
+        "usage": {
+          "input_tokens": 26186,
+          "output_tokens": 2266,
+          "total_tokens": 28452
+        }
+      }
+    }
+  },
+  {
+    "question": "Сколько у них сотрудников? Речь о компании МАКСМАРКЕТ, ИНН 5032257375.",
+    "thread": "acceptance-75347e7d-max",
+    "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-120b",
+    "source_sha256": "407ecf54bd9497420d68007861bcf5f6d433bc273656c609fc90fbc02bef4fba",
+    "seconds": 0.99,
+    "event": {
+      "type": "end",
+      "thread_id": "acceptance-75347e7d-max",
+      "run_id": "2e69adbe4780439b8fe788f7bb75ba99",
+      "seq": 59,
+      "contract_version": "1.0",
+      "ts": "2026-09-05T16:53:53.734+00:00",
+      "data": {
+        "output": {
+          "kind": "answer",
+          "text_md": "В отчёте нет сведений о численности сотрудников — оценить штат нельзя.\n\nОтчёт от 31.07.2026.",
+          "card": null,
+          "cards": [],
+          "citations": [
+            {
+              "claim": "В отчёте нет сведений о численности сотрудников — оценить штат нельзя.",
+              "source_path": "report.baseInfo.staff",
+              "inn": "5032257375"
+            }
+          ],
+          "invalid_citations": [],
+          "report_dates": {
+            "5032257375": "2026-07-31"
+          }
+        },
+        "usage": {
+          "input_tokens": 31591,
+          "output_tokens": 2385,
+          "total_tokens": 33976
+        }
+      }
+    }
+  },
+  {
+    "question": "Почему ЗСК зелёный, если счета заблокированы? Речь о компании МАКСМАРКЕТ, ИНН 5032257375.",
+    "thread": "acceptance-75347e7d-max",
+    "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-120b",
+    "source_sha256": "407ecf54bd9497420d68007861bcf5f6d433bc273656c609fc90fbc02bef4fba",
+    "seconds": 3.38,
+    "event": {
+      "type": "end",
+      "thread_id": "acceptance-75347e7d-max",
+      "run_id": "3b7cf9c5e0b14a44aab8cf5d8c733eed",
+      "seq": 551,
+      "contract_version": "1.0",
+      "ts": "2026-09-05T16:53:57.118+00:00",
+      "data": {
+        "output": {
+          "kind": "answer",
+          "text_md": "### Метки банка\nСветофор банка: зелёный. ЗСК: зелёный.\n\nЗСК отражает риск вовлечённости в подозрительные операции, а не способность компании исполнить договор. [О платформе ЗСК — Банк России](https://www.cbr.ru/counteraction_m_ter/platform_zsk). Почему именно этой компании присвоена такая метка, отчёт не раскрывает. Метки приводим как есть и не пересчитываем.\n\n### Ограничения по счетам\nНа дату отчёта есть блокировка банковских счетов по постановлению налоговой. Такие блокировки часто краткосрочные — уточните, снята ли она.\n\nОтчёт от 31.07.2026.",
+          "card": null,
+          "cards": [],
+          "citations": [
+            {
+              "claim": "Светофор банка — зелёный",
+              "source_path": "report.baseInfo.riskLevel",
+              "inn": "5032257375"
+            },
+            {
+              "claim": "ЗСК — зелёный",
+              "source_path": "report.zskRiskLevel",
+              "inn": "5032257375"
+            },
+            {
+              "claim": "На дату отчёта есть блокировка банковских счетов по постановлению налоговой. Такие блокировки часто краткосрочные — уточните, снята ли она.",
+              "source_path": "report.reputationalRisks.negative[5].code",
+              "inn": "5032257375"
+            }
+          ],
+          "invalid_citations": [],
+          "report_dates": {
+            "5032257375": "2026-07-31"
+          }
+        },
+        "usage": {
+          "input_tokens": 39367,
+          "output_tokens": 3000,
+          "total_tokens": 42367
+        }
+      }
+    }
+  },
+  {
+    "question": "Объясни рекомендацию. Речь о компании МАКСМАРКЕТ, ИНН 5032257375.",
+    "thread": "acceptance-75347e7d-max",
+    "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-120b",
+    "source_sha256": "407ecf54bd9497420d68007861bcf5f6d433bc273656c609fc90fbc02bef4fba",
+    "seconds": 7.68,
+    "event": {
+      "type": "end",
+      "thread_id": "acceptance-75347e7d-max",
+      "run_id": "0bc625183f1f4b93af8a121c780cd18f",
+      "seq": 716,
+      "contract_version": "1.0",
+      "ts": "2026-09-05T16:54:04.796+00:00",
+      "data": {
+        "output": {
+          "kind": "answer",
+          "text_md": "## Вывод по рекомендации\nРаботать только на условиях: предоплата и подтверждающие документы; компания в процедуре банкротства или исключается из реестра — сделки могут быть оспорены, обязательства не исполнены\n\n## Ключевые факты, сформировавшие вывод\n- **Банкротство** – статус «Юридическое лицо признано несостоятельным (банкротом) и в отношении него открыто конкурсное производство».\n- **Конкурсный управляющий** – руководитель компании указан как КОНКУРСНЫЙ УПРАВЛЯЮЩИЙ с 09.02.2026.\n- **Действующие исполнительные производства** – 54 активных производства на сумму ≈ 4 млн ₽.\n- **Недостоверный адрес** – адрес организации помечен как недостоверный в реестрах ФНС.\n\n## Дополнительные умеренные сигналы\n- Завершённые арбитражные дела: 258 дел, сумма ≈ 2,6 млрд ₽.\n- Блокировка счетов по решению ФНС.\n- Недостоверные регистрационные данные.\n\nОтчёт от 31.07.2026.",
+          "card": null,
+          "cards": [],
+          "citations": [
+            {
+              "claim": "Банкротство",
+              "source_path": "report.status.reasonName",
+              "inn": "5032257375"
+            },
+            {
+              "claim": "Конкурсный управляющий",
+              "source_path": "report.foundersInfo.authPerson.positionName",
+              "inn": "5032257375"
+            },
+            {
+              "claim": "Действующие исполнительные производства",
+              "source_path": "report.executionProceedings",
+              "inn": "5032257375"
+            },
+            {
+              "claim": "Недостоверный адрес",
+              "source_path": "report.reputationalRisks.negative[2].code",
+              "inn": "5032257375"
+            },
+            {
+              "claim": "Завершённые арбитражные дела",
+              "source_path": "report.arbitrationByStatus.defandantArbitration.defandantArbitrationFinished.dfCount",
+              "inn": "5032257375"
+            },
+            {
+              "claim": "Блокировка счетов по решению ФНС",
+              "source_path": "report.reputationalRisks.negative[5].code",
+              "inn": "5032257375"
+            },
+            {
+              "claim": "Недостоверные регистрационные данные",
+              "source_path": "report.reputationalRisks.negative[4].code",
+              "inn": "5032257375"
+            }
+          ],
+          "invalid_citations": [],
+          "report_dates": {
+            "5032257375": "2026-07-31"
+          }
+        },
+        "usage": {
+          "input_tokens": 47125,
+          "output_tokens": 3784,
+          "total_tokens": 50909
+        }
+      }
+    }
+  },
+  {
+    "question": "Какие документы запросить перед оплатой? Речь о компании МАКСМАРКЕТ, ИНН 5032257375.",
+    "thread": "acceptance-75347e7d-max",
+    "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-120b",
+    "source_sha256": "407ecf54bd9497420d68007861bcf5f6d433bc273656c609fc90fbc02bef4fba",
+    "seconds": 6.64,
+    "event": {
+      "type": "end",
+      "thread_id": "acceptance-75347e7d-max",
+      "run_id": "a989e51b01f446ba96c40d6d289190c3",
+      "seq": 948,
+      "contract_version": "1.0",
+      "ts": "2026-09-05T16:54:11.433+00:00",
+      "data": {
+        "output": {
+          "kind": "answer",
+          "text_md": "### Документы, которые стоит запросить\n- Свежая выписка ЕГРЮЛ и подтверждение полномочий управляющего или ликвидатора.\n- Подтверждение текущего статуса ограничений по банковским счетам.\n- Документы о погашении или текущем состоянии действующих обязательств у приставов.\n- Подтверждение актуального адреса и регистрационных данных.\n\nОтчёт от 31.07.2026.",
+          "card": null,
+          "cards": [],
+          "citations": [
+            {
+              "claim": "Руководитель по данным реестра — КОНКУРСНЫЙ УПРАВЛЯЮЩИЙ с 09.02.2026: это признак процедуры банкротства или ликвидации.",
+              "source_path": "report.foundersInfo.authPerson.positionName",
+              "inn": "5032257375"
+            },
+            {
+              "claim": "Статус в реестре (обновлён 31.07.2026): «Юридическое лицо признано несостоятельным (банкротом) и в отношении него открыто конкурсное производство».",
+              "source_path": "report.status.reasonName",
+              "inn": "5032257375"
+            },
+            {
+              "claim": "54 действующих исполнительных производства на сумму 4 млн ₽; это 1 % чистых активов (капитал и резервы) на конец 2023 года (365,1 млн ₽); таких производств 54 — много само по себе, 35 из них начаты за последний год.",
+              "source_path": "report.executionProceedings",
+              "inn": "5032257375"
+            },
+            {
+              "claim": "Адрес компании признан недостоверным по данным реестров ФНС — по этому адресу её может не быть.",
+              "source_path": "report.reputationalRisks.negative[2].code",
+              "inn": "5032257375"
+            },
+            {
+              "claim": "258 завершённых арбитражных дел, где компания была ответчиком, на сумму 2,6 млрд ₽; это в 7 раз больше чистых активов (капитал и резервы) на конец 2023 года (365,1 млн ₽); к текущим претензиям не относятся.",
+              "source_path": "report.arbitrationByStatus.defandantArbitration.defandantArbitrationFinished.dfCount",
+              "inn": "5032257375"
+            },
+            {
+              "claim": "На дату отчёта есть блокировка банковских счетов по постановлению налоговой. Такие блокировки часто краткосрочные — уточните, снята ли она.",
+              "source_path": "report.reputationalRisks.negative[5].code",
+              "inn": "5032257375"
+            },
+            {
+              "claim": "В ЕГРЮЛ есть отметка о недостоверности регистрационных данных.",
+              "source_path": "report.reputationalRisks.negative[4].code",
+              "inn": "5032257375"
+            }
+          ],
+          "invalid_citations": [],
+          "report_dates": {
+            "5032257375": "2026-07-31"
+          }
+        },
+        "usage": {
+          "input_tokens": 55483,
+          "output_tokens": 4799,
+          "total_tokens": 60282
+        }
+      }
+    }
+  },
+  {
+    "question": "Можно давать им отсрочку на 60 дней? Речь о компании ТЕХПРОФ, ИНН 1684017097.",
+    "thread": "acceptance-75347e7d-tech",
+    "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-120b",
+    "source_sha256": "407ecf54bd9497420d68007861bcf5f6d433bc273656c609fc90fbc02bef4fba",
+    "seconds": 3.63,
+    "event": {
+      "type": "end",
+      "thread_id": "acceptance-75347e7d-tech",
+      "run_id": "d36d3406ce42414f889eaeea0a861cb8",
+      "seq": 510,
+      "contract_version": "1.0",
+      "ts": "2026-09-05T16:54:15.063+00:00",
+      "data": {
+        "output": {
+          "kind": "card",
+          "text_md": "### Отсрочка платежа\nВывод помощника по отчёту: можно работать.\nСветофор банка: зелёный. ЗСК: зелёный.\nЭто общий вывод; он не подтверждает, что компания погасит долг в запрошенный срок.\n\n### Финансы за 2025 год\n- Выручка: 60,7 млн ₽\n- Прибыль / убыток: строка в отчёте отсутствует\n- Капитал и резервы: 22,8 млн ₽\n- Текущая ликвидность: не рассчитать — нет необходимых данных об оборотных активах или краткосрочных обязательствах\n\n### Финансы за 2024 год\n- Выручка: 7,6 млн ₽\n- Прибыль / убыток: строка в отчёте отсутствует\n- Капитал и резервы: 838 000 ₽\n- Текущая ликвидность: не рассчитать — нет необходимых данных об оборотных активах или краткосрочных обязательствах\n\n### Обязательства\nСигналов о текущих исках и производствах в отчёте не выделено. Это не подтверждает отсутствие обязательств.\n\nПеред решением об отсрочке запросите баланс и отчёт о финансовых результатах за два последних года. Без достаточных сведений о прибыли и ликвидности по этому отчёту нельзя оценить способность погасить долг в срок.\n\nОтчёт от 28.08.2026.",
+          "card": {
+            "inn": "1684017097",
+            "name": "ООО «ТЕХПРОФ»",
+            "labels": {
+              "riskLevel": "зелёный",
+              "zskRiskLevel": "зелёный"
+            },
+            "verdict": "ok",
+            "terminal": false,
+            "attention": [],
+            "ask_before": [
+              "Баланс и отчёт о финансовых результатах за два последних года."
+            ],
+            "gaps": [
+              "В отчёте нет сведений о численности сотрудников — оценить по этому критерию нельзя.",
+              "В отчётности за 2024–2025 годы нет строки «прибыль (убыток)» — оценить по этому критерию нельзя.",
+              "В отчётности за 2025 год нет итога оборотных активов или краткосрочных обязательств — текущую ликвидность по отчёту не рассчитать."
+            ],
+            "report_date": "2026-08-28"
+          },
+          "cards": [],
+          "citations": [
+            {
+              "claim": "Выручка: 60,7 млн ₽",
+              "source_path": "report.finReports[0].common.proceeds",
+              "inn": "1684017097"
+            },
+            {
+              "claim": "Прибыль / убыток: строка в отчёте отсутствует",
+              "source_path": "report.finReports[0].common.profit",
+              "inn": "1684017097"
+            },
+            {
+              "claim": "Капитал и резервы: 22,8 млн ₽",
+              "source_path": "report.finReports[0].liabilities.capitals",
+              "inn": "1684017097"
+            },
+            {
+              "claim": "Текущая ликвидность: не рассчитать — нет необходимых данных об оборотных активах или краткосрочных обязательствах",
+              "source_path": "report.finReports[0]",
+              "inn": "1684017097"
+            },
+            {
+              "claim": "Выручка: 7,6 млн ₽",
+              "source_path": "report.finReports[1].common.proceeds",
+              "inn": "1684017097"
+            },
+            {
+              "claim": "Прибыль / убыток: строка в отчёте отсутствует",
+              "source_path": "report.finReports[1].common.profit",
+              "inn": "1684017097"
+            },
+            {
+              "claim": "Капитал и резервы: 838 000 ₽",
+              "source_path": "report.finReports[1].liabilities.capitals",
+              "inn": "1684017097"
+            },
+            {
+              "claim": "Текущая ликвидность: не рассчитать — нет необходимых данных об оборотных активах или краткосрочных обязательствах",
+              "source_path": "report.finReports[1]",
+              "inn": "1684017097"
+            }
+          ],
+          "invalid_citations": [],
+          "report_dates": {
+            "1684017097": "2026-08-28"
+          }
+        },
+        "usage": {
+          "input_tokens": 7048,
+          "output_tokens": 628,
+          "total_tokens": 7676
+        }
+      }
+    }
+  },
+  {
+    "question": "Есть ли у них суды и долги у приставов? Речь о компании ТЕХПРОФ, ИНН 1684017097.",
+    "thread": "acceptance-75347e7d-tech",
+    "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-120b",
+    "source_sha256": "407ecf54bd9497420d68007861bcf5f6d433bc273656c609fc90fbc02bef4fba",
+    "seconds": 3.16,
+    "event": {
+      "type": "end",
+      "thread_id": "acceptance-75347e7d-tech",
+      "run_id": "04477af4b72d4c8eaaf266a4565a5d06",
+      "seq": 378,
+      "contract_version": "1.0",
+      "ts": "2026-09-05T16:54:18.224+00:00",
+      "data": {
+        "output": {
+          "kind": "answer",
+          "text_md": "### Арбитражные дела\n\n**Иски к компании — ответчик**\nВ сводке по статусам записей по этой роли не найдено.\n\n**Иски компании — истец**\nВ сводке по статусам записей по этой роли не найдено.\n\nЗавершённые дела не являются текущими претензиями. Отдельного перечня сторон и предметов споров в отчёте нет.\n\n### Производства у приставов\n- Действующие: записей в отчёте не найдено.\n- Завершённые: записей в отчёте не найдено.\n\nЗавершённые производства не относятся к текущим долгам.\n\nОтсутствие записей в отчёте не доказывает отсутствие обязательств.\n\nОтчёт от 28.08.2026.",
+          "card": null,
+          "cards": [],
+          "citations": [
+            {
+              "claim": "В сводке по статусам записей по этой роли не найдено.",
+              "source_path": "report.arbitrationByStatus.defandantArbitration",
+              "inn": "1684017097"
+            },
+            {
+              "claim": "В сводке по статусам записей по этой роли не найдено.",
+              "source_path": "report.arbitrationByStatus.plaintiffArbitration",
+              "inn": "1684017097"
+            },
+            {
+              "claim": "Действующие: записей в отчёте не найдено.",
+              "source_path": "report.executionProceedings",
+              "inn": "1684017097"
+            },
+            {
+              "claim": "Завершённые: записей в отчёте не найдено.",
+              "source_path": "report.executionProceedings",
+              "inn": "1684017097"
+            }
+          ],
+          "invalid_citations": [],
+          "report_dates": {
+            "1684017097": "2026-08-28"
+          }
+        },
+        "usage": {
+          "input_tokens": 13616,
+          "output_tokens": 1091,
+          "total_tokens": 14707
+        }
+      }
+    }
+  },
+  {
+    "question": "Почему метка банка зелёная, если счета заблокированы? Можно им платить? Речь о компании ГДК, ИНН 6165169320.",
+    "thread": "acceptance-75347e7d-gdk",
+    "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-120b",
+    "source_sha256": "407ecf54bd9497420d68007861bcf5f6d433bc273656c609fc90fbc02bef4fba",
+    "seconds": 4.89,
+    "event": {
+      "type": "end",
+      "thread_id": "acceptance-75347e7d-gdk",
+      "run_id": "1b1f9dfef02c40bb80f5cf2be993dd56",
+      "seq": 658,
+      "contract_version": "1.0",
+      "ts": "2026-09-05T16:54:23.111+00:00",
+      "data": {
+        "output": {
+          "kind": "card",
+          "text_md": "### Метки банка\nСветофор банка: зелёный. ЗСК: зелёный.\n\nЗСК отражает риск вовлечённости в подозрительные операции, а не способность компании исполнить договор. [О платформе ЗСК — Банк России](https://www.cbr.ru/counteraction_m_ter/platform_zsk). Почему именно этой компании присвоена такая метка, отчёт не раскрывает. Метки приводим как есть и не пересчитываем.\n\n### Ограничения по счетам\nНа дату отчёта есть блокировка банковских счетов по постановлению налоговой. Такие блокировки часто краткосрочные — уточните, снята ли она.\n\n### Можно ли платить?\nПо отчёту нельзя подтвердить, что конкретный платёж пройдёт. Перед оплатой нужны актуальный статус ограничений, реквизиты и основание платежа.\n\nЧто ещё влияет на решение:\n- 2 открытых арбитражных дела, где компания — ответчик, на сумму 18,9 млн ₽; это в 5 раз больше чистых активов (капитал и резервы) на конец 2025 года (3,8 млн ₽).\n- По отчётности за 2024 год — убыток 26,2 млн ₽.\n\nВывод помощника по отчёту: работать только на условиях: предоплата и подтверждающие документы.\nЭта общая формулировка не означает, что плательщику следует отправлять предоплату при неуточнённых ограничениях.\n\nОтчёт от 25.08.2026.",
+          "card": {
+            "inn": "6165169320",
+            "name": "ООО «ГДК»",
+            "labels": {
+              "riskLevel": "зелёный",
+              "zskRiskLevel": "зелёный"
+            },
+            "verdict": "not_recommended",
+            "terminal": false,
+            "attention": [
+              {
+                "claim": "2 открытых арбитражных дела, где компания — ответчик, на сумму 18,9 млн ₽; это в 5 раз больше чистых активов (капитал и резервы) на конец 2025 года (3,8 млн ₽).",
+                "severity": "critical",
+                "source_path": "report.arbitrationByStatus.defandantArbitration.defandantArbitrationPending.dpCount",
+                "code": "arbitration_defendant_open",
+                "source_paths": [
+                  "report.arbitrationByStatus.defandantArbitration.defandantArbitrationPending.dpCount",
+                  "report.arbitrationByStatus.defandantArbitration.defandantArbitrationPending.dpAmount",
+                  "report.finReports[0].liabilities.capitals",
+                  "report.reputationalRisks.negative[2].code"
+                ]
+              },
+              {
+                "claim": "По отчётности за 2024 год — убыток 26,2 млн ₽.",
+                "severity": "moderate",
+                "source_path": "report.finReports[1].common.profit",
+                "code": "fin_loss",
+                "source_paths": []
+              },
+              {
+                "claim": "Оборотные активы 23,3 млн ₽ против краткосрочных обязательств 47,5 млн ₽ на конец 2024 года: покрытие 0,49.",
+                "severity": "moderate",
+                "source_path": "report.finReports[1].assets.currentAssets.total",
+                "code": "fin_low_liquidity",
+                "source_paths": [
+                  "report.finReports[1].liabilities.shortTermLiabilities.total"
+                ]
+              },
+              {
+                "claim": "На дату отчёта есть блокировка банковских счетов по постановлению налоговой. Такие блокировки часто краткосрочные — уточните, снята ли она.",
+                "severity": "moderate",
+                "source_path": "report.reputationalRisks.negative[3].code",
+                "code": "flag_fnsBlocking",
+                "source_paths": [
+                  "report.reputationalRisks.negative[3].name"
+                ]
+              },
+              {
+                "claim": "2 завершённых арбитражных дела, где компания была ответчиком, на сумму 1,9 млн ₽; к текущим претензиям не относятся.",
+                "severity": "info",
+                "source_path": "report.arbitrationByStatus.defandantArbitration.defandantArbitrationFinished.dfCount",
+                "code": "arbitration_defendant_finished",
+                "source_paths": [
+                  "report.arbitrationByStatus.defandantArbitration.defandantArbitrationFinished.dfCount",
+                  "report.arbitrationByStatus.defandantArbitration.defandantArbitrationFinished.dfAmount",
+                  "report.reputationalRisks.negative[2].code"
+                ]
+              },
+              {
+                "claim": "4 завершённых исполнительных производства на сумму 9 018,54 ₽ за 2014–2024 годы; к действующим долгам не относятся.",
+                "severity": "info",
+                "source_path": "report.executionProceedings",
+                "code": "enforcement_finished",
+                "source_paths": [
+                  "report.executionProceedings[3]",
+                  "report.executionProceedings[2]",
+                  "report.executionProceedings[1]",
+                  "report.executionProceedings[0]"
+                ]
+              },
+              {
+                "claim": "Среди видов деятельности есть коды, которые по статистике ФНС часто выбирают фирмы-однодневки; сам по себе это повод присмотреться, не более.",
+                "severity": "info",
+                "source_path": "report.reputationalRisks.negative[0].code",
+                "code": "flag_massOkved",
+                "source_paths": [
+                  "report.reputationalRisks.negative[0].name"
+                ]
+              }
+            ],
+            "ask_before": [
+              "Подтверждение текущего статуса ограничений по банковским счетам.",
+              "Баланс и отчёт о финансовых результатах за два последних года."
+            ],
+            "gaps": [
+              "В отчёте нет сведений о численности сотрудников — оценить по этому критерию нельзя."
+            ],
+            "report_date": "2026-08-25"
+          },
+          "cards": [],
+          "citations": [
+            {
+              "claim": "Светофор банка — зелёный",
+              "source_path": "report.baseInfo.riskLevel",
+              "inn": "6165169320"
+            },
+            {
+              "claim": "ЗСК — зелёный",
+              "source_path": "report.zskRiskLevel",
+              "inn": "6165169320"
+            },
+            {
+              "claim": "На дату отчёта есть блокировка банковских счетов по постановлению налоговой. Такие блокировки часто краткосрочные — уточните, снята ли она.",
+              "source_path": "report.reputationalRisks.negative[3].code",
+              "inn": "6165169320"
+            },
+            {
+              "claim": "2 открытых арбитражных дела, где компания — ответчик, на сумму 18,9 млн ₽; это в 5 раз больше чистых активов (капитал и резервы) на конец 2025 года (3,8 млн ₽).",
+              "source_path": "report.arbitrationByStatus.defandantArbitration.defandantArbitrationPending.dpCount",
+              "inn": "6165169320"
+            },
+            {
+              "claim": "По отчётности за 2024 год — убыток 26,2 млн ₽.",
+              "source_path": "report.finReports[1].common.profit",
+              "inn": "6165169320"
+            }
+          ],
+          "invalid_citations": [],
+          "report_dates": {
+            "6165169320": "2026-08-25"
+          }
+        },
+        "usage": {
+          "input_tokens": 8499,
+          "output_tokens": 756,
+          "total_tokens": 9255
+        }
+      }
+    }
+  },
+  {
+    "question": "Сколько у них судебных дел? Речь о компании ЛЕ МОНЛИД, ИНН 5029069967.",
+    "thread": "acceptance-75347e7d-lemon",
+    "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-120b",
+    "source_sha256": "407ecf54bd9497420d68007861bcf5f6d433bc273656c609fc90fbc02bef4fba",
+    "seconds": 1.84,
+    "event": {
+      "type": "end",
+      "thread_id": "acceptance-75347e7d-lemon",
+      "run_id": "a3411392c2a54caf90a35ef90c696aee",
+      "seq": 236,
+      "contract_version": "1.0",
+      "ts": "2026-09-05T16:54:24.956+00:00",
+      "data": {
+        "output": {
+          "kind": "answer",
+          "text_md": "### Арбитражные дела\nВсего в сводке за всё время: 1525 дел.\n\n**Иски к компании — ответчик**\n- В производстве: 17 дел; сумма требований — 69 623 415 ₽.\n- Обжалуются: 3 дела; сумма требований — 2 924 753 ₽.\n- Завершены: 419 дел; сумма требований — 2 618 907 305 ₽.\n\n**Иски компании — истец**\n- В производстве: 73 дела; сумма требований — 171 144 392 ₽.\n- Обжалуются: 5 дел; сумма требований — 3 692 902 ₽.\n- Завершены: 971 дело; сумма требований — 1 478 432 192 ₽.\nВсего дел в отчёте 1525, по ролям и статусам разнесены 1488: 37 дел без деталей.\n\nЗавершённые дела не являются текущими претензиями. Отдельного перечня сторон и предметов споров в отчёте нет.\n\nОтсутствие записей в отчёте не доказывает отсутствие обязательств.\n\nОтчёт от 30.07.2026.",
+          "card": null,
+          "cards": [],
+          "citations": [
+            {
+              "claim": "Всего в сводке за всё время: 1525 дел.",
+              "source_path": "report.arbitrationByStatus.commonCount",
+              "inn": "5029069967"
+            },
+            {
+              "claim": "В производстве: 17 дел; сумма требований — 69 623 415 ₽.",
+              "source_path": "report.arbitrationByStatus.defandantArbitration.defandantArbitrationPending",
+              "inn": "5029069967"
+            },
+            {
+              "claim": "Обжалуются: 3 дела; сумма требований — 2 924 753 ₽.",
+              "source_path": "report.arbitrationByStatus.defandantArbitration.defandantArbitrationAppealed",
+              "inn": "5029069967"
+            },
+            {
+              "claim": "Завершены: 419 дел; сумма требований — 2 618 907 305 ₽.",
+              "source_path": "report.arbitrationByStatus.defandantArbitration.defandantArbitrationFinished",
+              "inn": "5029069967"
+            },
+            {
+              "claim": "В производстве: 73 дела; сумма требований — 171 144 392 ₽.",
+              "source_path": "report.arbitrationByStatus.plaintiffArbitration.plaintiffArbitrationPending",
+              "inn": "5029069967"
+            },
+            {
+              "claim": "Обжалуются: 5 дел; сумма требований — 3 692 902 ₽.",
+              "source_path": "report.arbitrationByStatus.plaintiffArbitration.plaintiffArbitrationAppealed",
+              "inn": "5029069967"
+            },
+            {
+              "claim": "Завершены: 971 дело; сумма требований — 1 478 432 192 ₽.",
+              "source_path": "report.arbitrationByStatus.plaintiffArbitration.plaintiffArbitrationFinished",
+              "inn": "5029069967"
+            },
+            {
+              "claim": "Всего дел в отчёте 1525, по ролям и статусам разнесены 1488: 37 дел без деталей.",
+              "source_path": "report.arbitrationByStatus.commonCount",
+              "inn": "5029069967"
+            }
+          ],
+          "invalid_citations": [],
+          "report_dates": {
+            "5029069967": "2026-07-30"
+          }
+        },
+        "usage": {
+          "input_tokens": 4408,
+          "output_tokens": 281,
+          "total_tokens": 4689
+        }
+      }
+    }
+  },
+  {
+    "question": "Сравни ГДК 6165169320, ТЕХПРОФ 1684017097 и БИЛД-ЮГ 2311304742: с кем лучше работать?",
+    "thread": "acceptance-75347e7d-cmp",
+    "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-120b",
+    "source_sha256": "407ecf54bd9497420d68007861bcf5f6d433bc273656c609fc90fbc02bef4fba",
+    "seconds": 25.91,
+    "event": {
+      "type": "end",
+      "thread_id": "acceptance-75347e7d-cmp",
+      "run_id": "c181dd384d8e44b9833d206ae3b9e6f2",
+      "seq": 1951,
+      "contract_version": "1.0",
+      "ts": "2026-09-05T16:54:50.861+00:00",
+      "data": {
+        "output": {
+          "kind": "comparison",
+          "text_md": "### ООО «ГДК» (ИНН 6165169320)\n- Метки банка: зелёный (светофор), зелёный (ЗСК)\n- Вывод: **работать только на условиях: предоплата и подтверждающие документы**\n- Критический факт: открытые арбитражные иски (2 дела, сумма 18,9 млн ₽) — превышают чистые активы 3,8 млн ₽\n- Умеренные факты: убыток за 2024 год, низкая текущая ликвидность, блокировка счетов по решению ФНС\n\n### ООО «ТЕХПРОФ» (ИНН 1684017097)\n- Метки банка: зелёный (светофор), зелёный (ЗСК)\n- Вывод: **можно работать**\n- Критические и умеренные сигналы отсутствуют (0 критических, 0 умеренных)\n- Пробелы в данных: нет информации о численности персонала, прибыли/убытке и текущей ликвидности\n\n### ООО «БИЛД-ЮГ» (ИНН 2311304742)\n- Метки банка: зелёный (светофор), зелёный (ЗСК)\n- Вывод: **работать только на условиях: предоплата и подтверждающие документы**\n- Критический факт: недостоверный адрес, признан ФНС\n- Умеренные факты: открытые арбитражные иски (количество не указано), действующие исполнительные производства, блокировка счетов по решению ФНС, недостоверные регистрационные данные, решение о смене адреса\n\n### Итоговое сравнение\n- Наиболее благоприятный контрагент – **ООО «ТЕХПРОФ»**: зелёные метки, отсутствие критических и умеренных рисков, вывод «можно работать».\n- ООО «ГДК» и ООО «БИЛД-ЮГ» имеют критические сигналы (арбитражные иски, недостоверный адрес) и требуют предоплаты и подтверждающих документов.\n\nОтчёт по ИНН 6165169320 от 25.08.2026.\n\nОтчёт по ИНН 1684017097 от 28.08.2026.\n\nОтчёт по ИНН 2311304742 от 27.08.2026.",
+          "card": null,
+          "cards": [
+            {
+              "inn": "6165169320",
+              "name": "ООО «ГДК»",
+              "labels": {
+                "riskLevel": "зелёный",
+                "zskRiskLevel": "зелёный"
+              },
+              "verdict": "not_recommended",
+              "terminal": false,
+              "attention": [
+                {
+                  "claim": "2 открытых арбитражных дела, где компания — ответчик, на сумму 18,9 млн ₽; это в 5 раз больше чистых активов (капитал и резервы) на конец 2025 года (3,8 млн ₽).",
+                  "severity": "critical",
+                  "source_path": "report.arbitrationByStatus.defandantArbitration.defandantArbitrationPending.dpCount",
+                  "code": "arbitration_defendant_open",
+                  "source_paths": [
+                    "report.arbitrationByStatus.defandantArbitration.defandantArbitrationPending.dpCount",
+                    "report.arbitrationByStatus.defandantArbitration.defandantArbitrationPending.dpAmount",
+                    "report.finReports[0].liabilities.capitals",
+                    "report.reputationalRisks.negative[2].code"
+                  ]
+                },
+                {
+                  "claim": "По отчётности за 2024 год — убыток 26,2 млн ₽.",
+                  "severity": "moderate",
+                  "source_path": "report.finReports[1].common.profit",
+                  "code": "fin_loss",
+                  "source_paths": []
+                },
+                {
+                  "claim": "Оборотные активы 23,3 млн ₽ против краткосрочных обязательств 47,5 млн ₽ на конец 2024 года: покрытие 0,49.",
+                  "severity": "moderate",
+                  "source_path": "report.finReports[1].assets.currentAssets.total",
+                  "code": "fin_low_liquidity",
+                  "source_paths": [
+                    "report.finReports[1].liabilities.shortTermLiabilities.total"
+                  ]
+                },
+                {
+                  "claim": "На дату отчёта есть блокировка банковских счетов по постановлению налоговой. Такие блокировки часто краткосрочные — уточните, снята ли она.",
+                  "severity": "moderate",
+                  "source_path": "report.reputationalRisks.negative[3].code",
+                  "code": "flag_fnsBlocking",
+                  "source_paths": [
+                    "report.reputationalRisks.negative[3].name"
+                  ]
+                },
+                {
+                  "claim": "2 завершённых арбитражных дела, где компания была ответчиком, на сумму 1,9 млн ₽; к текущим претензиям не относятся.",
+                  "severity": "info",
+                  "source_path": "report.arbitrationByStatus.defandantArbitration.defandantArbitrationFinished.dfCount",
+                  "code": "arbitration_defendant_finished",
+                  "source_paths": [
+                    "report.arbitrationByStatus.defandantArbitration.defandantArbitrationFinished.dfCount",
+                    "report.arbitrationByStatus.defandantArbitration.defandantArbitrationFinished.dfAmount",
+                    "report.reputationalRisks.negative[2].code"
+                  ]
+                },
+                {
+                  "claim": "4 завершённых исполнительных производства на сумму 9 018,54 ₽ за 2014–2024 годы; к действующим долгам не относятся.",
+                  "severity": "info",
+                  "source_path": "report.executionProceedings",
+                  "code": "enforcement_finished",
+                  "source_paths": [
+                    "report.executionProceedings[3]",
+                    "report.executionProceedings[2]",
+                    "report.executionProceedings[1]",
+                    "report.executionProceedings[0]"
+                  ]
+                },
+                {
+                  "claim": "Среди видов деятельности есть коды, которые по статистике ФНС часто выбирают фирмы-однодневки; сам по себе это повод присмотреться, не более.",
+                  "severity": "info",
+                  "source_path": "report.reputationalRisks.negative[0].code",
+                  "code": "flag_massOkved",
+                  "source_paths": [
+                    "report.reputationalRisks.negative[0].name"
+                  ]
+                }
+              ],
+              "ask_before": [
+                "Подтверждение текущего статуса ограничений по банковским счетам.",
+                "Баланс и отчёт о финансовых результатах за два последних года."
+              ],
+              "gaps": [
+                "В отчёте нет сведений о численности сотрудников — оценить по этому критерию нельзя."
+              ],
+              "report_date": "2026-08-25"
+            },
+            {
+              "inn": "1684017097",
+              "name": "ООО «ТЕХПРОФ»",
+              "labels": {
+                "riskLevel": "зелёный",
+                "zskRiskLevel": "зелёный"
+              },
+              "verdict": "ok",
+              "terminal": false,
+              "attention": [],
+              "ask_before": [
+                "Баланс и отчёт о финансовых результатах за два последних года."
+              ],
+              "gaps": [
+                "В отчёте нет сведений о численности сотрудников — оценить по этому критерию нельзя.",
+                "В отчётности за 2024–2025 годы нет строки «прибыль (убыток)» — оценить по этому критерию нельзя.",
+                "В отчётности за 2025 год нет итога оборотных активов или краткосрочных обязательств — текущую ликвидность по отчёту не рассчитать."
+              ],
+              "report_date": "2026-08-28"
+            },
+            {
+              "inn": "2311304742",
+              "name": "ООО «БИЛД-ЮГ»",
+              "labels": {
+                "riskLevel": "зелёный",
+                "zskRiskLevel": "зелёный"
+              },
+              "verdict": "not_recommended",
+              "terminal": false,
+              "attention": [
+                {
+                  "claim": "Адрес компании признан недостоверным по данным реестров ФНС — по этому адресу её может не быть.",
+                  "severity": "critical",
+                  "source_path": "report.reputationalRisks.negative[2].code",
+                  "code": "flag_invalidAddress",
+                  "source_paths": [
+                    "report.reputationalRisks.negative[2].name"
+                  ]
+                },
+                {
+                  "claim": "2 открытых арбитражных дела (1 в производстве, 1 обжалуется), где компания — ответчик, сумма в отчёте не указана; без суммы соразмерность оценить нельзя.",
+                  "severity": "moderate",
+                  "source_path": "report.arbitrationByStatus.defandantArbitration.defandantArbitrationPending.dpCount",
+                  "code": "arbitration_defendant_open",
+                  "source_paths": [
+                    "report.arbitrationByStatus.defandantArbitration.defandantArbitrationPending.dpCount",
+                    "report.arbitrationByStatus.defandantArbitration.defandantArbitrationAppealed.daCount",
+                    "report.finReports[0].liabilities.capitals",
+                    "report.reputationalRisks.negative[3].code"
+                  ]
+                },
+                {
+                  "claim": "1 действующее исполнительное производство, сумма в отчёте не указана; без суммы соразмерность оценить нельзя, начато за последний год.",
+                  "severity": "moderate",
+                  "source_path": "report.executionProceedings",
+                  "code": "enforcement_active",
+                  "source_paths": [
+                    "report.executionProceedings[1]",
+                    "report.finReports[0].liabilities.capitals",
+                    "report.reputationalRisks.negative[0].code"
+                  ]
+                },
+                {
+                  "claim": "На дату отчёта есть блокировка банковских счетов по постановлению налоговой. Такие блокировки часто краткосрочные — уточните, снята ли она.",
+                  "severity": "moderate",
+                  "source_path": "report.reputationalRisks.negative[5].code",
+                  "code": "flag_fnsBlocking",
+                  "source_paths": [
+                    "report.reputationalRisks.negative[5].name"
+                  ]
+                },
+                {
+                  "claim": "В ЕГРЮЛ есть отметка о недостоверности регистрационных данных.",
+                  "severity": "moderate",
+                  "source_path": "report.reputationalRisks.negative[4].code",
+                  "code": "flag_invalidRegistrationData",
+                  "source_paths": [
+                    "report.reputationalRisks.negative[4].name"
+                  ]
+                },
+                {
+                  "claim": "Статус в реестре (обновлён 02.08.2026): «Юридическим лицом принято решение об изменении места нахождения».",
+                  "severity": "moderate",
+                  "source_path": "report.status.reasonName",
+                  "code": "status_reason",
+                  "source_paths": [
+                    "report.status.date"
+                  ]
+                },
+                {
+                  "claim": "6 завершённых арбитражных дел, где компания была ответчиком, на сумму 2,7 млн ₽; к текущим претензиям не относятся.",
+                  "severity": "info",
+                  "source_path": "report.arbitrationByStatus.defandantArbitration.defandantArbitrationFinished.dfCount",
+                  "code": "arbitration_defendant_finished",
+                  "source_paths": [
+                    "report.arbitrationByStatus.defandantArbitration.defandantArbitrationFinished.dfCount",
+                    "report.arbitrationByStatus.defandantArbitration.defandantArbitrationFinished.dfAmount",
+                    "report.reputationalRisks.negative[3].code"
+                  ]
+                },
+                {
+                  "claim": "1 завершённое исполнительное производство на сумму 750 ₽ за 2026 год, за последний год; к действующим долгам не относятся.",
+                  "severity": "info",
+                  "source_path": "report.executionProceedings",
+                  "code": "enforcement_finished",
+                  "source_paths": [
+                    "report.executionProceedings[0]"
+                  ]
+                },
+                {
+                  "claim": "Последняя отчётность в отчёте — за 2024 год; отчётность за 2025 год должна была быть сдана к 31 марта 2026 года.",
+                  "severity": "info",
+                  "source_path": "report.finReports[0].common.year",
+                  "code": "fin_stale",
+                  "source_paths": []
+                },
+                {
+                  "claim": "Среди видов деятельности есть коды, которые по статистике ФНС часто выбирают фирмы-однодневки; сам по себе это повод присмотреться, не более.",
+                  "severity": "info",
+                  "source_path": "report.reputationalRisks.negative[1].code",
+                  "code": "flag_massOkved",
+                  "source_paths": [
+                    "report.reputationalRisks.negative[1].name"
+                  ]
+                }
+              ],
+              "ask_before": [
+                "Подтверждение текущего статуса ограничений по банковским счетам.",
+                "Документы о погашении или текущем состоянии действующих обязательств у приставов.",
+                "Подтверждение актуального адреса и регистрационных данных.",
+                "Баланс и отчёт о финансовых результатах за два последних года."
+              ],
+              "gaps": [
+                "В отчёте нет сведений о численности сотрудников — оценить по этому критерию нельзя.",
+                "У единственного действующего производства в отчёте не указана сумма — размер долга оценить нельзя."
+              ],
+              "report_date": "2026-08-27"
+            }
+          ],
+          "citations": [
+            {
+              "claim": "открытые арбитражные иски у ГДК",
+              "source_path": "report.arbitrationByStatus.defandantArbitration.defandantArbitrationPending.dpCount",
+              "inn": "6165169320"
+            },
+            {
+              "claim": "убыток за 2024 у ГДК",
+              "source_path": "report.finReports[1].common.profit",
+              "inn": "6165169320"
+            },
+            {
+              "claim": "низкая текущая ликвидность у ГДК",
+              "source_path": "report.finReports[1].assets.currentAssets.total",
+              "inn": "6165169320"
+            },
+            {
+              "claim": "блокировка счетов у ГДК",
+              "source_path": "report.reputationalRisks.negative[3].code",
+              "inn": "6165169320"
+            },
+            {
+              "claim": "отсутствие сигналов у ТЕХПРОФ",
+              "source_path": "report.finReports[0].liabilities.capitals",
+              "inn": "1684017097"
+            },
+            {
+              "claim": "пробелы в данных у ТЕХПРОФ",
+              "source_path": "report.finReports[0].liabilities.capitals",
+              "inn": "1684017097"
+            },
+            {
+              "claim": "недостоверный адрес у БИЛД-ЮГ",
+              "source_path": "report.reputationalRisks.negative[2].code",
+              "inn": "2311304742"
+            },
+            {
+              "claim": "открытые арбитражные иски у БИЛД-ЮГ",
+              "source_path": "report.arbitrationByStatus.defandantArbitration.defandantArbitrationPending.dpCount",
+              "inn": "2311304742"
+            },
+            {
+              "claim": "действующие исполнительные производства у БИЛД-ЮГ",
+              "source_path": "report.executionProceedings",
+              "inn": "2311304742"
+            },
+            {
+              "claim": "блокировка счетов у БИЛД-ЮГ",
+              "source_path": "report.reputationalRisks.negative[5].code",
+              "inn": "2311304742"
+            },
+            {
+              "claim": "недостоверные регистрационные данные у БИЛД-ЮГ",
+              "source_path": "report.reputationalRisks.negative[4].code",
+              "inn": "2311304742"
+            },
+            {
+              "claim": "решение о смене адреса у БИЛД-ЮГ",
+              "source_path": "report.status.reasonName",
+              "inn": "2311304742"
+            }
+          ],
+          "invalid_citations": [],
+          "report_dates": {
+            "6165169320": "2026-08-25",
+            "1684017097": "2026-08-28",
+            "2311304742": "2026-08-27"
+          }
+        },
+        "usage": {
+          "input_tokens": 7908,
+          "output_tokens": 2070,
+          "total_tokens": 9978
+        }
+      }
+    }
+  }
+]

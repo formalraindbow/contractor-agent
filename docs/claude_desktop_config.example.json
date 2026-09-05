@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "kontragent": {
+      "command": "uv",
+      "args": ["run", "--directory", "/Users/alantolparov/IdeaProjects/contractor-agent", "kontragent-mcp", "--source", "snapshot"]
+    }
+  }
+}
