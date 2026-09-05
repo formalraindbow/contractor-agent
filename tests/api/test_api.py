@@ -41,6 +41,7 @@ def test_link_login_preserves_browser_origin_and_chat(snapshot, tmp_path, scheme
         assert response.status_code == 303
         assert response.headers["location"] == "/?chat=existing-chat"
         assert "HttpOnly" in response.headers["set-cookie"]
+        assert ("Secure" in response.headers["set-cookie"]) == (scheme == "https")
         page = client.get(response.headers["location"])
         assert page.status_code == 200
         assert str(page.url) == f"{scheme}://stand.example/?chat=existing-chat"

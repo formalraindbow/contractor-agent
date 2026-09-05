@@ -159,7 +159,13 @@ def create_app(
                 path = "/" + target.path.lstrip("/")
                 location = path + (f"?{target.query}" if target.query else "")
                 response = RedirectResponse(location, status_code=303)
-                response.set_cookie("kontragent_key", web_password, httponly=True, max_age=86400)
+                response.set_cookie(
+                    "kontragent_key",
+                    web_password,
+                    httponly=True,
+                    secure=request.url.scheme == "https",
+                    max_age=86400,
+                )
                 return response
             cookie = request.cookies.get("kontragent_key", "")
             header = request.headers.get("authorization", "")

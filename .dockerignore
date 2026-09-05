@@ -1,0 +1,14 @@
+*
+!Dockerfile
+!pyproject.toml
+!uv.lock
+!README.md
+!src/
+!src/**
+!evals/
+!evals/**
+!data/
+!data/**
+**/__pycache__/
+**/*.pyc
+**/.DS_Store

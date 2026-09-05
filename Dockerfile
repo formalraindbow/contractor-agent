@@ -4,6 +4,7 @@ WORKDIR /app
 ENV UV_COMPILE_BYTECODE=1 UV_LINK_MODE=copy
 COPY pyproject.toml uv.lock README.md ./
 COPY src ./src
+COPY evals ./evals
 RUN uv sync --frozen --no-dev
 COPY data ./data
 ENV PATH="/app/.venv/bin:$PATH" API_HOST=0.0.0.0 MCP_HOST=0.0.0.0
