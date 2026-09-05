@@ -80,9 +80,9 @@ button:focus-visible,a:focus-visible,input:focus-visible,textarea:focus-visible,
 .chips.goals { border-top:1px solid var(--line); } .goalnote { padding:0 22px 12px; color:var(--muted); font-size:13px; } #chips { border-top:1px solid var(--line); }
 #chats { display:grid; gap:6px; padding:0; } #chats .chip { border:0; background:transparent; width:100%; display:flex; gap:5px; align-items:center; } #chats .chip.on { background:var(--surface); color:var(--text); }
 #chats .chip .chat-open { flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; border:0; background:none; padding:4px 0; text-align:left; } .chat-drop { border:0; background:none; padding:4px; color:var(--muted); } #chats small { display:block; color:var(--muted); font-size:11px; }
-.thread { display:grid; gap:22px; padding:20px 22px; } .thread:empty { padding:0; } .turn { min-width:0; scroll-margin-top:75px; } .turn.user { display:flex; justify-content:flex-end; } .who { color:var(--muted); font-size:12px; font-weight:600; margin-bottom:8px; } .turn.user .who { display:none; }
+.thread { display:grid; gap:22px; padding:20px 22px; } .thread:empty { padding:0; } .turn { min-width:0; scroll-margin-top:75px; } .turn.user { display:flex; flex-direction:column; align-items:flex-end; } .who { color:var(--muted); font-size:12px; font-weight:600; margin-bottom:8px; } .turn.user .who { margin-right:4px; }
 .bubble { background:var(--user); color:var(--text); padding:10px 15px; border-radius:14px 14px 3px 14px; max-width:80%; overflow-wrap:anywhere; }
-.answer { max-width:78ch; overflow-wrap:anywhere; } .answer p { margin:0 0 9px; } .answer ul { margin:0 0 12px; padding-left:20px; } .answer li { padding:3px 0; } .answer .mdh { font-weight:650; font-size:16px; margin:18px 0 7px; } .answer .mdh:first-child { margin-top:0; }
+.answer { width:fit-content; max-width:78ch; padding:14px 16px; border:1px solid var(--line); border-radius:14px 14px 14px 3px; background:var(--page); overflow-wrap:anywhere; } .answer p { margin:0 0 9px; } .answer ul { margin:0 0 12px; padding-left:20px; } .answer li { padding:3px 0; } .answer .mdh { font-weight:650; font-size:16px; margin:18px 0 7px; } .answer .mdh:first-child { margin-top:0; } .answer .body > :last-child { margin-bottom:0; }
 .status { color:var(--muted); font-size:13px; display:flex; gap:8px; align-items:center; } .status::before { content:""; width:7px; height:7px; border-radius:50%; background:var(--accent); animation:pulse 1s infinite; }
 @keyframes pulse { 50% { opacity:.3; } }
 .actions { display:flex; flex-wrap:wrap; gap:8px; margin-top:12px; padding:0 22px 14px; } .answer .actions { padding:0; }
@@ -117,6 +117,7 @@ button:focus-visible,a:focus-visible,input:focus-visible,textarea:focus-visible,
 @media(max-width:720px) { .shell { display:block; height:auto; overflow:visible; } .sidebar { height:auto; padding:14px 16px; gap:14px; border-right:0; border-bottom:1px solid var(--line); } .brand { float:left; } .brand-mark { font-size:24px; } .new-chat { padding:7px 10px; } .tabs { display:flex; flex-wrap:wrap; gap:2px; } .tabs button { font-size:12px; padding:7px 9px; } .sidebar-note { display:none; } #chats { max-height:140px; overflow:auto; } .workspace { overflow:visible; } .topbar { display:none; } .page { padding:18px 12px; } .welcome { padding:15px 4px 24px; } .welcome h1 { font-size:28px; } .row { flex-wrap:wrap; } .row input { flex-basis:65%; } .company h1 { font-size:22px; } .company { padding:0 5px; } .ask { padding:12px; } .ask button { padding:12px; } .bubble { max-width:95%; } .thread { padding:18px 16px; } .drawer { padding:18px; } }
 @media(prefers-reduced-motion:reduce) { *,*::before,*::after { animation:none!important; transition:none!important; scroll-behavior:auto!important; } }
 @media(max-width:720px) {
+  .answer { max-width:100%; padding:12px 13px; }
   .sidebar { position:sticky; top:0; z-index:5; display:block; overflow:visible; background:var(--page); }
   .nav-toggle { display:block; }
   .sidebar-content { position:absolute; top:100%; left:0; right:0; display:none; max-height:calc(100dvh - 90px); overflow-y:auto; gap:12px; padding:0 16px 16px; background:var(--page); border-bottom:1px solid var(--line); box-shadow:0 8px 16px #17233112; }
@@ -321,7 +322,7 @@ async function openChat(id) {
   target.innerHTML = '';
   for (const t of chat.turns || []) {
     const el = document.createElement('div'); el.className = 'turn' + (t.who === 'user' ? ' user' : '');
-    el.innerHTML = t.who === 'user' ? `<div class="bubble">${esc(t.text)}</div>` : `<div class="who">Помощник</div><div class="answer"><div class="body">${md(answerText(t.answer || {text_md:t.text}))}</div></div>`;
+    el.innerHTML = t.who === 'user' ? `<div class="who">Вы</div><div class="bubble">${esc(t.text)}</div>` : `<div class="who">Помощник</div><div class="answer"><div class="body">${md(answerText(t.answer || {text_md:t.text}))}</div></div>`;
     target.append(el);
     if (t.answer) answerActions(el.querySelector('.answer'), t.answer);
   }
@@ -755,7 +756,7 @@ async function stream(container, question, shown, onEnd, attempt) {
   setBusy(true);
   const requestThread = thread;
   if (!attempt) {
-    container.insertAdjacentHTML('beforeend', `<div class="turn user"><div class="bubble">${esc(shown || question)}</div></div>`);
+    container.insertAdjacentHTML('beforeend', `<div class="turn user"><div class="who">Вы</div><div class="bubble">${esc(shown || question)}</div></div>`);
     chatTurn('user',shown || question);
   }
   const turn=document.createElement('div'); turn.className='turn';
