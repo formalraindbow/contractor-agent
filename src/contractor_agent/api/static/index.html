@@ -34,11 +34,10 @@ button:focus-visible,a:focus-visible,input:focus-visible,textarea:focus-visible,
 .hint button { border:1px solid var(--line); border-radius:8px; background:#fff; padding:7px 12px; }
 .picker { display:grid; gap:8px; margin-top:14px; } .picker button { padding:14px; background:#fff; border:1px solid var(--line); border-radius:10px; text-align:left; } .picker small { display:block; color:var(--muted); }
 .empty { color:var(--muted); font-size:14px; }
-.company { scroll-margin-top:75px; display:flex; flex-wrap:wrap; justify-content:space-between; align-items:start; gap:16px; margin-bottom:20px; }
+.company { scroll-margin-top:75px; display:flex; flex-wrap:wrap; justify-content:space-between; align-items:center; gap:16px; margin-bottom:20px; }
 .company h1 { margin:0; font-size:25px; line-height:1.3; letter-spacing:-.4px; } .meta { color:var(--muted); font-size:13px; margin-top:6px; }
-.assessment { display:grid; grid-template-columns:minmax(0,1.15fr) minmax(300px,1fr); border-bottom:1px solid var(--line); }
+.assessment { border-bottom:1px solid var(--line); }
 .assessment-label { font-size:13px; font-weight:600; margin:0 0 10px; color:var(--text); }
-.bank-ratings { padding:18px 22px; border-left:1px solid var(--line); }
 .bank-marks { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
 .bank-rating { min-width:0; padding:10px 13px; background:var(--gray-bg); border:1px solid #c3cbd4; border-radius:8px; }
 .bank-rating span { display:block; font-size:12px; color:var(--text); }
@@ -50,7 +49,16 @@ button:focus-visible,a:focus-visible,input:focus-visible,textarea:focus-visible,
 .bank-marks.compact { grid-template-columns:1fr; gap:6px; }
 .compact .bank-rating { display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:4px 8px; padding:7px 10px; }
 .compact .bank-rating strong { font-size:14px; }
-@media(max-width:1050px) { .assessment { grid-template-columns:1fr; } .bank-ratings { order:-1; border-left:0; border-bottom:1px solid var(--line); } }
+.company-ratings { max-width:100%; }
+.company-ratings .assessment-label { color:var(--muted); font-size:12px; font-weight:400; margin-bottom:6px; }
+.company-ratings .bank-marks { display:flex; flex-wrap:wrap; gap:8px; }
+.company-ratings .bank-rating { display:flex; align-items:center; gap:6px; padding:7px 10px; border:0; color:var(--gray); }
+.company-ratings .bank-rating.g { color:var(--ok); } .company-ratings .bank-rating.y { color:var(--mod); } .company-ratings .bank-rating.r { color:var(--crit); }
+.company-ratings .bank-rating::before { content:""; width:7px; height:7px; border-radius:50%; background:currentColor; flex:none; }
+.company-ratings .bank-rating span { color:inherit; font-size:13px; font-weight:500; }
+.company-ratings .bank-rating span::after { content:":"; }
+.company-ratings .bank-rating strong { font-size:14px; }
+.company-ratings .bank-rating strong::before { display:none; }
 .panel { background:#fff; border:1px solid var(--line); border-radius:14px; margin-top:20px; }
 .head { display:flex; justify-content:space-between; gap:12px; align-items:center; padding:15px 22px; border-bottom:1px solid var(--line); } .head .t { font-size:14px; font-weight:600; } .head .d { color:var(--muted); font-size:12px; }
 .verdict { padding:18px 22px; border-left:3px solid transparent; } .verdict .v { font-weight:700; font-size:20px; line-height:1.4; max-width:70ch; } .verdict .s { margin-top:6px; font-size:14px; max-width:74ch; }
@@ -131,6 +139,7 @@ button:focus-visible,a:focus-visible,input:focus-visible,textarea:focus-visible,
 
     <section class="company" id="company" hidden>
       <div><h1 id="cname"></h1><div class="meta" id="cmeta"></div></div>
+      <section class="company-ratings" aria-label="Оценки банка"><div class="assessment-label">Оценки банка</div><div id="companyRatings"></div></section>
     </section>
 
     <section class="panel" id="agent" hidden>
@@ -550,7 +559,7 @@ function renderCard(c) {
   const li = a => `<li>${esc(a.claim)}</li>`;
   const sub = c.terminal ? 'Компания в процедуре банкротства или исключается из реестра: сделки могут быть оспорены, обязательства не исполнены.' :
     c.verdict === 'ok' ? 'По доступным данным существенных факторов риска не выделено. Ограничения отчёта приведены ниже.' : '';
-  $('#cardAssessment').innerHTML = `<div class="assessment"><div class="verdict ${c.verdict}"><div class="assessment-label">Рекомендация помощника</div><div class="v">${recommendationText(c)}</div>${sub ? `<div class="s">${sub}</div>` : ''}</div><section class="bank-ratings" aria-label="Оценки банка"><div class="assessment-label">Оценки банка</div>${bankMarks(c.labels)}</section></div>`;
+  $('#cardAssessment').innerHTML = `<div class="assessment"><div class="verdict ${c.verdict}"><div class="assessment-label">Рекомендация помощника</div><div class="v">${recommendationText(c)}</div>${sub ? `<div class="s">${sub}</div>` : ''}</div></div>`;
   let html = '';
   const primary = goal && goal !== 'look' ? facts : facts.filter(a => a.severity !== 'info');
   const rest = facts.filter(a => !primary.includes(a));
@@ -581,6 +590,7 @@ function showCompany(c) {
   $("#company").hidden = false; $("#agent").hidden = false;
   $("#cname").textContent = c.name;
   $("#cmeta").textContent = `ИНН ${c.inn} · отчёт банка от ${dateRu(c.report_date)}`;
+  $("#companyRatings").innerHTML = bankMarks(c.labels);
   $("#ahead").textContent = "";
   renderCard(c);
   $("#ask").focus({preventScroll:true});
