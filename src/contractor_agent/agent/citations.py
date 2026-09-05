@@ -26,7 +26,6 @@ _SCALE = {
     "млн": Decimal(1_000_000),
     "млрд": Decimal(1_000_000_000),
 }
-RELATIVE_TOLERANCE = Decimal("0.05")
 
 
 @dataclass(frozen=True)
@@ -105,7 +104,10 @@ def number_matches(claimed: Decimal, actual: Decimal) -> bool:
     """Совпадение с допуском на округление; знак не учитываем («убыток 26,2 млн» ↔ −26 249 000)."""
     if actual == 0:
         return claimed == 0
-    return abs(abs(claimed) - abs(actual)) / abs(actual) <= RELATIVE_TOLERANCE
+    # Allow rounding at the last significant displayed digit, not a blanket 5%.
+    # 26.2m can mean 26,249,000; 4,000,486.53 cannot mean 3,995,486.53.
+    step = Decimal(10) ** claimed.normalize().as_tuple().exponent
+    return abs(abs(claimed) - abs(actual)) <= min(step / 2, abs(actual) * Decimal("0.05"))
 
 
 def check_citation(source: ReportSource, inns: list[str], citation: Citation) -> CitationCheck:

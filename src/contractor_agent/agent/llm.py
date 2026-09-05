@@ -12,7 +12,7 @@ from __future__ import annotations
 from typing import Any
 
 from langchain_core.language_models import BaseChatModel
-from langchain_core.runnables import Runnable
+from langchain_core.runnables import Runnable, RunnableLambda
 from langchain_openai import ChatOpenAI
 
 from contractor_agent.settings import Settings
@@ -41,9 +41,10 @@ class LLM:
 
     def structured(self, schema: type) -> Runnable:
         chains: list[Runnable] = []
+        validate = RunnableLambda(lambda result: schema.model_validate(result))
         for m in self.models:
-            chains.append(m.with_structured_output(schema, method="json_schema"))
-            chains.append(m.with_structured_output(schema, method="function_calling"))
+            chains.append(m.with_structured_output(schema, method="json_schema") | validate)
+            chains.append(m.with_structured_output(schema, method="function_calling") | validate)
         return chains[0].with_fallbacks(chains[1:])
 
 
@@ -70,6 +71,7 @@ def make_llm(
                 base_url=base_url or settings.llm_base_url,
                 api_key=api_key or settings.llm_api_key or "missing",
                 temperature=0,
+                max_tokens=settings.llm_max_tokens,
                 timeout=settings.llm_timeout,
                 max_retries=2,
                 default_headers=HEADERS,

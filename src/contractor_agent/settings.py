@@ -35,6 +35,7 @@ class Settings(BaseSettings):
     llm_fallback_models: str = (
         "minimax/minimax-m2.7:free,z-ai/glm-5.2:free,google/gemma-4-31b-it:free"
     )
+    llm_max_tokens: int = 8192  # bounded completion, including reasoning tokens
     llm_timeout: float = 90
     llm_reasoning_effort: str | None = (
         "low"  # gpt-oss: low в 3 раза быстрее medium на том же ответе

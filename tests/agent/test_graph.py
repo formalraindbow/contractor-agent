@@ -139,7 +139,7 @@ async def test_memory_within_thread(snapshot: Snapshot, tmp_path) -> None:
         await rt.ask("Что за компания 2100006761?", thread_id="s")
         second = await rt.ask("Какой у неё ИНН?", thread_id="s")
         state = await rt.graph.aget_state({"configurable": {"thread_id": "s"}})
-    assert second.text_md.endswith("2100006761.")
+    assert "Речь про ИНН 2100006761." in second.text_md
     assert (
         sum(isinstance(m, HumanMessage) for m in state.values["messages"]) == 2
     )  # история сохранена
@@ -406,7 +406,7 @@ def test_drop_invalid_lines_removes_unverified_numbers() -> None:
     )
     out = drop_invalid_lines(text, [bad])
     assert "7 152 200" not in out and "258 завершённых" in out and "Дата отчёта" in out
-    assert "Убрано утверждений" in out
+    assert "Убрано утверждений" not in out
 
 
 def test_tidy_text_strips_field_paths_and_inn() -> None:

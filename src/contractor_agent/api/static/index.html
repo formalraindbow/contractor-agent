@@ -4,182 +4,108 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Проверка контрагента</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;600;700;800&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
 <style>
-  :root {
-    --bg: #f3f4f6; --page: #ffffff; --surface: #f7f7f9; --line: #e2e2e7;
-    --text: #0d0d0f; --muted: #6b6b74; --accent: #ef3124; --accent-ink: #ffffff;
-    --ink: #1b1f3b; --ink-text: #f0f0f2;
-    --crit: #d1281c; --crit-bg: #fdecea; --mod: #b96b00; --mod-bg: #fff3df; --ok: #1f8a3b; --ok-bg: #e6f5ea;
-    --info: #3a4a7a; --info-bg: #eceff8; --gray: #5f6470; --gray-bg: #ececf0;
-    --chip: #eef0f6; --user: #1b1f3b; --user-ink: #ffffff;
-  }
-  @media (prefers-color-scheme: dark) {
-    :root { --bg: #101114; --page: #1a1b1f; --surface: #232429; --line: #32343b; --text: #f0f0f2; --muted: #9c9ca6;
-      --accent: #ff4a3d; --accent-ink: #141416; --ink: #e9e9f2; --ink-text: #141416;
-      --crit: #ff6b60; --crit-bg: #3a1d1b; --mod: #f0a742; --mod-bg: #3a2c14; --ok: #5ccf7a; --ok-bg: #16311e;
-      --info: #aeb9e6; --info-bg: #23283a; --gray: #b9bcc6; --gray-bg: #2c2c33; --chip: #2a2c35; --user: #e9e9f2; --user-ink: #141416; }
-  }
-  * { box-sizing: border-box; }
-  body { margin: 0; background: var(--bg); color: var(--text); font: 15px/1.5 "IBM Plex Sans", "Helvetica Neue", Arial, sans-serif; -webkit-font-smoothing: antialiased; }
-  button { font: inherit; cursor: pointer; }
-  button[disabled] { opacity: .55; cursor: default; }
-  button:focus-visible, input:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
-  [hidden] { display: none !important; }
-
-  .topbar { background: var(--ink); color: var(--ink-text); position: sticky; top: 0; z-index: 5; }
-  .topbar .in { max-width: 1040px; margin: 0 auto; padding: 12px 20px; display: flex; align-items: center; justify-content: space-between; gap: 14px; font-family: Manrope, sans-serif; font-weight: 700; }
-  .topbar i { display: inline-block; width: 22px; height: 22px; border-radius: 6px; background: var(--accent); vertical-align: -5px; margin-right: 10px; }
-  .topbar button { background: transparent; color: var(--ink-text); border: 1px solid rgba(255,255,255,.35); border-radius: 8px; padding: 5px 10px; font-size: 12.5px; }
-
-  .page { max-width: 1040px; margin: 20px auto 60px; padding: 0 20px; display: grid; gap: 16px; }
-  .tabs { display: flex; gap: 6px; border-bottom: 1px solid var(--line); }
-  .tabs button { background: none; border: 0; padding: 10px 14px; font: 600 14px Manrope, sans-serif; color: var(--muted); border-bottom: 2px solid transparent; margin-bottom: -1px; }
-  .tabs button.on { color: var(--text); border-bottom-color: var(--accent); }
-
-  .row { display: flex; gap: 8px; }
-  .row input { flex: 1; padding: 12px 14px; border: 1px solid var(--line); border-radius: 10px; background: var(--page); color: var(--text); font-size: 15px; }
-  .primary { padding: 12px 20px; border: 0; border-radius: 10px; background: var(--accent); color: var(--accent-ink); font: 600 14px Manrope, sans-serif; }
-  .secondary { padding: 12px 16px; border: 1px solid var(--line); border-radius: 10px; background: var(--page); color: var(--text); font: 600 14px Manrope, sans-serif; }
-  .hint { font-size: 12.5px; color: var(--muted); margin-top: 8px; }
-  .hint button { background: none; border: 0; color: var(--accent); padding: 0 2px; font-size: 12.5px; }
-  .picker { display: grid; gap: 6px; margin-top: 12px; }
-  .picker button { text-align: left; padding: 10px 14px; border: 1px solid var(--line); border-radius: 10px; background: var(--page); color: var(--text); }
-  .picker button small { color: var(--muted); }
-  .empty { color: var(--muted); font-size: 13.5px; }
-
-  .company { margin-top: 16px; background: var(--page); border: 1px solid var(--line); border-radius: 14px; padding: 18px 20px; display: flex; flex-wrap: wrap; justify-content: space-between; gap: 10px 16px; align-items: flex-start; }
-  .company h1 { margin: 0; font: 800 22px/1.2 Manrope, sans-serif; letter-spacing: -.01em; text-wrap: balance; }
-  .company .meta { color: var(--muted); font-size: 13px; margin-top: 4px; font-variant-numeric: tabular-nums; }
-  .pills { display: flex; gap: 8px; flex-wrap: wrap; }
-  .pill { display: inline-flex; align-items: center; gap: 6px; padding: 5px 11px; border-radius: 999px; font-size: 12.5px; font-weight: 500; white-space: nowrap; background: var(--gray-bg); color: var(--gray); }
-  .pill .dot { width: 8px; height: 8px; border-radius: 50%; background: currentColor; }
-  .pill.g { background: var(--ok-bg); color: var(--ok); } .pill.y { background: var(--mod-bg); color: var(--mod); } .pill.r { background: var(--crit-bg); color: var(--crit); }
-
-  .panel { margin-top: 16px; background: var(--page); border: 1px solid var(--line); border-radius: 14px; overflow: hidden; }
-  .panel .head { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 12px 20px; border-bottom: 1px solid var(--line); }
-  .panel .head .t { font: 700 12px Manrope, sans-serif; letter-spacing: .08em; text-transform: uppercase; color: var(--accent); }
-  .panel .head .d { font-size: 12.5px; color: var(--muted); }
-  .verdict { padding: 14px 20px; border-left: 3px solid transparent; }
-  .verdict .v { font: 800 19px/1.3 Manrope, sans-serif; letter-spacing: -.01em; text-wrap: balance; max-width: 62ch; }
-  .verdict .s { font-size: 13px; margin-top: 5px; color: var(--text); max-width: 62ch; }
-  .verdict.ok { background: var(--ok-bg); border-left-color: var(--ok); } .verdict.ok .v { color: var(--ok); }
-  .verdict.check { background: var(--mod-bg); border-left-color: var(--mod); } .verdict.check .v { color: var(--mod); }
-  .verdict.not_recommended { background: var(--crit-bg); border-left-color: var(--crit); } .verdict.not_recommended .v { color: var(--crit); }
-  .facts { list-style: none; margin: 0; padding: 0 20px; }
-  .facts li { padding: 12px 0; padding-right: max(0px, calc(100% - 62ch)); border-bottom: 1px solid var(--line); }
-  .facts:last-of-type li:last-child { border-bottom: 0; }
-  #moreList { border-top: 1px solid var(--line); }
-  .sev { display: inline; padding: 1px 8px; margin-right: 8px; border-radius: 5px; font-size: 12px; font-weight: 600; white-space: nowrap; vertical-align: 1px; }
-  .sev.critical { box-shadow: inset 0 0 0 1px currentColor; }
-  .sev.critical { background: var(--crit-bg); color: var(--crit); } .sev.moderate { background: var(--mod-bg); color: var(--mod); } .sev.info { background: var(--info-bg); color: var(--info); }
-  .more { padding: 0 20px 12px; }
-  .more button { background: none; border: 0; color: var(--accent); font-size: 13px; padding: 0; }
-  .gaps { padding: 14px 20px; padding-right: max(20px, calc(100% - 62ch)); font-size: 13.5px; color: var(--muted); border-top: 1px solid var(--line); }
-  .gaps b { display: block; color: var(--text); font-weight: 600; margin-bottom: 4px; }
-  #card .gaps { color: var(--text); }
-  .gaps ul { margin: 0; padding: 0; list-style: none; }
-  .gaps li { padding: 4px 0 4px 14px; position: relative; }
-  .gaps li::before { content: ""; position: absolute; left: 0; top: 12px; width: 5px; height: 5px; border-radius: 50%; background: var(--muted); }
-  .chips { display: flex; flex-wrap: wrap; gap: 8px; padding: 14px 20px; align-items: center; border-top: 1px solid var(--line); }
-  .chips .lbl { font-size: 12px; color: var(--muted); margin-right: 4px; }
-  .chip { padding: 7px 12px; border-radius: 999px; background: var(--chip); border: 1px solid var(--line); font-size: 13.5px; color: var(--text); }
-  .chip:hover { border-color: var(--accent); }
-  .chip.x { padding-right: 8px; } .chip.x b { margin-left: 6px; color: var(--muted); font-weight: 600; cursor: pointer; }
-  .chips.goals { border-top: 0; border-bottom: 1px solid var(--line); padding-bottom: 12px; }
-  .chip.on { background: var(--ink); color: var(--ink-text); border-color: var(--ink); }
-  #chats { border-bottom: 1px solid var(--line); }
-  #chats .chip small { color: var(--muted); margin-left: 6px; font-size: 11.5px; }
-  #chats .chip.on small { color: inherit; opacity: .7; }
-  .goalnote { padding: 0 20px 12px; font-size: 12.5px; color: var(--muted); border-bottom: 1px solid var(--line); }
-  .mcpintro { padding: 14px 20px; font-size: 14px; color: var(--text); border-bottom: 1px solid var(--line); max-width: 78ch; }
-  .mcpcfg { padding: 14px 20px 18px; display: grid; gap: 10px; justify-items: start; }
-  .mcpcfg .lbl { font-size: 12px; color: var(--muted); }
-  .mcpcfg pre { margin: 0; padding: 12px 14px; border-radius: 10px; background: var(--surface); border: 1px solid var(--line); font: 12.5px/1.6 ui-monospace, Menlo, monospace; overflow-x: auto; max-width: 100%; }
-  .mcpok { font-size: 12.5px; color: var(--ok); }
-  #qtable th:first-child, #qtable td:first-child { width: 300px; white-space: normal; }
-  #qtable td small { display: block; font-weight: 400; color: var(--muted); margin-top: 2px; }
-  #qnote ul { margin: 6px 0 0; padding: 0; list-style: none; }
-  #qnote li { padding: 4px 0 4px 14px; position: relative; }
-  #qnote li::before { content: ""; position: absolute; left: 0; top: 12px; width: 5px; height: 5px; border-radius: 50%; background: var(--muted); }
-  #mcptools li { grid-template-columns: 210px 1fr; }
-  #mcptools .sev { justify-content: flex-start; font: 500 11.5px ui-monospace, Menlo, monospace; white-space: nowrap; }
-
-  .thread { display: grid; gap: 12px; padding: 4px 20px 16px; }
-  .thread:empty { padding: 0; }
-  .turn { display: grid; gap: 6px; }
-  .turn .who { font-size: 11px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); font-weight: 600; }
-  .turn.user { justify-items: end; }
-  .bubble { max-width: 85%; padding: 10px 14px; border-radius: 16px 16px 4px 16px; background: var(--user); color: var(--user-ink); }
-  .answer { padding: 2px 0 0; font-size: 14.5px; max-width: 62ch; }
-  .answer p { margin: 0 0 8px; } .answer p:last-child { margin: 0; }
-  .answer ul { margin: 0 0 8px; padding: 0; list-style: none; } .answer li { padding: 3px 0; } .answer li + li { border-top: 1px solid var(--line); }
-  .answer .status { font-size: 12.5px; color: var(--muted); }
-  .answer .steps { font-size: 12.5px; color: var(--muted); display: flex; flex-wrap: wrap; gap: 6px 12px; margin: 4px 0 8px; }
-  .answer .steps span::before { content: "·"; margin-right: 6px; }
-  .answer .foot { margin-top: 8px; font-size: 12px; color: var(--muted); }
-  .answer .mdh { font: 700 14px Manrope, sans-serif; margin: 10px 0 4px; }
-  .answer .mdh:first-child { margin-top: 0; }
-  .mdtable { overflow-x: auto; margin: 6px 0 10px; }
-  .mdtable table { border-collapse: collapse; font-size: 13.5px; }
-  .mdtable th, .mdtable td { text-align: left; padding: 6px 12px 6px 0; border-bottom: 1px solid var(--line); vertical-align: top; }
-  .mdtable th { font-weight: 600; color: var(--muted); }
-  .answer .body { transition: opacity .12s ease; }
-  .ask { display: flex; gap: 8px; padding: 12px 20px 18px; border-top: 1px solid var(--line); }
-  .ask input { flex: 1; padding: 10px 14px; border: 1px solid var(--line); border-radius: 10px; background: var(--page); color: var(--text); font-size: 14.5px; }
-  .ask button { padding: 10px 16px; border: 0; border-radius: 10px; background: var(--accent); color: var(--accent-ink); font: 600 14px Manrope, sans-serif; }
-  .skeleton { height: 14px; border-radius: 6px; background: linear-gradient(90deg, var(--surface), var(--line), var(--surface)); background-size: 200% 100%; animation: sh 1.2s infinite; margin: 10px 20px; }
-  @keyframes sh { from { background-position: 200% 0 } to { background-position: -200% 0 } }
-  @media (prefers-reduced-motion: reduce) { .skeleton { animation: none; } }
-
-  .selected { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; min-height: 20px; margin-top: 10px; }
-  .groups { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; padding: 14px 20px; }
-  .group { border-radius: 12px; padding: 12px 14px; border: 1px solid var(--line); }
-  .group b { display: block; font: 700 13px Manrope, sans-serif; margin-bottom: 6px; }
-  .group.ok { background: var(--ok-bg); } .group.ok b { color: var(--ok); }
-  .group.check { background: var(--mod-bg); } .group.check b { color: var(--mod); }
-  .group.not_recommended { background: var(--crit-bg); } .group.not_recommended b { color: var(--crit); }
-  .group .none { font-size: 13px; color: var(--muted); }
-  .cmpwrap { overflow-x: auto; padding: 0 20px 14px; }
-  table.cmp { width: 100%; border-collapse: collapse; font-size: 13.5px; min-width: 640px; }
-  table.cmp th { text-align: left; padding: 8px 10px; font: 600 11.5px "IBM Plex Sans", sans-serif; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); border-bottom: 1px solid var(--line); vertical-align: bottom; }
-  table.cmp thead th { font: 700 14px/1.3 Manrope, sans-serif; letter-spacing: 0; text-transform: none; color: var(--text); }
-  table.cmp th small { display: block; font: 400 12.5px/1.35 "IBM Plex Sans", sans-serif; color: var(--muted); margin-top: 3px; letter-spacing: 0; }
-  table.cmp { table-layout: fixed; }
-  table.cmp th:first-child, table.cmp td:first-child { width: 150px; }
-  table.cmp td { padding: 12px 14px 12px 0; border-bottom: 1px solid var(--line); vertical-align: top; }
-  table.cmp td:first-child { font-weight: 600; white-space: nowrap; padding-right: 20px; }
-  table.cmp th { padding: 10px 14px 10px 0; }
-  table.cmp .v { font-weight: 600; }
-  table.cmp .v.ok { color: var(--ok); } table.cmp .v.check { color: var(--mod); } table.cmp .v.not_recommended { color: var(--crit); }
-  table.cmp ul { margin: 0; padding: 0; list-style: none; }
-  table.cmp li { padding: 4px 0; }
-  table.cmp li + li { border-top: 1px solid var(--line); }
-  .group ul { margin: 0; padding: 0; list-style: none; font-size: 13.5px; }
-  .group li { padding: 2px 0; }
-  table.cmp .muted { color: var(--muted); }
-  @media (max-width: 720px) { .groups { grid-template-columns: 1fr; } .facts li { grid-template-columns: 1fr; gap: 4px; } .bubble { max-width: 96%; } }
+:root { color-scheme: light; --bg:#f3f5f7; --page:#fff; --surface:#edf1f4; --line:#dce1e7; --text:#172331; --muted:#647181; --accent:#ef3124; --accent-ink:#fff; --ink:#172331; --ink-text:#fff; --crit:#ad2e28; --crit-bg:#fff0ee; --mod:#8a570f; --mod-bg:#fff7e7; --ok:#287a54; --ok-bg:#eaf5ee; --info:#647181; --info-bg:#eef2f6; --gray:#647181; --gray-bg:#edf1f4; --chip:#fff; --user:#e8edf2; --user-ink:#172331; --focus:#225ac7; }
+* { box-sizing:border-box; }
+body { margin:0; background:var(--bg); color:var(--text); font:15px/1.6 "Avenir Next",Arial,sans-serif; -webkit-font-smoothing:antialiased; }
+button,input,textarea { font:inherit; color:inherit; }
+button { cursor:pointer; } button:disabled { opacity:.5; cursor:wait; }
+a { color:inherit; } [hidden] { display:none!important; }
+button:focus-visible,a:focus-visible,input:focus-visible,textarea:focus-visible,summary:focus-visible { outline:3px solid var(--focus); outline-offset:3px; }
+.shell { display:grid; grid-template-columns:244px minmax(0,1fr); height:100dvh; overflow:hidden; }
+.sidebar { background:var(--page); border-right:1px solid var(--line); padding:28px 20px; display:flex; flex-direction:column; gap:24px; overflow-y:auto; }
+.brand { display:flex; gap:12px; align-items:center; line-height:1.25; }
+.brand-mark { font:bold 32px/1 Arial; color:var(--accent); border-bottom:5px solid var(--accent); padding-bottom:4px; }
+.brand strong { display:block; font-size:16px; } .brand small { font-size:12px; color:var(--muted); }
+.new-chat { border:1px solid #b6c0cc; background:#fff; border-radius:10px; padding:11px 10px; text-align:left; font-weight:600; }
+.tabs { display:grid; gap:5px; } .tabs button { border:0; border-radius:8px; text-align:left; background:transparent; padding:10px 12px; color:var(--muted); font-size:14px; }
+.tabs button.on { color:var(--text); background:var(--surface); font-weight:600; } .tabs button:hover { background:var(--surface); }
+.sidebar-note { margin-top:auto; font-size:12px; color:var(--muted); line-height:1.6; }
+.workspace { min-width:0; overflow-y:auto; scroll-padding:24px 0 150px; overscroll-behavior:contain; }
+.topbar { position:sticky; top:0; background:rgba(243,245,247,.97); border-bottom:1px solid var(--line); z-index:3; padding:15px 36px; }
+.topbar strong { font-size:14px; font-weight:600; } .topbar span { color:var(--muted); font-size:12px; margin-left:12px; }
+.page { max-width:1110px; margin:0 auto; padding:30px 36px 32px; }
+.welcome { padding:34px 0 24px; max-width:720px; } .welcome h1 { font-size:34px; line-height:1.2; letter-spacing:-1px; margin:0 0 16px; max-width:650px; }
+.welcome p { color:var(--muted); margin:0; max-width:630px; font-size:16px; }
+.row { display:flex; gap:10px; } .row input { min-width:0; flex:1; border:1px solid #b6c0cc; padding:14px 16px; border-radius:12px; background:#fff; }
+.primary { background:var(--accent); color:#fff; border:0; border-radius:10px; padding:12px 20px; font-weight:600; }
+.secondary { background:#fff; border:1px solid var(--line); border-radius:9px; padding:9px 14px; }
+.hint { font-size:13px; color:var(--muted); margin:16px 0; display:flex; flex-wrap:wrap; align-items:center; gap:8px; }
+.hint button { border:1px solid var(--line); border-radius:8px; background:#fff; padding:7px 12px; }
+.picker { display:grid; gap:8px; margin-top:14px; } .picker button { padding:14px; background:#fff; border:1px solid var(--line); border-radius:10px; text-align:left; } .picker small { display:block; color:var(--muted); }
+.empty { color:var(--muted); font-size:14px; }
+.company { scroll-margin-top:75px; display:flex; flex-wrap:wrap; justify-content:space-between; align-items:start; gap:16px; margin-bottom:20px; }
+.company h1 { margin:0; font-size:25px; line-height:1.3; letter-spacing:-.4px; } .meta { color:var(--muted); font-size:13px; margin-top:6px; }
+.pills { display:flex; flex-wrap:wrap; gap:12px; } .pill { display:inline-flex; align-items:center; gap:7px; color:var(--muted); font-size:12px; }
+.pill .dot { width:7px; height:7px; border-radius:50%; background:currentColor; } .pill.g { color:var(--ok); } .pill.y { color:var(--mod); } .pill.r { color:var(--crit); }
+.panel { background:#fff; border:1px solid var(--line); border-radius:14px; margin-top:20px; }
+.head { display:flex; justify-content:space-between; gap:12px; align-items:center; padding:15px 22px; border-bottom:1px solid var(--line); } .head .t { font-size:14px; font-weight:600; } .head .d { color:var(--muted); font-size:12px; }
+.verdict { padding:18px 22px; border-left:3px solid transparent; } .verdict .v { font-weight:700; font-size:20px; line-height:1.4; max-width:70ch; } .verdict .s { margin-top:6px; font-size:14px; max-width:74ch; }
+.verdict.ok { background:var(--ok-bg); border-color:var(--ok); } .verdict.ok .v { color:var(--ok); }
+.verdict.check { background:var(--mod-bg); border-color:var(--mod); } .verdict.check .v { color:var(--mod); }
+.verdict.not_recommended { background:var(--crit-bg); border-color:var(--crit); } .verdict.not_recommended .v { color:var(--crit); }
+.facts { list-style:none; margin:0; padding:0 22px; } .facts li { padding:11px 0; border-bottom:1px solid var(--line); max-width:78ch; } .facts li:last-child { border:0; }
+.sev { display:inline-block; margin-right:7px; font-size:11px; border-radius:4px; padding:1px 6px; background:var(--info-bg); color:var(--info); } .sev.critical { background:var(--crit-bg); color:var(--crit); } .sev.moderate { background:var(--mod-bg); color:var(--mod); }
+.more-facts { margin:0 22px 12px; } .more-facts .facts { padding:0; } summary { cursor:pointer; font-size:14px; color:var(--muted); }
+.gaps { padding:14px 22px; border-top:1px solid var(--line); font-size:14px; } .gaps b { display:block; margin-bottom:6px; font-weight:600; } .gaps ul { margin:0; padding-left:18px; max-width:78ch; } .gaps li { padding:3px 0; }
+.card-extra { display:grid; grid-template-columns:1fr 1fr; } .card-extra .gaps + .gaps { border-left:1px solid var(--line); }
+.chips { display:flex; flex-wrap:wrap; gap:8px; align-items:center; padding:14px 22px; } .chips .lbl { color:var(--muted); font-size:12px; width:100%; }
+.chip { border:1px solid var(--line); padding:7px 11px; border-radius:8px; background:#fff; font-size:13px; line-height:1.4; text-align:left; } .chip:hover { border-color:#9daaba; } .chip.on { border-color:var(--text); background:var(--text); color:#fff; }
+.chips.goals { border-top:1px solid var(--line); } .goalnote { padding:0 22px 12px; color:var(--muted); font-size:13px; } #chips { border-top:1px solid var(--line); }
+#chats { display:grid; gap:6px; padding:0; } #chats .chip { border:0; background:transparent; width:100%; display:flex; gap:5px; align-items:center; } #chats .chip.on { background:var(--surface); color:var(--text); }
+#chats .chip .chat-open { flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; border:0; background:none; padding:4px 0; text-align:left; } .chat-drop { border:0; background:none; padding:4px; color:var(--muted); } #chats small { display:block; color:var(--muted); font-size:11px; }
+.thread { display:grid; gap:22px; padding:20px 22px; } .thread:empty { padding:0; } .turn { min-width:0; scroll-margin-top:75px; } .turn.user { display:flex; justify-content:flex-end; } .who { color:var(--muted); font-size:12px; font-weight:600; margin-bottom:8px; } .turn.user .who { display:none; }
+.bubble { background:var(--user); color:var(--text); padding:10px 15px; border-radius:14px 14px 3px 14px; max-width:80%; overflow-wrap:anywhere; }
+.answer { max-width:78ch; overflow-wrap:anywhere; } .answer p { margin:0 0 9px; } .answer ul { margin:0 0 12px; padding-left:20px; } .answer li { padding:3px 0; } .answer .mdh { font-weight:650; font-size:16px; margin:18px 0 7px; } .answer .mdh:first-child { margin-top:0; }
+.status { color:var(--muted); font-size:13px; display:flex; gap:8px; align-items:center; } .status::before { content:""; width:7px; height:7px; border-radius:50%; background:var(--accent); animation:pulse 1s infinite; }
+@keyframes pulse { 50% { opacity:.3; } }
+.actions { display:flex; flex-wrap:wrap; gap:8px; margin-top:12px; padding:0 22px 14px; } .answer .actions { padding:0; }
+.quiet { background:none; border:1px solid var(--line); border-radius:7px; padding:6px 10px; font-size:12px; } .quiet:hover { background:var(--surface); }
+.ask { display:flex; gap:10px; padding:15px 20px; position:sticky; bottom:0; z-index:2; background:rgba(255,255,255,.98); border-top:1px solid var(--line); border-radius:0 0 14px 14px; box-shadow:0 -6px 18px #17233105; }
+.ask textarea { display:block; resize:none; flex:1; min-width:0; min-height:48px; max-height:150px; border:1px solid #b6c0cc; border-radius:10px; padding:11px 13px; background:#fff; line-height:1.5; }
+.ask button { align-self:end; border:0; border-radius:9px; background:var(--accent); color:#fff; padding:12px 16px; font-weight:600; }
+.footer-note { color:var(--muted); font-size:12px; text-align:center; margin:16px 0 0; }
+.skeleton { height:14px; background:var(--surface); margin:15px 22px; border-radius:5px; }
+.selected { display:flex; flex-wrap:wrap; gap:8px; margin-top:12px; } .selected b { margin-left:10px; cursor:pointer; }
+.groups { display:grid; grid-template-columns:repeat(3,1fr); gap:10px; padding:20px; } .group { padding:13px; border:1px solid var(--line); border-radius:10px; font-size:13px; } .group b { display:block; margin-bottom:8px; } .group ul { padding-left:16px; margin:0; } .group.ok { background:var(--ok-bg); } .group.check { background:var(--mod-bg); } .group.not_recommended { background:var(--crit-bg); } .none { color:var(--muted); }
+.cmpwrap,.mdtable { overflow-x:auto; padding:0 20px 20px; } .mdtable { padding:0; margin:10px 0; } table { border-collapse:collapse; width:100%; font-size:13px; font-variant-numeric:tabular-nums; } table.cmp { min-width:620px; table-layout:fixed; } th,td { text-align:left; padding:12px 12px 12px 0; border-bottom:1px solid var(--line); vertical-align:top; } th { font-weight:600; } th small,td small { display:block; font-weight:400; color:var(--muted); font-size:12px; margin-top:5px; } td ul { padding-left:15px; margin:0; } table.cmp th:first-child { width:170px; }
+.mcpintro { padding:20px 22px; max-width:82ch; font-size:14px; } .mcpcfg { padding:18px 22px; display:grid; gap:12px; justify-items:start; } .mcpcfg .lbl { color:var(--muted); font-size:13px; } pre { white-space:pre-wrap; overflow-wrap:anywhere; background:var(--surface); border:1px solid var(--line); border-radius:8px; padding:14px; font:12px/1.6 ui-monospace,monospace; max-width:100%; } .mcpok { color:var(--ok); }
+#qnote p { margin:6px 0; } #qualityMore { margin:0 22px 20px; } .quality-picker { padding:0 22px 12px; color:var(--muted); font-size:13px; } .quality-picker select { max-width:100%; padding:7px; border:1px solid var(--line); border-radius:6px; background:#fff; }
+.overlay { position:fixed; inset:0; z-index:20; background:#17233155; display:flex; justify-content:flex-end; } .drawer { width:min(680px,100%); height:100dvh; overflow-y:auto; background:#fff; padding:24px 28px; }
+.drawer-header { display:flex; justify-content:space-between; align-items:center; gap:14px; position:sticky; top:-24px; padding:12px 0; background:#fff; z-index:1; border-bottom:1px solid var(--line); } .drawer h2 { margin:0; font-size:21px; } .drawer h3 { margin:22px 0 10px; font-size:16px; } .drawer .fact { border-bottom:1px solid var(--line); padding:15px 0; } .drawer .fact p { margin:0 0 8px; } .drawer .verdict { border-radius:8px; margin:18px 0; padding:14px; } .drawer .gaps { padding:14px 0; } .drawer .meta { margin:10px 0; }
+.source-block { margin:12px 0; font-size:13px; } .source-block summary { color:var(--text); } .error-message { color:var(--crit); font-size:14px; padding:8px 0; }
+@media(max-width:1050px) { .shell { grid-template-columns:215px minmax(0,1fr); } .page { padding:24px; } .topbar { padding:15px 24px; } .card-extra { grid-template-columns:1fr; } .card-extra .gaps + .gaps { border-left:0; } }
+@media(max-width:720px) { .shell { display:block; height:auto; overflow:visible; } .sidebar { height:auto; padding:14px 16px; gap:14px; border-right:0; border-bottom:1px solid var(--line); } .brand { float:left; } .brand-mark { font-size:24px; } .new-chat { padding:7px 10px; } .tabs { display:flex; flex-wrap:wrap; gap:2px; } .tabs button { font-size:12px; padding:7px 9px; } .sidebar-note { display:none; } #chats { max-height:140px; overflow:auto; } .workspace { overflow:visible; } .topbar { display:none; } .page { padding:18px 12px; } .welcome { padding:15px 4px 24px; } .welcome h1 { font-size:28px; } .row { flex-wrap:wrap; } .row input { flex-basis:65%; } .company h1 { font-size:22px; } .company { padding:0 5px; } .groups { grid-template-columns:1fr; } .ask { padding:12px; } .ask button { padding:12px; } .bubble { max-width:95%; } .thread { padding:18px 16px; } .drawer { padding:18px; } }
+@media(prefers-reduced-motion:reduce) { *,*::before,*::after { animation:none!important; scroll-behavior:auto!important; } }
 </style>
 </head>
 <body>
-<div class="topbar"><div class="in"><span><i></i>Проверка контрагента</span><button id="reset" type="button">Новая проверка</button></div></div>
-
+<div class="shell">
+<aside class="sidebar" aria-label="Навигация">
+  <div class="brand"><span class="brand-mark" aria-hidden="true">А</span><div><strong>Контрагент</strong><small>Помощник по отчёту банка</small></div></div>
+  <button id="reset" type="button" class="new-chat">＋ Новая проверка</button>
+  <nav class="tabs" aria-label="Разделы">
+    <button type="button" class="on" id="tabOne" aria-current="page">Проверка компании</button>
+    <button type="button" id="tabMany">Сравнить компании</button>
+    <button type="button" id="tabQuality">Качество ответов</button>
+    <button type="button" id="tabMcp">Для агентов банка</button>
+  </nav>
+  <div id="chats" hidden></div>
+  <div class="sidebar-note">Данные из отчётов банка.<br>200 компаний в демобазе.</div>
+</aside>
+<main class="workspace" id="workspace">
+<div class="topbar"><strong id="pageTitle">Проверка контрагента</strong><span>По данным отчётов</span></div>
 <div class="page">
-  <div class="tabs" role="tablist">
-    <button type="button" class="on" id="tabOne" role="tab">Одна компания</button>
-    <button type="button" id="tabMany" role="tab">Сравнить несколько</button>
-    <button type="button" id="tabQuality" role="tab">Качество ответов</button>
-    <button type="button" id="tabMcp" role="tab">Для агентов банка</button>
-  </div>
-
   <div id="modeOne">
+    <div class="search-area" id="searchArea">
+    <div class="welcome"><h1>Что важно знать<br>о вашем контрагенте?</h1><p>Найдите компанию по названию или ИНН. Помощник разберёт факты из отчёта и ответит на ваши вопросы.</p></div>
     <form class="row" id="search">
-      <input id="q" placeholder="ИНН, название или вопрос: «5032257375», «ГДК», «Сколько у МАКСМАРКЕТ судов?»" autocomplete="off" autofocus>
+      <input id="q" placeholder="Компания, ИНН или вопрос по отчёту" aria-label="Компания, ИНН или вопрос по отчёту" autocomplete="off" autofocus>
       <button id="go" class="primary" type="submit">Спросить</button>
     </form>
     <div class="hint">Попробовать: <button type="button" data-q="5032257375">МАКСМАРКЕТ</button> · <button type="button" data-q="6165169320">ГДК</button> · <button type="button" data-q="052500690823">ЯНПОЛОВ</button> · <button type="button" data-q="1684017097">ТЕХПРОФ</button> · <button type="button" data-q="2311304742">БИЛД-ЮГ</button></div>
     <div class="picker" id="picker" hidden></div>
+    </div>
 
     <section class="company" id="company" hidden>
       <div><h1 id="cname"></h1><div class="meta" id="cmeta"></div></div>
@@ -188,7 +114,6 @@
 
     <section class="panel" id="agent" hidden>
       <div class="head"><span class="t">Рекомендация по отчёту</span><span class="d" id="ahead"></span></div>
-      <div id="card"></div>
       <div class="chips goals" id="goals">
         <span class="lbl">Зачем проверяете?</span>
         <button class="chip" type="button" data-goal="pay">Плачу по счёту</button>
@@ -197,6 +122,8 @@
         <button class="chip" type="button" data-goal="legal">Готовлю претензию</button>
         <button class="chip" type="button" data-goal="look">Просто смотрю</button>
       </div>
+      <div id="card"></div>
+
       <div class="chips" id="chips">
         <span class="lbl">Спросить агента:</span>
         <button class="chip" type="button" data-ask="Почему такой вывод?">Объясни рекомендацию</button>
@@ -206,10 +133,10 @@
         <button class="chip" type="button" data-ask="Что с финансами?">Финансы</button>
         <button class="chip" type="button" data-ask="Можно давать отсрочку платежа?">Можно давать отсрочку?</button>
       </div>
-      <div class="chips" id="chats" hidden></div>
+
       <div class="thread" id="thread"></div>
       <form class="ask" id="askform">
-        <input id="ask" placeholder="Свой вопрос про эту компанию…" autocomplete="off">
+        <textarea id="ask" rows="1" placeholder="Вопрос об этой компании…" aria-label="Вопрос об этой компании"></textarea>
         <button id="askbtn" type="submit">Спросить</button>
       </form>
     </section>
@@ -218,8 +145,8 @@
   <div id="modeQuality" hidden>
     <section class="panel" style="margin-top:0">
       <div class="head"><span class="t">Как мы проверяем агента</span><span class="d" id="qhead"></span></div>
-      <div class="mcpintro">Мы не верим агенту на слово. К двенадцати компаниям составлены пятьдесят вопросов с заранее известными правильными ответами: где ответ в отчёте есть, где его нет и агент обязан отказаться, где нужен вывод из нескольких фактов и где нужна проверка компании целиком. Каждый ответ сверяет код, затем его оценивает вторая нейросеть, более сильная, чем та, что внутри агента.</div>
-      <div class="cmpwrap"><table class="cmp" id="qtable"></table></div>
+      <div class="mcpintro">Мы не верим агенту на слово. К двенадцати компаниям составлены пятьдесят вопросов с заранее известными правильными ответами: где ответ в отчёте есть, где его нет и агент обязан отказаться, где нужен вывод из нескольких фактов и где нужна проверка компании целиком. Каждый ответ сверяет код, затем его оценивает вторая нейросеть, по отдельной шкале качества.</div>
+      <div class="quality-picker"><label>Сравниваемая версия <select id="qualitySelect"></select></label></div><div class="cmpwrap"><table class="cmp" id="qtable"></table></div>
       <div class="gaps" id="qnote"></div>
     </section>
   </div>
@@ -231,7 +158,7 @@
       <ul class="facts" id="mcptools"></ul>
       <div class="gaps"><b>Что приходит в каждом ответе:</b> есть ли данные в отчёте, сами данные, адреса полей под каждым фактом, дата отчёта и оговорка, если раздел пуст.</div>
       <div class="mcpcfg">
-        <div class="lbl">Настройка для клиента, например Claude Desktop:</div>
+        <div class="lbl" id="mcpSetup">Подключение по stdio на машине разработчика.</div>
         <pre id="mcpjson"></pre>
         <button class="secondary" type="button" id="mcpcopy">Скопировать</button>
         <span class="mcpok" id="mcpcopied" hidden>скопировано</span>
@@ -261,11 +188,19 @@
       </div>
       <div class="thread" id="cmpThread"></div>
       <form class="ask" id="cmpAskForm">
-        <input id="cmpAsk" placeholder="Свой вопрос про эти компании…" autocomplete="off">
+        <textarea id="cmpAsk" rows="1" placeholder="Вопрос об этих компаниях…" aria-label="Вопрос об этих компаниях"></textarea>
         <button id="cmpAskBtn" type="submit">Спросить</button>
       </form>
     </section>
   </div>
+</div>
+<p class="footer-note">Сведения относятся к дате отчёта. Отсутствие данных не означает отсутствие риска.</p>
+</main></div>
+<div class="overlay" id="overlay" hidden>
+  <section class="drawer" role="dialog" aria-modal="true" aria-labelledby="drawerTitle">
+    <div class="drawer-header"><h2 id="drawerTitle"></h2><button type="button" class="quiet" id="closeDrawer" aria-label="Закрыть панель">Закрыть ×</button></div>
+    <div id="drawerContent"></div>
+  </section>
 </div>
 
 <script>
@@ -274,7 +209,7 @@ const VERDICT = { ok: "Можно работать", check: "Стоит пров
 const VERDICT_SHORT = { ok: "Можно работать", check: "Проверить до договора", not_recommended: "Предоплата и документы" };
 const SEV = { critical: "важно", moderate: "стоит учесть", info: "к сведению" };
 const TOOLS = { search_company: "ищу компанию", get_report_summary: "читаю сводку", get_risk_signals: "проверяю, на что обратить внимание", get_financials: "смотрю финансы", get_enforcement_summary: "смотрю долги у приставов", get_arbitration_summary: "смотрю суды", get_section: "читаю раздел отчёта", compare_companies: "сравниваю компании" };
-const newThread = () => "web-" + Math.random().toString(36).slice(2, 10);
+const newThread = () => crypto.randomUUID();
 
 // Диалоги живут между обновлениями страницы: реплики — в браузере, память агента — в файле на
 // сервере (тот же thread_id). Поэтому после F5 разговор продолжается, а не начинается заново.
@@ -297,10 +232,10 @@ function chatPut(patch) {
   renderChats();
   return chat;
 }
-function chatTurn(who, text) {
+function chatTurn(who, text, answer) {
   const list = loadChats();
   const chat = list.find((c) => c.id === thread) || { id: thread, turns: [] };
-  chat.turns = (chat.turns || []).concat([{ who, text }]).slice(-40);
+  chat.turns = (chat.turns || []).concat([{ who, text, answer }]).slice(-40);
   chatPut({ turns: chat.turns });
 }
 function chatDrop(id) {
@@ -314,27 +249,39 @@ const whenRu = (ms) => {
   return today ? `${t(d.getHours())}:${t(d.getMinutes())}` : `${t(d.getDate())}.${t(d.getMonth() + 1)}`;
 };
 // в списке держим только состоявшиеся разговоры: вопрос без ответа восстанавливать нечего
-const hasAnswer = (c) => (c.turns || []).some((t) => t.who === "agent");
+const hasAnswer = (c) => c.inn || c.chosen?.length || (c.turns || []).some((t) => t.who === "agent");
 
 function renderChats() {
-  const box = $("#chats"); if (!box) return;
-  const list = loadChats().filter(hasAnswer);
+  const box = $("#chats"), list = loadChats().filter(hasAnswer);
   box.hidden = !list.length;
-  box.innerHTML = list.length
-    ? `<span class="lbl">Ваши проверки:</span>` + list.map((c) => `<span class="chip x${c.id === thread ? " on" : ""}" data-chat="${esc(c.id)}">${esc(chatTitle(c))} <small>${whenRu(c.updated)}</small><b data-drop="${esc(c.id)}" role="button" aria-label="убрать">✕</b></span>`).join("")
-    : "";
+  box.innerHTML = list.length ? '<span class="lbl">Ваши проверки</span>' + list.map((c) =>
+    `<div class="chip ${c.id === thread ? 'on' : ''}"><button type="button" class="chat-open" data-chat="${esc(c.id)}" ${busy ? 'disabled' : ''}>${esc(chatTitle(c))}<small>${whenRu(c.updated)}</small></button><button type="button" class="chat-drop" data-drop="${esc(c.id)}" aria-label="Убрать проверку из списка" ${busy ? 'disabled' : ''}>×</button></div>`).join('') : '';
 }
 async function openChat(id) {
-  const chat = loadChats().find((c) => c.id === id); if (!chat) return;
-  thread = id; goal = null; sentGoal = false;
-  $("#thread").innerHTML = (chat.turns || []).map((t) => t.who === "user"
-    ? `<div class="turn user"><div class="who">Вы</div><div class="bubble">${esc(t.text)}</div></div>`
-    : `<div class="turn"><div class="who">Агент</div><div class="answer"><div class="body">${md(t.text)}</div></div></div>`).join("");
-  if (chat.inn) { try { showCompany(await fetchJson(`/report/${chat.inn}/card`)); } catch (e) {} }
-  else { $("#agent").hidden = false; $("#card").innerHTML = ""; }
-  renderChats();
-  $("#ask").focus();
+  if (busy) return;
+  const chat = loadChats().find(c => c.id === id); if (!chat) return;
+  thread = id; current = null; goal = chat.goal || null; sentGoal = false;
+  chosen = chat.chosen || [];
+  const many = chat.mode === 'many';
+  switchMode(many ? 'many' : 'one');
+  const target = many ? $('#cmpThread') : $('#thread');
+  target.innerHTML = '';
+  for (const t of chat.turns || []) {
+    const el = document.createElement('div'); el.className = 'turn' + (t.who === 'user' ? ' user' : '');
+    el.innerHTML = t.who === 'user' ? `<div class="bubble">${esc(t.text)}</div>` : `<div class="who">Помощник</div><div class="answer"><div class="body">${md(t.text)}</div></div>`;
+    target.append(el);
+    if (t.answer) answerActions(el.querySelector('.answer'), t.answer);
+  }
+  if (many) { renderChosen(); renderComparison(chosen.map(c => c.card)); $('#cmpPanel').hidden = false; }
+  else if (chat.inn) {
+    try { showCompany(await fetchJson(`/report/${chat.inn}/card`)); }
+    catch { $('#agent').hidden = false; $('#card').innerHTML = '<p class="gaps">Не удалось загрузить карточку. Обновите страницу, чтобы повторить.</p>'; }
+  } else { $('#agent').hidden = false; $('#company').hidden = true; $('#card').innerHTML = ''; }
+  $('#goals').querySelectorAll('[data-goal]').forEach(x => x.classList.toggle('on', x.dataset.goal === goal));
+  renderAsks(); renderChats();
+  history.replaceState(null, '', '?chat=' + encodeURIComponent(id));
 }
+
 let thread = newThread();
 let current = null;   // одна компания: {inn, name, date}
 let chosen = [];      // сравнение: [{inn, name, date, card}]
@@ -345,14 +292,15 @@ const dateRu = (iso) => { if (!iso) return ""; const p = String(iso).split("-");
 const pillClass = (v) => /зел/.test(v || "") ? "g" : /ж[её]лт|средн/.test(v || "") ? "y" : /красн|высок/.test(v || "") ? "r" : "";
 function setBusy(b) {
   busy = b;
-  for (const id of ["#go", "#askbtn", "#cmpAskBtn"]) $(id).disabled = b;
-  document.querySelectorAll("#chips button[data-ask], #cmpChips button[data-ask], #modeOne .hint button").forEach((x) => { x.disabled = b; });
-  $("#cmpgo").disabled = b || chosen.length < 2;
+  for (const id of ['#go','#askbtn','#cmpAskBtn','#reset','#cmpExample']) $(id).disabled = b;
+  document.querySelectorAll('#chips button, #cmpChips button, .hint button, #goals button, .tabs button, #chats button, #addform button').forEach(x => x.disabled = b);
+  $('#cmpgo').disabled = b || chosen.length < 2;
 }
 
 function md(text) {
   const out = []; let list = null, table = null;
   const inline = (raw) => esc(raw)
+    .replace(/\[([^\]]+)\]\((https:\/\/[^\s)]+)\)/g, '<a href="$2" target="_blank" rel="noopener noreferrer">$1</a>')
     .replace(/\*\*(.+?)\*\*/g, "<b>$1</b>")
     .replace(/(^|[\s(])\*([^*\n]+)\*(?=[\s.,;:!?)]|$)/g, "$1<i>$2</i>")
     .replace(/\s*\[\s*report\.[A-Za-z0-9_.]+(?:\[\d+\][A-Za-z0-9_.]*)*\s*\]/g, "")
@@ -415,50 +363,146 @@ function showPicker(el, items, onPick, hint) {
   el.querySelectorAll("button[data-inn]").forEach((b) => b.addEventListener("click", () => onPick(b.dataset.inn)));
 }
 
-// ---------- одна компания
-function renderCard(c) {
-  const facts = c.attention || [];
-  const li = (a) => `<li><span class="sev ${a.severity}">${SEV[a.severity] || a.severity}</span>${esc(a.claim)}</li>`;
-  const green = /зел/.test(c.labels.riskLevel || "");
-  const sub = c.terminal
-    ? "Компания в процедуре банкротства или исключается из реестра: сделки могут быть оспорены, обязательства не исполнены."
-    : c.verdict === "not_recommended" && green
-      ? "Оценки банка зелёные, но по фактам из отчёта работать без условий рискованно."
-      : c.verdict === "ok"
-        ? "В отчёте не нашлось ни одного факта, который мешал бы работать."
-        : "";
-  let html = `<div class="verdict ${c.verdict}"><div class="v">${VERDICT[c.verdict]}</div>${sub ? `<div class="s">${sub}</div>` : ""}</div>`;
-  html += facts.length
-    ? `<ul class="facts">${facts.map(li).join("")}</ul>`
-    : `<div class="empty" style="padding:12px 20px;max-width:62ch">Ни рисков, ни заметных фактов в отчёте не нашлось. Посмотрите ниже, чего в отчёте нет: это и стоит запросить у контрагента.</div>`;
-  const gaps = (c.gaps || []).map((g) => `<li>${esc(g)}</li>`).join("");
-  const ask = (c.ask_before || []).map((a) => `<li>${esc(a)}</li>`).join("");
-  html += `<div class="gaps">${gaps ? `<b>Чего в отчёте нет</b><ul>${gaps}</ul>` : "<b>Все разделы отчёта заполнены</b>"}</div>`;
-  if (ask) html += `<div class="gaps"><b>Что запросить у контрагента</b><ul>${ask}</ul></div>`;
-  $("#card").innerHTML = html;
+
+// Evidence and report views use the same snapshot as the agent, never a live registry.
+let drawerFocus=null, drawerVersion=0;
+function openDrawer(title, html) {
+  if ($('#overlay').hidden) drawerFocus=document.activeElement;
+  drawerVersion++;
+  $('#drawerTitle').textContent=title; $('#drawerContent').innerHTML=html;
+  $('#overlay').hidden=false; $('.shell').inert=true;
+  $('#closeDrawer').focus(); $('.drawer').scrollTop=0;
+  return drawerVersion;
+}
+function closeDrawer() {
+  drawerVersion++; $('#overlay').hidden=true; $('.shell').inert=false;
+  drawerFocus?.focus({preventScroll:true});
+}
+$('#closeDrawer').onclick=closeDrawer;
+$('#overlay').onclick=e=>{if(e.target===$('#overlay')) closeDrawer();};
+document.addEventListener('keydown',e=>{
+  if($('#overlay').hidden) return;
+  if(e.key==='Escape') {e.preventDefault(); closeDrawer();}
+  if(e.key==='Tab') {
+    const items=[...$('.drawer').querySelectorAll('button:not(:disabled),summary,a[href],input,select,[tabindex="0"]')].filter(el=>el.getClientRects().length);
+    const first=items[0],last=items[items.length-1];
+    if(e.shiftKey && document.activeElement===first) {e.preventDefault();last.focus();}
+    else if(!e.shiftKey && document.activeElement===last) {e.preventDefault();first.focus();}
+  }
+});
+const money = n => n == null ? 'В отчёте не указано' : Number(n).toLocaleString('ru-RU',{maximumFractionDigits:2})+' ₽';
+const displayValue = value => value == null ? 'В отчёте не указано' : typeof value==='object' ? JSON.stringify(value,null,2) : String(value);
+function answerActions(el,a) {
+  if(!el) return;
+  const actions=document.createElement('div'); actions.className='actions';
+  const sources=document.createElement('button'); sources.type='button'; sources.className='quiet';
+  sources.textContent='Показать основания'+(a.citations?.length ? ` · ${a.citations.length}` : ''); sources.onclick=()=>openSources(a); actions.append(sources);
+  const inns=[...new Set([...Object.keys(a.report_dates || {}),...(a.citations || []).map(c=>c.inn).filter(Boolean)])];
+  if(inns.length===1) {
+    const report=document.createElement('button'); report.type='button'; report.className='quiet'; report.textContent='Открыть отчёт';
+    report.onclick=()=>openReport({inn:inns[0]}); actions.append(report);
+  }
+  const copy=document.createElement('button'); copy.type='button'; copy.className='quiet'; copy.textContent='Копировать ответ';
+  copy.onclick=async()=>{try {await navigator.clipboard.writeText(a.text_md || ''); copy.textContent='Скопировано';} catch {copy.textContent='Не удалось скопировать';} setTimeout(()=>copy.textContent='Копировать ответ',1600);};
+  actions.append(copy); el.append(actions);
+}
+function openSources(a) {
+  const dates=a.report_dates || {}, sole=Object.keys(dates).length===1 ? Object.keys(dates)[0] : null;
+  const citations=(a.citations || []).filter(c=>c.source_path);
+  openDrawer('Основания ответа',citations.length ? '<p class="meta">Факты и расчёты из банковского отчёта. Раскройте основание, чтобы сверить исходные значения.</p>'+citations.map((c,i)=>{
+    const inn=c.inn || sole;
+    return `<article class="fact"><div>${md(c.claim)}</div><div class="meta">${inn ? `ИНН ${esc(inn)}` : 'Компания не указана в основании'}${dates[inn] ? ` · отчёт от ${dateRu(dates[inn])}` : ''}</div><details class="source-block" data-source="${i}"><summary>Поле отчёта и расчёт</summary><div class="source-data"></div></details></article>`;
+  }).join('') : '<p class="meta">В этом ответе нет ссылок на конкретные поля отчёта. Для общих пояснений и уточняющих вопросов они могут не требоваться.</p>');
+  $('#drawerContent').querySelectorAll('[data-source]').forEach(details=>details.addEventListener('toggle',async()=>{
+    if(!details.open || details.dataset.loaded) return;
+    const c=citations[+details.dataset.source],inn=c.inn || sole,box=details.querySelector('.source-data');
+    if(!inn) {box.textContent='Нельзя однозначно связать это основание с компанией.'; return;}
+    details.dataset.loaded='1'; box.textContent='Загружаю основание…';
+    try {
+      const e=await fetchJson(`/report/${encodeURIComponent(inn)}/source?`+new URLSearchParams({path:c.source_path,...(c.code ? {signal:c.code} : {})}));
+      box.innerHTML=(e.calculation ? `<p>${esc(e.calculation.description)}</p><b>Значения для расчёта</b><pre>${esc(displayValue(e.calculation.values))}</pre>` : '')+`<b>Поле</b><pre>${esc(e.path)}</pre><b>Значение в отчёте</b><pre>${esc(displayValue(e.value))}</pre>`+(e.basis?.length ? `<details><summary>Все поля, участвующие в расчёте</summary>${e.basis.map(b=>`<pre>${esc(b.path)}\n${esc(displayValue(b.value))}</pre>`).join('')}</details>` : '');
+    } catch {details.dataset.loaded=''; box.innerHTML='<p class="error-message">Не удалось получить основание. Закройте и откройте этот пункт, чтобы повторить.</p>';}
+  }));
+}
+async function openReport(card) {
+  const version=openDrawer('Отчёт компании','<p class="meta">Загружаю данные…</p>');
+  try {
+    const [summary,fin,c]=await Promise.all([fetchJson(`/report/${card.inn}/summary`),fetchJson(`/report/${card.inn}/financials`),card.verdict ? Promise.resolve(card) : fetchJson(`/report/${card.inn}/card`)]);
+    if(version!==drawerVersion) return;
+    const d=summary.data || {},years=fin.data?.years || [];
+    const item=(label,value)=>`<tr><th>${label}</th><td>${esc(value ?? 'В отчёте не указано')}</td></tr>`;
+    $('#drawerTitle').textContent=c.name;
+    $('#drawerContent').innerHTML=`<p class="meta">ИНН ${esc(c.inn)} · отчёт от ${dateRu(c.report_date)}</p><p>Сводка исходных данных из отчёта банка.</p><h3>Сведения о компании</h3><table>${item('Адрес',d.address)}${item('Регистрация',dateRu(d.registered))}${item('Статус',d.status_reason || 'Основание статуса не указано')}${item('Руководитель',d.head ? `${d.head.name} · ${d.head.position}${d.head.since ? ' · с '+dateRu(d.head.since) : ''}` : null)}${item('Сотрудники',d.staff)}${item('Светофор банка',c.labels.riskLevel)}${item('ЗСК',c.labels.zskRiskLevel)}</table><h3>Финансовая отчётность</h3>`+
+      (years.length ? years.map(y=>`<h3>${esc(y.year)} год</h3><table>${item('Выручка',money(y.proceeds))}${item('Прибыль / убыток',money(y.profit))}${item('Капитал и резервы',money(y.capitals))}${item('Текущая ликвидность',y.current_liquidity == null ? 'Не рассчитать: нет необходимых данных об оборотных активах или краткосрочных обязательствах' : Number(y.current_liquidity).toLocaleString('ru-RU',{maximumFractionDigits:3}))}</table>`).join('') : `<p>${esc(fin.note || 'Бухгалтерской отчётности нет — оценить финансовое положение нельзя.')}</p>`)+
+      `<h3>Что отмечено в отчёте</h3><ul>${c.attention.map(f=>`<li>${esc(f.claim)}</li>`).join('') || '<li>Существенные факторы риска по правилам проверки не выделены.</li>'}</ul>${c.gaps.length ? `<h3>Ограничения данных</h3><ul>${c.gaps.map(g=>`<li>${esc(g)}</li>`).join('')}</ul>` : ''}<div class="actions"><button type="button" class="quiet" id="reportSources">Показать основания</button></div>`;
+    $('#reportSources').onclick=()=>openSources(cardCitations(c));
+  } catch { if(version===drawerVersion) $('#drawerContent').innerHTML='<p class="error-message">Не удалось загрузить отчёт. Попробуйте открыть его ещё раз.</p>'; }
 }
 
-// карточку компании страница уже собрала кодом — в чате остаётся вывод и приглашение спросить,
-// иначе один и тот же разбор виден дважды и читается как простыня
-function withoutCardEcho(a) {
-  const card = a.card;
-  if (!card) return a.text_md || "";
-  // карточка про другую компанию (агент нашёл не ту) — свой вывод не подставляем
-  if (current && card.inn !== current.inn) return a.text_md || "";
-  const tail = "Подробности — в карточке выше. Спросите, что важно именно вам: суды, долги у приставов, финансы или что запросить у контрагента.";
-  return `**${VERDICT[card.verdict]}.** ${card.terminal ? "Компания в процедуре банкротства или исключается из реестра: сделки могут быть оспорены, обязательства не исполнены." : ""}\n\n${tail}`;
+// ---------- одна компания
+function signalGroup(a) {
+  const code = a.code || '';
+  if (/status_reason|bankruptcy_trustee/.test(code)) return 'status';
+  if (/invalidAddress|invalidRegistration|company_age/.test(code)) return 'registry';
+  if (/licens|procurement|inspection/.test(code)) return 'experience';
+  if (/flag_/.test(code)) return 'blocking';
+  if (/arbitration_defendant/.test(code)) return 'courts';
+  if (/enforcement/.test(code)) return 'enforcement';
+  if (/fin_/.test(code)) return 'finance';
+  return 'other';
 }
+const GOAL_ORDER = {pay:['status','blocking','registry'], deal:['courts','enforcement','finance','status'], supply:['status','registry','experience','enforcement'], legal:['courts','enforcement','status','registry'], look:[]};
+function orderedFacts(c) {
+  const order = GOAL_ORDER[goal] || [];
+  const rank = a => { const i = order.indexOf(signalGroup(a)); return i < 0 ? 99 : i; };
+  return [...(c.attention || [])].sort((a,b) => rank(a) - rank(b));
+}
+function cardRequests(c) {
+  if (goal === 'pay') return c.terminal ? ['Реквизиты и основание платежа у конкурсного управляющего или ликвидатора.'] : [];
+  if (goal === 'deal') return ['Баланс и отчёт о финансовых результатах за два последних года.'];
+  if (goal === 'supply') return ['Подтверждение адреса и опыта похожих поставок или работ.', 'Лицензия, если для вашей задачи она требуется.'];
+  if (goal === 'legal') return [];
+  return c.ask_before || [];
+}
+function renderCard(c) {
+  const facts = orderedFacts(c);
+  const li = a => `<li>${esc(a.claim)}</li>`;
+  const sub = c.terminal ? 'Компания в процедуре банкротства или исключается из реестра: сделки могут быть оспорены, обязательства не исполнены.' :
+    c.verdict === 'ok' ? 'По доступным данным существенных факторов риска не выделено. Ограничения отчёта приведены ниже.' : '';
+  let html = `<div class="verdict ${c.verdict}"><div class="v">${VERDICT[c.verdict]}</div>${sub ? `<div class="s">${sub}</div>` : ''}</div>`;
+  const primary = goal && goal !== 'look' ? facts : facts.filter(a => a.severity !== 'info');
+  const rest = facts.filter(a => !primary.includes(a));
+  html += primary.length ? `<ul class="facts">${primary.map(li).join('')}</ul>` :
+    '<p class="gaps">Сводка содержит сведения о компании. Для оценки финансов и обязательств учитывайте полноту доступных данных.</p>';
+  if (rest.length) html += `<details class="more-facts"><summary>Ещё факты из отчёта · ${rest.length}</summary><ul class="facts">${rest.map(li).join('')}</ul></details>`;
+  const gaps = [...(c.gaps || [])].sort((a,b)=>goal==='deal' ? Number(/прибыл|ликвид|финанс/.test(b))-Number(/прибыл|ликвид|финанс/.test(a)) : 0), asks = cardRequests(c);
+  if (gaps.length || asks.length) html += '<div class="card-extra">' +
+    (gaps.length ? `<div class="gaps"><b>Чего не хватает для оценки</b><ul>${gaps.map(g => `<li>${esc(g)}</li>`).join('')}</ul></div>` : '') +
+    (asks.length ? `<div class="gaps"><b>Что можно запросить</b><ul>${asks.map(a => `<li>${esc(a)}</li>`).join('')}</ul></div>` : '') + '</div>';
+  html += '<div class="actions"><button type="button" class="quiet" id="openReport">Открыть отчёт</button><button type="button" class="quiet" id="cardSources">Показать основания</button></div>';
+  $('#card').innerHTML = html;
+  $('#openReport').onclick = () => openReport(c);
+  $('#cardSources').onclick = () => openSources(cardCitations(c));
+}
+function cardCitations(c) { return {citations:[
+  ...(c.attention || []).map(a=>({...a,inn:c.inn})),
+  {claim:`Светофор банка: ${c.labels.riskLevel}`,inn:c.inn,source_path:'report.baseInfo.riskLevel'},
+  {claim:`ЗСК: ${c.labels.zskRiskLevel}`,inn:c.inn,source_path:'report.zskRiskLevel'},
+], report_dates:{[c.inn]:c.report_date}}; }
+function withoutCardEcho(a) { return a.text_md || ''; }
 
 function showCompany(c) {
-  current = { inn: c.inn, name: c.name, date: c.report_date };
-  chatPut({ inn: c.inn, name: c.name });
+  current = { inn: c.inn, name: c.name, date: c.report_date, card:c };
+  chatPut({ inn:c.inn, name:c.name, mode:"one", goal });
+  $("#searchArea").hidden = true;
+  history.replaceState(null, "", "?chat=" + encodeURIComponent(thread));
   $("#company").hidden = false; $("#agent").hidden = false;
   $("#cname").textContent = c.name;
   $("#cmeta").textContent = `ИНН ${c.inn} · отчёт банка от ${dateRu(c.report_date)}`;
   $("#cpills").innerHTML = `<span class="pill ${pillClass(c.labels.riskLevel)}"><span class="dot"></span>Оценка банка: ${esc(c.labels.riskLevel)}</span><span class="pill ${pillClass(c.labels.zskRiskLevel)}"><span class="dot"></span>ЗСК: ${esc(c.labels.zskRiskLevel)}</span>`;
-  $("#ahead").textContent = `отчёт банка от ${dateRu(c.report_date)}`;
+  $("#ahead").textContent = "";
   renderCard(c);
-  $("#ask").focus();
+  $("#ask").focus({preventScroll:true});
 }
 
 // в JS \b не работает с кириллицей (буква не входит в \w): границы задаём явно,
@@ -466,25 +510,21 @@ function showCompany(c) {
 const isQuestion = (q) => /\?|(^|[^а-яёa-z])(можно|сколько|что|какие|какой|какая|есть ли|почему|проверь|проверить|расскажи|стоит|давать|сравни|кто|когда|как)([^а-яёa-z]|$)|(^|[^а-яёa-z])(надёжн|надежн|рискован|банкрот)/i.test(q);
 
 async function check(q) {
-  if (busy) return;
+  if (busy || !q.trim()) return;
   if (isQuestion(q) && !/^\d{10,12}$/.test(q.trim())) return askFree(q.trim());
-  let res;
-  try { res = await resolveCompany(q); } catch (e) { showMessage($("#picker"), "Сервис недоступен, попробуйте обновить страницу."); return; }
-  $("#picker").hidden = true;
-  if (!res) {  // не нашли по названию — отдаём вопрос агенту, он ищет сам и объясняет
-    if (q.trim().split(/\s+/).length > 1) return askFree(q.trim());
-    showMessage($("#picker"), `Компания «${q}» в базе не найдена. Попробуйте ИНН или спросите словами.`);
-    return;
-  }
-  if (res.pick) {
-    showPicker($("#picker"), res.pick, check, "Нашлось несколько компаний — выберите нужную:");
-    return;
-  }
-  if (!current || current.inn !== res.inn) { thread = newThread(); $("#thread").innerHTML = ""; }
-  $("#agent").hidden = false; $("#card").innerHTML = '<div class="skeleton"></div><div class="skeleton" style="width:70%"></div>';
-  try { showCompany(await fetchJson(`/report/${res.inn}/card`)); }
-  catch (e) { $("#card").innerHTML = `<div class="empty" style="padding:12px 20px">${esc(failText(e, res.inn))}</div>`; }
+  setBusy(true);
+  try {
+    const res = await resolveCompany(q); $('#picker').hidden = true;
+    if (!res) { showMessage($('#picker'), `Компания «${q}» не найдена. Попробуйте ИНН или другое название.`); return; }
+    if (res.pick) { showPicker($('#picker'),res.pick,check,'Нашлось несколько компаний — выберите нужную:'); return; }
+    if (!current || current.inn !== res.inn) { thread=newThread(); $('#thread').innerHTML=''; goal=null; sentGoal=false; }
+    const card = await fetchJson(`/report/${res.inn}/card`);
+    showCompany(card); renderAsks(); $("#goals").querySelectorAll("[data-goal]").forEach(x=>x.classList.toggle("on",x.dataset.goal===goal));
+    $('#company').scrollIntoView({block:'start'});
+  } catch (e) { showMessage($('#picker'), 'Не удалось загрузить компанию. Попробуйте ещё раз.'); }
+  finally { setBusy(false); }
 }
+
 
 // ---------- сравнение
 function renderChosen() {
@@ -525,7 +565,10 @@ function renderComparison(cards) {
   html += row("Главное", (c) => `<td>${(c.attention || []).length ? `<ul>${c.attention.slice(0, 3).map((a) => `<li>${esc(a.claim)}</li>`).join("")}</ul>` : `<span class="muted">сигналов не найдено</span>`}</td>`);
   html += row("Чего нет в отчёте", (c) => `<td class="muted">${(c.gaps || []).length ? esc(c.gaps.join(" · ")) : "пробелов нет"}</td>`);
   html += `</tbody></table></div>`;
+  html += '<div class="actions">'+cards.map((c,i)=>`<button type="button" class="quiet" data-report="${i}">Отчёт: ${esc(c.name)}</button>`).join('')+'<button type="button" class="quiet" id="cmpSources">Показать основания сравнения</button></div>';
   $("#cmpBody").innerHTML = html;
+  $('#cmpBody').querySelectorAll('[data-report]').forEach(b=>b.onclick=()=>openReport(cards[+b.dataset.report]));
+  $('#cmpSources').onclick=()=>openSources({citations:cards.flatMap(c=>cardCitations(c).citations),report_dates:Object.fromEntries(cards.map(c=>[c.inn,c.report_date]))});
 }
 
 function compare() {
@@ -534,76 +577,66 @@ function compare() {
   $("#cmpPanel").hidden = false;
   $("#cmphead").textContent = `${chosen.length} компании`;
   renderComparison(chosen.map((c) => c.card));
+  chatPut({mode:"many", chosen, name:chosen.map(c => c.name).join(", "), turns:[]});
   $("#cmpPanel").scrollIntoView({ block: "start", behavior: "smooth" });
 }
 const chosenList = () => chosen.map((c) => `${c.name} (ИНН ${c.inn})`).join(", ");
 
 // ---------- поток ответа агента
+function scrollRoot() { return window.innerWidth <= 720 ? document.scrollingElement : $('#workspace'); }
+function nearBottom() { const el=scrollRoot(); return el.scrollHeight-el.scrollTop-el.clientHeight < 170; }
+function goBottom() { const el=scrollRoot(); el.scrollTop=el.scrollHeight; }
 async function stream(container, question, shown, onEnd, attempt) {
-  if (busy && !attempt) return;
+  if (busy) return;
   setBusy(true);
-  container.insertAdjacentHTML("beforeend", `<div class="turn user"><div class="who">Вы</div><div class="bubble">${esc(shown || question)}</div></div>`);
-  if (container.id === "thread" && !attempt) chatTurn("user", shown || question);
-  const turn = document.createElement("div"); turn.className = "turn";
-  turn.innerHTML = `<div class="who">Агент</div><div class="answer"><div class="status">агент работает… 0 с</div><div class="steps"></div><div class="body"></div></div>`;
-  container.appendChild(turn); turn.scrollIntoView({ block: "nearest" });
-  const status = turn.querySelector(".status"), steps = turn.querySelector(".steps"), body = turn.querySelector(".body");
-  const t0 = Date.now(); const timer = setInterval(() => { status.textContent = `агент работает… ${Math.round((Date.now() - t0) / 1000)} с`; }, 500);
-  let tokens = "", ended = false;
+  const requestThread = thread;
+  if (!attempt) {
+    container.insertAdjacentHTML('beforeend', `<div class="turn user"><div class="bubble">${esc(shown || question)}</div></div>`);
+    chatTurn('user',shown || question);
+  }
+  const turn=document.createElement('div'); turn.className='turn';
+  turn.innerHTML='<div class="who">Помощник</div><div class="answer"><div class="status" role="status">Готовлю ответ по отчёту…</div><div class="body"></div></div>';
+  container.append(turn);
+  const status=turn.querySelector('.status'), body=turn.querySelector('.body');
+  let ended=false, following=true;
+  const onWheel=e => { if (e.deltaY < 0) following=false; else if (nearBottom()) following=true; };
+  scrollRoot().addEventListener('wheel',onWheel,{passive:true});
+  goBottom();
+  const fail = () => {
+    status.hidden=true; body.innerHTML='<div class="error-message" role="alert">Не удалось получить ответ. Повторите запрос.</div>';
+    const retry=document.createElement('button'); retry.className='quiet'; retry.textContent='Повторить запрос';
+    retry.onclick=()=>{ if (busy || thread !== requestThread) return; turn.remove(); stream(container,question,shown,onEnd,true); };
+    body.append(retry);
+  };
   try {
-    const res = await fetch("/v1/runs/stream", { method: "POST", headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ thread_id: thread, input: { messages: [{ role: "user", content: question }] } }) });
-    if (!res.ok) throw new Error(`HTTP ${res.status}`);
-    const reader = res.body.getReader(); const dec = new TextDecoder(); let buf = "";
+    const res=await fetch('/v1/runs/stream',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({thread_id:requestThread,input:{messages:[{role:'user',content:question}]}})});
+    if (!res.ok) throw Error(`HTTP ${res.status}`);
+    const reader=res.body.getReader(), dec=new TextDecoder(); let buf='';
     while (true) {
-      const { value, done } = await reader.read(); if (done) break;
-      buf += dec.decode(value, { stream: true });
-      let m;
-      while ((m = buf.match(/\r?\n\r?\n/)) !== null) {
-        const frame = buf.slice(0, m.index); buf = buf.slice(m.index + m[0].length);
-        let type = "", data = "";
-        for (const line of frame.split(/\r?\n/)) { if (line.startsWith("event:")) type = line.slice(6).trim(); if (line.startsWith("data:")) data += line.slice(5).trim(); }
-        if (!data) continue;
-        let env; try { env = JSON.parse(data); } catch (e) { continue; }
-        type = type || env.type;
-        if (type === "token") { tokens += env.data.text || ""; body.innerHTML = md(tokens); }
-        else if (type === "tool") {  // один и тот же шаг не повторяем: модель зовёт инструмент дважды
-          const d = env.data;
-          const label = (TOOLS[d.name] || d.name) + (d.available === false ? " (нет данных)" : "");
-          if (![...steps.children].some((c) => c.textContent === label)) {
-            const s = document.createElement("span"); s.textContent = label; steps.appendChild(s);
-          }
-        }
-        else if (type === "end") {
-          ended = true; clearInterval(timer);
-          const a = env.data.output;
-          status.textContent = `готово за ${Math.round((Date.now() - t0) / 1000)} с`;
-          const finalHtml = md(withoutCardEcho(a));
-          if (finalHtml !== body.innerHTML) {  // код мог убрать неподтверждённое — меняем плавно
-            body.style.opacity = "0.35";
-            setTimeout(() => { body.innerHTML = finalHtml; body.style.opacity = "1"; }, 120);
-          }
-          if (container.id === "thread") chatTurn("agent", withoutCardEcho(a));
-          if (onEnd) { try { await onEnd(a); } catch (e) {} }
-          const dates = [...new Set(Object.values(a.report_dates || {}))].sort();
-          const when = dates.length === 1 ? ` от ${dateRu(dates[0])}` : "";
-          body.insertAdjacentHTML("beforeend", `<div class="foot">Каждое число проверено по отчёту банка${when}.</div>`);
-        }
-        else if (type === "error") { ended = true; clearInterval(timer); status.textContent = "Не удалось получить ответ, попробуйте ещё раз."; status.title = (env.data && env.data.message) || ""; }
+      const {value,done}=await reader.read(); if(done) break;
+      buf+=dec.decode(value,{stream:true}); let m;
+      while ((m=buf.match(/\r?\n\r?\n/)) !== null) {
+        const frame=buf.slice(0,m.index); buf=buf.slice(m.index+m[0].length);
+        const raw=frame.split(/\r?\n/).filter(l=>l.startsWith('data:')).map(l=>l.slice(5).trim()).join('\n');
+        if(!raw) continue; let env; try {env=JSON.parse(raw);} catch {continue;}
+        if(env.type==='end') {
+          ended=true; const a=env.data.output;
+          status.hidden=true; body.innerHTML=md(a.text_md || 'В отчёте недостаточно сведений для ответа.');
+          answerActions(turn.querySelector('.answer'),a);
+          chatTurn('agent',a.text_md,a);
+          if(onEnd) await onEnd(a);
+          if(following) goBottom();
+        } else if(env.type==='error') { ended=true; fail(); }
+        // Tool traces and unvalidated draft tokens stay out of user-visible answers.
       }
     }
-  } catch (e) {  // связь оборвалась до ответа — один раз повторяем сами, это чаще всего туннель
-    clearInterval(timer); ended = true;
-    if (!attempt && !tokens) {
-      turn.remove();
-      const prev = container.lastElementChild;
-      if (prev && prev.classList.contains("user")) prev.remove();
-      return stream(container, question, shown, onEnd, 1);
-    }
-    status.textContent = "Связь со стендом прервалась, попробуйте ещё раз.";
-    status.title = e.message;
+    if(!ended) fail();
+  } catch { if(!ended) fail(); }
+  finally {
+    scrollRoot().removeEventListener('wheel',onWheel);
+    setBusy(false);
+    const input=container.id==='thread' ? $('#ask') : $('#cmpAsk'); input.focus({preventScroll:true});
   }
-  finally { clearInterval(timer); if (!ended) status.textContent = "Ответ не дошёл, попробуйте ещё раз."; setBusy(false); turn.scrollIntoView({ block: "nearest" }); }
 }
 
 const GOALS = {
@@ -661,17 +694,17 @@ function askFree(q) {
 
 // вопрос агенту про текущую компанию: ИНН добавляем к первому вопросу в сессии, дальше он помнит
 function askOne(q, label) {
-  if (!current) return;
+  if (busy) return;
+  if (!current) return askFree(q);
   // ИНН добавляем к каждому вопросу, а не только к первому: после обрыва связи сессия
   // на сервере может не увидеть прошлый ход, и агент переспрашивал, о какой компании речь
-  const ctx = [`Речь о компании ${current.name}, ИНН ${current.inn}.`, goal && !sentGoal ? GOALS[goal].text : ""].filter(Boolean).join(" ");
+  const ctx = [`Речь о компании ${current.name}, ИНН ${current.inn}.`, goal ? GOALS[goal].text : ""].filter(Boolean).join(" ");
   if (goal) sentGoal = true;
   stream($("#thread"), `${q} ${ctx}`, label || q);
 }
 function askMany(q, label) {
   if (chosen.length < 2) return;
-  const first = $("#cmpThread").children.length === 0;
-  stream($("#cmpThread"), first ? `${q} Компании: ${chosenList()}.` : q, label || q);
+  stream($("#cmpThread"), `${q} Компании: ${chosenList()}.`, label || q);
 }
 
 // ---------- события
@@ -683,44 +716,57 @@ const QUALITY_COLS = [
   ["Ссылки не на то поле", "bad_citation", "число верное, а поле отчёта указано неправильно"],
   ["Пропущено важное", "missed_critical", "в проверке компании не назван факт, который меняет решение"],
 ];
-async function loadQuality() {
-  if (qualityLoaded) return; qualityLoaded = true;
-  try {
-    const q = await fetchJson("/v1/quality");
-    $("#qhead").textContent = `${q.questions} вопросов · ${q.companies} компаний`;
-    const pct = (v) => (v == null ? "—" : `${Math.round(v * 100)} %`);
-    const head = `<thead><tr><th></th>${q.rows.map((r) => `<th>${esc(r.model)}</th>`).join("")}</tr></thead>`;
-    const rows = QUALITY_COLS.map(([label, key, hint]) =>
-      `<tr><td>${label}<small style="display:block;font-weight:400;color:var(--muted)">${hint}</small></td>` +
-      q.rows.map((r) => `<td>${pct(r[key])}</td>`).join("") + "</tr>").join("") +
-      `<tr><td>Оценка второй нейросети<small style="display:block;font-weight:400;color:var(--muted)">от 0 до 5 по рубрике кейса</small></td>` +
-      q.rows.map((r) => `<td>${r.judge ?? "—"}</td>`).join("") + "</tr>" +
-      `<tr><td>Время ответа<small style="display:block;font-weight:400;color:var(--muted)">в среднем на вопрос</small></td>` +
-      q.rows.map((r) => `<td>${r.seconds ? Math.round(r.seconds) + " с" : "—"}</td>`).join("") + "</tr>";
-    $("#qtable").innerHTML = head + `<tbody>${rows}</tbody>`;
-    $("#qnote").innerHTML = "<b>Как это читать</b><ul><li>Выдуманных фактов и пропусков важного должно быть ноль: это ошибки, которые стоят денег.</li><li>Первая версия подсказок и текущая — одна и та же модель: видно, сколько даёт работа над агентом, а не смена модели.</li><li>Прогоны кэшируются, поэтому цифры можно повторить в любой момент.</li></ul>";
-  } catch (e) {
-    $("#qhead").textContent = "не удалось загрузить результаты"; qualityLoaded = false;
-  }
+let qualityData=null;
+function renderQuality() {
+  const q=qualityData; if(!q) return;
+  const selected=q.rows[+$('#qualitySelect').value];
+  const rows=[q.rows.find(r=>r.role==='control'),q.rows.find(r=>r.role==='first'),selected];
+  const labels=['Контрольная модель','Первая версия агента','Сравниваемая версия'];
+  const pct=v=>v==null?'—':`${Math.round(v*100)} %`;
+  $('#qtable').innerHTML='<thead><tr><th>Показатель</th>'+rows.map((r,i)=>`<th>${labels[i]}<small>${esc(r?.model || 'Нет сохранённого прогона')}</small></th>`).join('')+'</tr></thead><tbody>'+QUALITY_COLS.map(([label,key,hint])=>`<tr><td>${label}<small>${hint}</small></td>${rows.map(r=>`<td>${pct(r?.[key])}</td>`).join('')}</tr>`).join('')+`<tr><td>Ответ не получен<small>Ошибки учитываются отдельно от качества завершённых ответов</small></td>${rows.map(r=>`<td>${r ? `${r.errors} из ${r.total}` : '—'}</td>`).join('')}</tr><tr><td>Оценка второй нейросети<small>По завершённым ответам, от 0 до 5</small></td>${rows.map(r=>`<td>${r?.judge ?? '—'}</td>`).join('')}</tr></tbody>`;
 }
+async function loadQuality() {
+  if(qualityLoaded) return;
+  try {
+    const q=await fetchJson('/v1/quality'); qualityData=q; qualityLoaded=true;
+    $('#qhead').textContent=`${q.questions} вопросов · ${q.companies} компаний`;
+    $('#qualitySelect').innerHTML=q.rows.map((r,i)=>`<option value="${i}" ${r.role==='current'?'selected':''}>${esc(r.model)}</option>`).join('');
+    $('#qualitySelect').onchange=renderQuality; renderQuality();
+    $('#qnote').innerHTML='<b>Что именно измерено</b><p>Это сохранённые прогоны предыдущих сборок, а не проверка открытой сейчас версии. Автоматические проверки и вторая нейросеть могут ошибаться. Доли выше считаются среди завершённых ответов соответствующего типа; ошибки показаны отдельно.</p><p>На каждый вопрос был один прогон: повторяемость ещё не измерена. Старые замеры времени включают проверку второй нейросетью, поэтому время ответа по ним не показываем.</p>';
+    if(!q.rows.length) $('#qnote').innerHTML='<p>Сохранённые результаты ещё не подключены к этому стенду.</p>';
+  } catch { $('#qhead').textContent='Не удалось загрузить результаты'; qualityLoaded=false; }
+}
+
 let mcpLoaded = false;
 async function loadMcp() {
   if (mcpLoaded) return; mcpLoaded = true;
   try {
     const info = await fetchJson("/v1/mcp/info");
-    $("#mcphead").textContent = `${info.tools.length} функции`;
+    $("#mcphead").textContent = `${info.tools.length} функций`;
     $("#mcptools").innerHTML = info.tools.map((t) => `<li><span class="sev info">${esc(t.name)}</span><div>${esc(t.description)}</div></li>`).join("");
     $("#mcpjson").textContent = JSON.stringify(info.client_config, null, 2);
+    $("#mcpSetup").textContent = info.setup_note;
   } catch (e) {
     $("#mcphead").textContent = "не удалось получить описание: " + e.message; mcpLoaded = false;
   }
 }
 function switchMode(mode) {
+  if (busy) return;
+  const active=loadChats().find(c=>c.id===thread);
+  if ((mode==='one' || mode==='many') && active?.mode && active.mode!==mode) {
+    thread=newThread(); goal=null; sentGoal=false;
+    if(mode==='one') {current=null;$('#company').hidden=true;$('#agent').hidden=true;$('#searchArea').hidden=false;$('#thread').innerHTML='';renderAsks();}
+    else {chosen=[];renderChosen();$('#cmpPanel').hidden=true;$('#cmpThread').innerHTML='';}
+    history.replaceState(null,'',location.pathname);renderChats();
+  }
   const one = mode === "one", many = mode === "many", mcp = mode === "mcp", quality = mode === "quality";
   $("#modeOne").hidden = !one; $("#modeMany").hidden = !many; $("#modeMcp").hidden = !mcp; $("#modeQuality").hidden = !quality;
   $("#tabOne").classList.toggle("on", one); $("#tabMany").classList.toggle("on", many);
   $("#tabMcp").classList.toggle("on", mcp); $("#tabQuality").classList.toggle("on", quality);
-  if (mcp) loadMcp(); else if (quality) loadQuality(); else (many ? $("#addq") : $("#q")).focus();
+  const titles={one:"Проверка контрагента",many:"Сравнение компаний",quality:"Качество ответов",mcp:"Подключение к агентам"};
+  $("#pageTitle").textContent=titles[mode];
+  document.querySelectorAll(".tabs button").forEach(b=>b.classList.contains("on") ? b.setAttribute("aria-current","page") : b.removeAttribute("aria-current"));
+  if (mcp) loadMcp(); else if (quality) loadQuality(); else (many ? $("#addq") : current ? $("#ask") : $("#q")).focus({preventScroll:true});
 }
 $("#tabOne").addEventListener("click", () => switchMode("one"));
 $("#tabMany").addEventListener("click", () => switchMode("many"));
@@ -732,18 +778,22 @@ $("#mcpcopy").addEventListener("click", async () => {
 });
 $("#search").addEventListener("submit", (e) => { e.preventDefault(); const q = $("#q").value; if (q.trim()) check(q); });
 document.querySelectorAll("#modeOne .hint button").forEach((b) => b.addEventListener("click", () => { $("#q").value = b.dataset.q; check(b.dataset.q); }));
-$("#askform").addEventListener("submit", (e) => { e.preventDefault(); const q = $("#ask").value.trim(); if (!q) return; $("#ask").value = ""; askOne(q); });
+$("#askform").addEventListener("submit", (e) => { e.preventDefault(); const q = $("#ask").value.trim(); if (!q || busy) return; $("#ask").value = ""; askOne(q); });
 $("#goals").querySelectorAll("button[data-goal]").forEach((b) => b.addEventListener("click", () => {
   goal = goal === b.dataset.goal ? null : b.dataset.goal; sentGoal = false;
   $("#goals").querySelectorAll("button[data-goal]").forEach((x) => x.classList.toggle("on", x.dataset.goal === goal));
   renderAsks();
+  if(current) { renderCard(current.card); chatPut({goal}); }
 }));
 $("#addform").addEventListener("submit", (e) => { e.preventDefault(); addCompany($("#addq").value); });
 $("#cmpgo").addEventListener("click", compare);
 $("#cmpExample").addEventListener("click", async () => { chosen = []; renderChosen(); for (const inn of ["6165169320", "1684017097", "2311304742"]) await addCompany(inn); });
-$("#cmpAskForm").addEventListener("submit", (e) => { e.preventDefault(); const q = $("#cmpAsk").value.trim(); if (!q) return; $("#cmpAsk").value = ""; askMany(q); });
+$("#cmpAskForm").addEventListener("submit", (e) => { e.preventDefault(); const q = $("#cmpAsk").value.trim(); if (!q || busy) return; $("#cmpAsk").value = ""; askMany(q); });
 $("#cmpChips").querySelectorAll("button[data-ask]").forEach((b) => b.addEventListener("click", () => askMany(b.dataset.ask, b.textContent.trim())));
 $("#reset").addEventListener("click", () => {
+  if (busy) return;
+  $("#searchArea").hidden=false;
+  history.replaceState(null,"",location.pathname);
   thread = newThread(); current = null; chosen = []; goal = null; sentGoal = false; renderChats();
   $("#goals").querySelectorAll("button[data-goal]").forEach((x) => x.classList.remove("on"));
   renderAsks();
@@ -752,19 +802,29 @@ $("#reset").addEventListener("click", () => {
   switchMode("one");
 });
 $("#chats").addEventListener("click", (e) => {
-  const drop = e.target.closest("b[data-drop]");
+  if(busy) return;
+  const drop = e.target.closest("[data-drop]");
   if (drop) { e.stopPropagation(); const id = drop.dataset.drop; chatDrop(id); if (id === thread) $("#reset").click(); return; }
-  const chip = e.target.closest("span[data-chat]");
+  const chip = e.target.closest("[data-chat]");
   if (chip && chip.dataset.chat !== thread) openChat(chip.dataset.chat);
 });
 
+for(const input of [$('#ask'),$('#cmpAsk')]) {
+  input.addEventListener('keydown',e=>{
+    if(e.key==='Enter' && !e.shiftKey && !e.isComposing) {e.preventDefault();if(!busy) input.form.requestSubmit();}
+  });
+  input.addEventListener('input',()=>{input.style.height='auto';input.style.height=Math.min(input.scrollHeight,150)+'px';});
+  input.form.addEventListener('submit',()=>{if(!input.value) input.style.height='auto';});
+}
 renderChosen();
 renderAsks();
+renderChats();
 
 // продолжаем последний разговор после обновления страницы
 (async () => {
   const last = loadChats().find(hasAnswer);
-  if (last) await openChat(last.id);
+  const requested=new URLSearchParams(location.search).get("chat");
+  if (requested || last) await openChat(requested || last.id);
 })();
 </script>
 </body>
