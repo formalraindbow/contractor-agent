@@ -46,7 +46,7 @@ class Settings(BaseSettings):
     groq_api_key: str | None = None
     yandex_api_key: str | None = None
     llm_api_key_override: str | None = None  # LLM_API_KEY_OVERRIDE: ключ для произвольного base_url
-    recursion_limit: int = 16
+    recursion_limit: int = 32  # two companies, sequential tools and one repair; time stays bounded
     runs_dir: Path = Path("runs")
 
     @property

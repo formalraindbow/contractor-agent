@@ -192,3 +192,26 @@ def test_branch_section_fallback_uses_real_schema_name(snapshot):
     text, _ = render_sections(Tools(snapshot), report.inn, "Какие есть филиалы?", {"get_section"})
     assert "присутствует" in text
     assert "нет доступных" not in text
+
+
+async def test_graph_budget_allows_sequential_tools_before_final_answer(snapshot, tmp_path):
+    script = [tool_call("get_report_summary", f"c{i}", inn="1684017097") for i in range(8)]
+    script += [
+        AIMessage("готово"),
+        Draft(kind="card", lines=["ТЕХПРОФ: можно работать.", "Отчёт от 28.08.2026."]),
+    ]
+    async with AgentRuntime(
+        Settings(runs_dir=tmp_path), source=snapshot, llm=scripted_llm(script)
+    ) as rt:
+        answer = await rt.ask("Проверь ТЕХПРОФ 1684017097")
+    assert answer.card and answer.card.inn == "1684017097"
+
+
+async def test_ambiguous_search_always_displays_actual_options(snapshot, tmp_path):
+    script = [tool_call("search_company", "a", query="ЛЗСО"), AIMessage("Уточните ИНН.")]
+    async with AgentRuntime(
+        Settings(runs_dir=tmp_path), source=snapshot, llm=scripted_llm(script)
+    ) as rt:
+        answer = await rt.ask("Проверь ЛЗСО")
+    assert "7805327192" in answer.text_md and "4720028039" in answer.text_md
+    assert not answer.card and not answer.report_dates and not answer.active_inns

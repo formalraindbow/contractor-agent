@@ -9,7 +9,7 @@ import re
 
 from contractor_agent.agent.schema import Citation
 from contractor_agent.mcp_server.tools import Tools
-from contractor_agent.signals.text import rub
+from contractor_agent.signals.text import plural, rub
 
 
 def render_sections(
@@ -81,7 +81,11 @@ def render_sections(
                         continue
                     present = True
                     base = f"computed.arbitration.{role}.{status}"
-                    fact(f"{label}, {description}: {bucket['count']} дел.", base + ".count")
+                    count_text = plural(bucket["count"], "дело", "дела", "дел")
+                    fact(
+                        f"{label}, {description}: {count_text}.",
+                        base + ".count",
+                    )
                     if bucket["amount"]:
                         fact(
                             f"{label}, {description}: сумма требований {rub(bucket['amount'])}.",
@@ -104,8 +108,9 @@ def render_sections(
                 ("finished", "Завершённые производства"),
             ]:
                 item = response.data[group]
+                count_text = plural(item["count"], "запись", "записи", "записей")
                 fact(
-                    f"{label}: {item['count']} записей в отчёте.",
+                    f"{label}: {count_text} в отчёте.",
                     f"computed.enforcement.{group}.count",
                 )
                 if item["count"] and item["known_sum"]:
@@ -115,8 +120,11 @@ def render_sections(
                         f"computed.enforcement.{group}.known_sum",
                     )
                 if item["unknown_amount_count"]:
+                    count_text = plural(
+                        item["unknown_amount_count"], "записи", "записей", "записей"
+                    )
                     fact(
-                        f"{label}: у {item['unknown_amount_count']} записей сумма не указана.",
+                        f"{label}: у {count_text} сумма не указана.",
                         f"computed.enforcement.{group}.unknown_amount_count",
                     )
             if response.data["unknown_status_count"]:

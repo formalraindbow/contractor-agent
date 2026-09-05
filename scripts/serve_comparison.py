@@ -124,6 +124,8 @@ def worker(args):
                     if event.type == "end":
                         event.data["output"]["runtime"] = {**metrics.result(), "build": manifest}
                         event.data["usage"] = metrics.result()["usage"]
+                    elif event.type == "error":
+                        event.data["runtime"] = {**metrics.result(), "build": manifest}
                     yield event
         finally:
             current.reset(token)

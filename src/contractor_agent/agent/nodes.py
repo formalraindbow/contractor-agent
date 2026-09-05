@@ -169,6 +169,20 @@ def make_nodes(llm: LLM, tools: list[Any], source: ReportSource) -> dict[str, No
             and not (search_payload.get("data") or {}).get("items")
             and not state.get("turn_inns")
         )
+        choices = (
+            (search_payload.get("data") or {}).get("items", [])
+            if isinstance(search_payload, dict)
+            else []
+        )
+        disambiguation = None
+        if len(choices) > 1 and not state.get("turn_inns"):
+            disambiguation = Draft(
+                kind="refusal",
+                lines=[
+                    "Найдено несколько компаний. Укажите ИНН нужной компании:",
+                    *[f"- {item['name']} — ИНН {item['inn']}" for item in choices],
+                ],
+            )
         structured_failed = False
         try:
             draft = (
@@ -179,7 +193,7 @@ def make_nodes(llm: LLM, tools: list[Any], source: ReportSource) -> dict[str, No
                     ],
                 )
                 if not_found
-                else await structured.ainvoke(messages)
+                else disambiguation or await structured.ainvoke(messages)
             )
             if not isinstance(draft, Draft):
                 draft = Draft.model_validate(draft)

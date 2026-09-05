@@ -70,6 +70,7 @@ async def request(client, url, thread, question):
     events = []
     answer = None
     error = None
+    runtime = None
     try:
         async with client.stream(
             "POST",
@@ -86,6 +87,7 @@ async def request(client, url, thread, question):
                     answer = event["data"]["output"]
                 if event["type"] == "error":
                     error = event["data"].get("message")
+                    runtime = event["data"].get("runtime")
     except (httpx.HTTPError, ValueError) as e:
         error = type(e).__name__
     return {
@@ -93,6 +95,7 @@ async def request(client, url, thread, question):
         "answer": answer,
         "events": events,
         "error": error,
+        "runtime": runtime or (answer or {}).get("runtime"),
         "duration_s": round(time.perf_counter() - began, 3),
     }
 
@@ -102,7 +105,7 @@ def report(out, records, manifest):
     for label in ("develop", "review-v4"):
         rows = [r for r in records if r["label"] == label]
         dur = sorted(r["duration_s"] for r in rows)
-        runtimes = [(r.get("answer") or {}).get("runtime") or {} for r in rows]
+        runtimes = [r.get("runtime") or (r.get("answer") or {}).get("runtime") or {} for r in rows]
         summaries[label] = {
             "n": len(rows),
             "passed": sum(not r["failures"] and not r["error"] for r in rows),
@@ -116,9 +119,7 @@ def report(out, records, manifest):
             "output_tokens": sum(r.get("usage", {}).get("output_tokens", 0) for r in runtimes),
             "llm_calls": sum(r.get("llm_calls", 0) for r in runtimes),
             "usage_incomplete_runs": sum(
-                not r.get("answer")
-                or (r["answer"].get("runtime") or {}).get("usage_complete") is False
-                for r in rows
+                not runtime or runtime.get("usage_complete") is not True for runtime in runtimes
             ),
         }
     (out / "summary.json").write_text(json.dumps(summaries, ensure_ascii=False, indent=2))
