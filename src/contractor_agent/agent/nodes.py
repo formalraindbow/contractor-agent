@@ -27,8 +27,9 @@ from contractor_agent.agent.citations import (
     numbers_in,
     validate_citations,
 )
+from contractor_agent.agent.comparison_answers import comparison_followup
 from contractor_agent.agent.llm import LLM
-from contractor_agent.agent.presentation import public_text
+from contractor_agent.agent.presentation import comparison_text, public_text
 from contractor_agent.agent.prompt import FINALIZE_PROMPT, SYSTEM_PROMPT, citation_repair_prompt
 from contractor_agent.agent.schema import Answer, Attention, Card, CardLabels, Citation, Draft
 from contractor_agent.agent.scoped_answers import scoped_answer
@@ -125,6 +126,8 @@ def make_nodes(llm: LLM, tools: list[Any], source: ReportSource) -> dict[str, No
         ):
             hint = ((hint + " ") if hint else "") + FOLLOW_UP_HINT
         question = str(state.get("question") or "")
+        inns = list(state.get("turn_inns") or state.get("selected_inns") or [])
+        cards = [c for c in (build_card(tools_layer, inn) for inn in inns) if c]
         identities = ", ".join(state.get("turn_inns") or state.get("selected_inns") or [])
         history = finalization_history(state["messages"], question)
         messages = [
@@ -139,8 +142,10 @@ def make_nodes(llm: LLM, tools: list[Any], source: ReportSource) -> dict[str, No
         try:
             # Narrow policy answers still use current report evidence and the same validator.
             turn_inns = list(state.get("turn_inns") or [])
-            draft = section_answer(tools_layer, turn_inns, question) or scoped_answer(
-                tools_layer, turn_inns, question
+            draft = (
+                comparison_followup(cards, question)
+                or section_answer(tools_layer, turn_inns, question)
+                or scoped_answer(tools_layer, turn_inns, question)
             )
             if draft is None:
                 draft = await structured.ainvoke(messages)
@@ -160,7 +165,6 @@ def make_nodes(llm: LLM, tools: list[Any], source: ReportSource) -> dict[str, No
                 seen_paths.add(extra.source_path)
         question = str(state.get("question") or "")
         inns = list(state.get("turn_inns") or state.get("selected_inns") or [])
-        cards = [c for c in (build_card(tools_layer, inn) for inn in inns) if c]
         kind_hint, _ = question_kind_hint(question)
         if kind_hint == "comparison" and len(cards) >= 2 and draft.kind != "comparison":
             draft = draft.model_copy(
@@ -192,10 +196,13 @@ def make_nodes(llm: LLM, tools: list[Any], source: ReportSource) -> dict[str, No
             source, list(state.get("turn_inns") or state.get("selected_inns") or []), real
         )
         invalid = [c for c in checks if not c.ok]
+        require_comparison = comparison_needs_verdict(str(state.get("question") or "")) and (
+            comparison_followup(answer.cards, str(state.get("question") or "")) is None
+        )
         verdict_problem = (
             refusal_problem(answer, state.get("trace") or [])
             or empty_problem(answer)
-            or verdict_mismatch(answer)
+            or verdict_mismatch(answer, require_comparison=require_comparison)
             or forbidden_problem(answer.text_md)
             or format_problem(answer, str(state.get("question") or ""))
             or details_problem(answer, str(state.get("question") or ""))
@@ -212,13 +219,15 @@ def make_nodes(llm: LLM, tools: list[Any], source: ReportSource) -> dict[str, No
                 "citation_retry": retry + 1,
                 "answer": None,
             }
-        base = tidy_text(drop_invalid_lines(answer.text_md, [c.citation for c in invalid]))
+        base = public_text(
+            tidy_text(drop_invalid_lines(answer.text_md, [c.citation for c in invalid]))
+        )
         if answer.card:
             text = enforce_verdict(
                 scrub_forbidden(replace_verdict_codes(base), VERDICT_RU[answer.card.verdict]),
                 answer.card.verdict,
             )
-        elif answer.cards:
+        elif answer.cards and require_comparison:
             text = enforce_comparison(scrub_forbidden(base, None), answer.cards)
         else:
             text = scrub_forbidden(base, None)
@@ -249,10 +258,13 @@ def make_nodes(llm: LLM, tools: list[Any], source: ReportSource) -> dict[str, No
                 for signal in courts.data.get("signals", []):
                     if "mismatch" in signal["code"] and signal["explanation"] not in text:
                         text += "\n\n" + signal["explanation"]
-        for inn, day in dates.items():
-            ru = ".".join(reversed(day.split("-")))
-            if ru not in text and day not in text:
-                text += f"\n\nОтчёт{' по ИНН ' + inn if len(dates) > 1 else ''} от {ru}."
+        if len(dates) > 1:
+            text = comparison_text(text)
+        else:
+            for day in dates.values():
+                ru = ".".join(reversed(day.split("-")))
+                if ru not in text and day not in text:
+                    text += f"\n\nОтчёт от {ru}."
         text = public_text(text)
         checked = answer.model_copy(
             update={
@@ -303,7 +315,7 @@ def route_after_validate(state: AgentState) -> str:
     return END if state.get("answer") is not None else "agent"
 
 
-def verdict_mismatch(answer: Answer) -> str | None:
+def verdict_mismatch(answer: Answer, *, require_comparison: bool = True) -> str | None:
     """Текст модели не должен спорить с вердиктом карточки, посчитанным по сигналам.
     При сравнении — с вердиктом каждой компании."""
     if answer.card is not None:
@@ -318,7 +330,7 @@ def verdict_mismatch(answer: Answer) -> str | None:
                 f"Рекомендация должна быть буквально: «{expected}»."
             )
         return f"В тексте нет рекомендации. Добавь буквально: «{expected}»."
-    if answer.cards:
+    if answer.cards and require_comparison:
         missing = [
             c for c in answer.cards if VERDICT_RU[c.verdict] not in answer.text_md.casefold()
         ]
@@ -364,6 +376,16 @@ _LABEL_Q = re.compile(r"зск|светофор|метк[аиу]|оценк[аи
 def question_subject(question: str) -> str:
     # The UI appends company identity and goal; those are context, not another question.
     return question.split("Речь о компании", 1)[0].strip()
+
+
+def comparison_needs_verdict(question: str) -> bool:
+    """A question about specific sections does not need the general verdict repeated."""
+    question = question_subject(question)
+    if re.search(r"с кем|кого выбрать|кто из них|можно.{0,20}работать", question, re.I):
+        return True
+    return not (
+        _DOCUMENTS_Q.search(question) or any(rx.search(question) for _, rx in _SECTION_HINTS)
+    )
 
 
 _SECTION_TOOLS = {
@@ -700,6 +722,9 @@ def tidy_text(text: str) -> str:
     out = text
     for rx, repl in _TIDY:
         out = rx.sub(repl, out)
+    for verdict in VERDICT_RU.values():
+        phrase = re.escape(verdict)
+        out = re.sub(rf"({phrase})(?:[\s;,.]+{phrase})+", r"\1", out, flags=re.I)
     return capitalize_lines(out.strip())
 
 
@@ -740,10 +765,10 @@ def enforce_comparison(text: str, cards: list[Card]) -> str:
     return f"{text.rstrip()}\n\n**По данным отчётов:**\n" + "\n".join(lines)
 
 
-_VERDICT_CORE = {  # ядро фразы: «работать с ООО … можно только на условиях» — тот же вывод
+_VERDICT_CORE = {
     Verdict.OK: re.compile(r"можно работать|работать можно", re.I),
     Verdict.CHECK: re.compile(r"стоит проверить", re.I),
-    Verdict.NOT_RECOMMENDED: re.compile(r"только на условиях:?\s*предоплата", re.I),
+    Verdict.NOT_RECOMMENDED: re.compile(r"(?:есть |выявлены )?существенные риски", re.I),
 }
 
 

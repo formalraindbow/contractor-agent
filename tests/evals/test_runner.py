@@ -43,7 +43,7 @@ async def test_runner_caches_and_metrics(snapshot: Snapshot, tmp_path) -> None:
                 kind="card",
                 lines=[
                     "Компания признана банкротом [report.status.reasonName].",
-                    "Работать только на условиях: предоплата и подтверждающие документы. Отчёт от 31.07.2026.",
+                    "Есть существенные риски. Отчёт от 31.07.2026.",
                 ],
                 citations=[],
             ),

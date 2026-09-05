@@ -184,6 +184,63 @@ def test_date_cleanup_keeps_words_intact():
     assert tidy_text("Срок — 31 марта 2026 года.") == "Срок — 31.03.2026."
 
 
+def test_comparison_removes_only_report_date_paragraphs():
+    from contractor_agent.agent.presentation import comparison_text
+
+    fact = "Руководитель назначен 09.02.2026. Отчётность за 2025 год неполная."
+    text = fact + "\n\nОтчёт по ИНН 6165169320 от 25.08.2026.\n\nОтчёт от 28.08.2026."
+    assert comparison_text(text) == fact
+
+
+def test_obsolete_verdict_does_not_prescribe_payment_terms():
+    from contractor_agent.signals.model import VERDICT_RU, Verdict
+
+    old = "Работать только на условиях: предоплата и подтверждающие документы"
+    assert public_text(old) == VERDICT_RU[Verdict.NOT_RECOMMENDED]
+    assert "предоплат" not in " ".join(VERDICT_RU.values())
+
+
+async def test_comparison_documents_do_not_append_verdicts_or_report_lines(snapshot, tmp_path):
+    text = (
+        "ГДК: подтверждение текущих ограничений по счетам. ТЕХПРОФ: отчёт о финансовых результатах."
+    )
+    llm = scripted_llm(
+        [
+            tool_call("compare_companies", "cmp", inns=["6165169320", "1684017097"]),
+            AIMessage(content="Данные получены."),
+            Draft(kind="comparison", lines=[text, "Отчёт по ИНН 6165169320 от 25.08.2026."]),
+        ]
+    )
+    settings = Settings(session_db_path=tmp_path / "s.sqlite", runs_dir=tmp_path / "runs")
+    async with AgentRuntime(settings, source=snapshot, llm=llm) as runtime:
+        answer = await runtime.ask(
+            "Какие документы запросить у ГДК 6165169320 и ТЕХПРОФ 1684017097?", "cmp-docs"
+        )
+    assert "ограничений" in answer.text_md and "финансовых результатах" in answer.text_md
+    assert "По данным отчётов:" not in answer.text_md
+    assert "Отчёт по ИНН" not in answer.text_md and "предоплат" not in answer.text_md
+    assert answer.report_dates == {"6165169320": "2026-08-25", "1684017097": "2026-08-28"}
+    assert len(answer.cards) == 2
+
+
+def test_concise_choice_uses_current_cards_without_repeating_verdicts(snapshot):
+    from contractor_agent.agent.citations import validate_citations
+    from contractor_agent.agent.comparison_answers import comparison_followup
+
+    tools = Tools(snapshot)
+    inns = ["6165169320", "1684017097", "2311304742"]
+    cards = [build_card(tools, inn) for inn in inns]
+    answer = comparison_followup(cards, "С кем лучше работать?")
+    assert "ТЕХПРОФ" in answer.lines[0]
+    assert sum(line.startswith("- ") for line in answer.lines) == 3
+    assert "предоплат" not in answer.text_md and "Вердикт:" not in answer.text_md
+    assert "18,9 млн" in answer.text_md and "недостоверным" in answer.text_md
+    assert all(c.ok for c in validate_citations(snapshot, inns, answer.citations))
+    assert comparison_followup(cards, "Что с финансами?") is None
+    assert comparison_followup(cards, "С кем лучше работать и какие документы запросить?") is None
+    assert comparison_followup(cards, "С кем лучше работать с отсрочкой?") is None
+
+
 def test_court_year_does_not_invent_status_or_missing_blocking(snapshot):
     from contractor_agent.agent.section_answers import section_answer
 

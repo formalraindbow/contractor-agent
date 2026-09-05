@@ -1,0 +1,830 @@
+[
+  {
+    "question": "С кем лучше работать?",
+    "seconds": 5.09,
+    "answer": {
+      "kind": "comparison",
+      "text_md": "По данным этих отчётов предпочтительнее **ООО «ТЕХПРОФ»**.\n\n- **ООО «ТЕХПРОФ»:** Критических и умеренных сигналов в отчёте не выделено. Финансовые данные неполные.\n\n- **ООО «ГДК»:** 2 открытых арбитражных дела, где компания — ответчик, на сумму 18,9 млн ₽; это в 5 раз больше чистых активов (капитал и резервы) на конец 2025 года (3,8 млн ₽). На дату отчёта есть блокировка банковских счетов по постановлению налоговой.\n\n- **ООО «БИЛД-ЮГ»:** Адрес компании признан недостоверным по данным реестров ФНС — по этому адресу её может не быть. На дату отчёта есть блокировка банковских счетов по постановлению налоговой.",
+      "card": null,
+      "cards": [
+        {
+          "inn": "6165169320",
+          "name": "ООО «ГДК»",
+          "labels": {
+            "riskLevel": "зелёный",
+            "zskRiskLevel": "зелёный"
+          },
+          "verdict": "not_recommended",
+          "terminal": false,
+          "attention": [
+            {
+              "claim": "2 открытых арбитражных дела, где компания — ответчик, на сумму 18,9 млн ₽; это в 5 раз больше чистых активов (капитал и резервы) на конец 2025 года (3,8 млн ₽).",
+              "severity": "critical",
+              "source_path": "report.arbitrationByStatus.defandantArbitration.defandantArbitrationPending.dpCount",
+              "code": "arbitration_defendant_open",
+              "source_paths": [
+                "report.arbitrationByStatus.defandantArbitration.defandantArbitrationPending.dpCount",
+                "report.arbitrationByStatus.defandantArbitration.defandantArbitrationPending.dpAmount",
+                "report.finReports[0].liabilities.capitals",
+                "report.reputationalRisks.negative[2].code"
+              ]
+            },
+            {
+              "claim": "По отчётности за 2024 год — убыток 26,2 млн ₽.",
+              "severity": "moderate",
+              "source_path": "report.finReports[1].common.profit",
+              "code": "fin_loss",
+              "source_paths": []
+            },
+            {
+              "claim": "Оборотные активы 23,3 млн ₽ против краткосрочных обязательств 47,5 млн ₽ на конец 2024 года: покрытие 0,49.",
+              "severity": "moderate",
+              "source_path": "report.finReports[1].assets.currentAssets.total",
+              "code": "fin_low_liquidity",
+              "source_paths": [
+                "report.finReports[1].liabilities.shortTermLiabilities.total"
+              ]
+            },
+            {
+              "claim": "На дату отчёта есть блокировка банковских счетов по постановлению налоговой. Такие блокировки часто краткосрочные — уточните, снята ли она.",
+              "severity": "moderate",
+              "source_path": "report.reputationalRisks.negative[3].code",
+              "code": "flag_fnsBlocking",
+              "source_paths": [
+                "report.reputationalRisks.negative[3].name"
+              ]
+            },
+            {
+              "claim": "2 завершённых арбитражных дела, где компания была ответчиком, на сумму 1,9 млн ₽; к текущим претензиям не относятся.",
+              "severity": "info",
+              "source_path": "report.arbitrationByStatus.defandantArbitration.defandantArbitrationFinished.dfCount",
+              "code": "arbitration_defendant_finished",
+              "source_paths": [
+                "report.arbitrationByStatus.defandantArbitration.defandantArbitrationFinished.dfCount",
+                "report.arbitrationByStatus.defandantArbitration.defandantArbitrationFinished.dfAmount",
+                "report.reputationalRisks.negative[2].code"
+              ]
+            },
+            {
+              "claim": "4 завершённых исполнительных производства на сумму 9 018,54 ₽ за 2014–2024 годы; к действующим долгам не относятся.",
+              "severity": "info",
+              "source_path": "report.executionProceedings",
+              "code": "enforcement_finished",
+              "source_paths": [
+                "report.executionProceedings[3]",
+                "report.executionProceedings[2]",
+                "report.executionProceedings[1]",
+                "report.executionProceedings[0]"
+              ]
+            },
+            {
+              "claim": "Среди видов деятельности есть коды, которые по статистике ФНС часто выбирают фирмы-однодневки; сам по себе это повод присмотреться, не более.",
+              "severity": "info",
+              "source_path": "report.reputationalRisks.negative[0].code",
+              "code": "flag_massOkved",
+              "source_paths": [
+                "report.reputationalRisks.negative[0].name"
+              ]
+            }
+          ],
+          "ask_before": [
+            "Подтверждение текущего статуса ограничений по банковским счетам.",
+            "Баланс и отчёт о финансовых результатах за два последних года."
+          ],
+          "gaps": [
+            "В отчёте нет сведений о численности сотрудников — оценить по этому критерию нельзя."
+          ],
+          "report_date": "2026-08-25"
+        },
+        {
+          "inn": "1684017097",
+          "name": "ООО «ТЕХПРОФ»",
+          "labels": {
+            "riskLevel": "зелёный",
+            "zskRiskLevel": "зелёный"
+          },
+          "verdict": "ok",
+          "terminal": false,
+          "attention": [],
+          "ask_before": [
+            "Баланс и отчёт о финансовых результатах за два последних года."
+          ],
+          "gaps": [
+            "В отчёте нет сведений о численности сотрудников — оценить по этому критерию нельзя.",
+            "В отчётности за 2024–2025 годы нет строки «прибыль (убыток)» — оценить по этому критерию нельзя.",
+            "В отчётности за 2025 год нет итога оборотных активов или краткосрочных обязательств — текущую ликвидность по отчёту не рассчитать."
+          ],
+          "report_date": "2026-08-28"
+        },
+        {
+          "inn": "2311304742",
+          "name": "ООО «БИЛД-ЮГ»",
+          "labels": {
+            "riskLevel": "зелёный",
+            "zskRiskLevel": "зелёный"
+          },
+          "verdict": "not_recommended",
+          "terminal": false,
+          "attention": [
+            {
+              "claim": "Адрес компании признан недостоверным по данным реестров ФНС — по этому адресу её может не быть.",
+              "severity": "critical",
+              "source_path": "report.reputationalRisks.negative[2].code",
+              "code": "flag_invalidAddress",
+              "source_paths": [
+                "report.reputationalRisks.negative[2].name"
+              ]
+            },
+            {
+              "claim": "2 открытых арбитражных дела (1 в производстве, 1 обжалуется), где компания — ответчик, сумма в отчёте не указана; без суммы соразмерность оценить нельзя.",
+              "severity": "moderate",
+              "source_path": "report.arbitrationByStatus.defandantArbitration.defandantArbitrationPending.dpCount",
+              "code": "arbitration_defendant_open",
+              "source_paths": [
+                "report.arbitrationByStatus.defandantArbitration.defandantArbitrationPending.dpCount",
+                "report.arbitrationByStatus.defandantArbitration.defandantArbitrationAppealed.daCount",
+                "report.finReports[0].liabilities.capitals",
+                "report.reputationalRisks.negative[3].code"
+              ]
+            },
+            {
+              "claim": "1 действующее исполнительное производство, сумма в отчёте не указана; без суммы соразмерность оценить нельзя, начато за последний год.",
+              "severity": "moderate",
+              "source_path": "report.executionProceedings",
+              "code": "enforcement_active",
+              "source_paths": [
+                "report.executionProceedings[1]",
+                "report.finReports[0].liabilities.capitals",
+                "report.reputationalRisks.negative[0].code"
+              ]
+            },
+            {
+              "claim": "На дату отчёта есть блокировка банковских счетов по постановлению налоговой. Такие блокировки часто краткосрочные — уточните, снята ли она.",
+              "severity": "moderate",
+              "source_path": "report.reputationalRisks.negative[5].code",
+              "code": "flag_fnsBlocking",
+              "source_paths": [
+                "report.reputationalRisks.negative[5].name"
+              ]
+            },
+            {
+              "claim": "В ЕГРЮЛ есть отметка о недостоверности регистрационных данных.",
+              "severity": "moderate",
+              "source_path": "report.reputationalRisks.negative[4].code",
+              "code": "flag_invalidRegistrationData",
+              "source_paths": [
+                "report.reputationalRisks.negative[4].name"
+              ]
+            },
+            {
+              "claim": "Статус в реестре (обновлён 02.08.2026): «Юридическим лицом принято решение об изменении места нахождения».",
+              "severity": "moderate",
+              "source_path": "report.status.reasonName",
+              "code": "status_reason",
+              "source_paths": [
+                "report.status.date"
+              ]
+            },
+            {
+              "claim": "6 завершённых арбитражных дел, где компания была ответчиком, на сумму 2,7 млн ₽; к текущим претензиям не относятся.",
+              "severity": "info",
+              "source_path": "report.arbitrationByStatus.defandantArbitration.defandantArbitrationFinished.dfCount",
+              "code": "arbitration_defendant_finished",
+              "source_paths": [
+                "report.arbitrationByStatus.defandantArbitration.defandantArbitrationFinished.dfCount",
+                "report.arbitrationByStatus.defandantArbitration.defandantArbitrationFinished.dfAmount",
+                "report.reputationalRisks.negative[3].code"
+              ]
+            },
+            {
+              "claim": "1 завершённое исполнительное производство на сумму 750 ₽ за 2026 год, за последний год; к действующим долгам не относятся.",
+              "severity": "info",
+              "source_path": "report.executionProceedings",
+              "code": "enforcement_finished",
+              "source_paths": [
+                "report.executionProceedings[0]"
+              ]
+            },
+            {
+              "claim": "Последняя отчётность в отчёте — за 2024 год; отчётность за 2025 год должна была быть сдана к 31 марта 2026 года.",
+              "severity": "info",
+              "source_path": "report.finReports[0].common.year",
+              "code": "fin_stale",
+              "source_paths": []
+            },
+            {
+              "claim": "Среди видов деятельности есть коды, которые по статистике ФНС часто выбирают фирмы-однодневки; сам по себе это повод присмотреться, не более.",
+              "severity": "info",
+              "source_path": "report.reputationalRisks.negative[1].code",
+              "code": "flag_massOkved",
+              "source_paths": [
+                "report.reputationalRisks.negative[1].name"
+              ]
+            }
+          ],
+          "ask_before": [
+            "Подтверждение текущего статуса ограничений по банковским счетам.",
+            "Документы о погашении или текущем состоянии действующих обязательств у приставов.",
+            "Подтверждение актуального адреса и регистрационных данных.",
+            "Баланс и отчёт о финансовых результатах за два последних года."
+          ],
+          "gaps": [
+            "В отчёте нет сведений о численности сотрудников — оценить по этому критерию нельзя.",
+            "У единственного действующего производства в отчёте не указана сумма — размер долга оценить нельзя."
+          ],
+          "report_date": "2026-08-27"
+        }
+      ],
+      "citations": [
+        {
+          "claim": "2 открытых арбитражных дела, где компания — ответчик, на сумму 18,9 млн ₽; это в 5 раз больше чистых активов (капитал и резервы) на конец 2025 года (3,8 млн ₽).",
+          "source_path": "report.arbitrationByStatus.defandantArbitration.defandantArbitrationPending.dpCount",
+          "inn": "6165169320"
+        },
+        {
+          "claim": "На дату отчёта есть блокировка банковских счетов по постановлению налоговой. Такие блокировки часто краткосрочные — уточните, снята ли она.",
+          "source_path": "report.reputationalRisks.negative[3].code",
+          "inn": "6165169320"
+        },
+        {
+          "claim": "Адрес компании признан недостоверным по данным реестров ФНС — по этому адресу её может не быть.",
+          "source_path": "report.reputationalRisks.negative[2].code",
+          "inn": "2311304742"
+        },
+        {
+          "claim": "На дату отчёта есть блокировка банковских счетов по постановлению налоговой. Такие блокировки часто краткосрочные — уточните, снята ли она.",
+          "source_path": "report.reputationalRisks.negative[5].code",
+          "inn": "2311304742"
+        }
+      ],
+      "invalid_citations": [],
+      "report_dates": {
+        "6165169320": "2026-08-25",
+        "1684017097": "2026-08-28",
+        "2311304742": "2026-08-27"
+      }
+    }
+  },
+  {
+    "question": "Какие документы запросить у каждой компании?",
+    "seconds": 7.43,
+    "answer": {
+      "kind": "comparison",
+      "text_md": "### ООО «ГДК»\n- Подтверждение текущего статуса ограничений по банковским счетам.\n- Баланс и отчёт о финансовых результатах за два последних года.\n### ООО «ТЕХПРОФ»\n- Баланс и отчёт о финансовых результатах за два последних года.\n### ООО «БИЛД-ЮГ»\n- Подтверждение текущего статуса ограничений по банковским счетам.\n- Документы о погашении или текущем состоянии действующих обязательств у приставов.\n- Подтверждение актуального адреса и регистрационных данных.\n- Баланс и отчёт о финансовых результатах за два последних года.",
+      "card": null,
+      "cards": [
+        {
+          "inn": "6165169320",
+          "name": "ООО «ГДК»",
+          "labels": {
+            "riskLevel": "зелёный",
+            "zskRiskLevel": "зелёный"
+          },
+          "verdict": "not_recommended",
+          "terminal": false,
+          "attention": [
+            {
+              "claim": "2 открытых арбитражных дела, где компания — ответчик, на сумму 18,9 млн ₽; это в 5 раз больше чистых активов (капитал и резервы) на конец 2025 года (3,8 млн ₽).",
+              "severity": "critical",
+              "source_path": "report.arbitrationByStatus.defandantArbitration.defandantArbitrationPending.dpCount",
+              "code": "arbitration_defendant_open",
+              "source_paths": [
+                "report.arbitrationByStatus.defandantArbitration.defandantArbitrationPending.dpCount",
+                "report.arbitrationByStatus.defandantArbitration.defandantArbitrationPending.dpAmount",
+                "report.finReports[0].liabilities.capitals",
+                "report.reputationalRisks.negative[2].code"
+              ]
+            },
+            {
+              "claim": "По отчётности за 2024 год — убыток 26,2 млн ₽.",
+              "severity": "moderate",
+              "source_path": "report.finReports[1].common.profit",
+              "code": "fin_loss",
+              "source_paths": []
+            },
+            {
+              "claim": "Оборотные активы 23,3 млн ₽ против краткосрочных обязательств 47,5 млн ₽ на конец 2024 года: покрытие 0,49.",
+              "severity": "moderate",
+              "source_path": "report.finReports[1].assets.currentAssets.total",
+              "code": "fin_low_liquidity",
+              "source_paths": [
+                "report.finReports[1].liabilities.shortTermLiabilities.total"
+              ]
+            },
+            {
+              "claim": "На дату отчёта есть блокировка банковских счетов по постановлению налоговой. Такие блокировки часто краткосрочные — уточните, снята ли она.",
+              "severity": "moderate",
+              "source_path": "report.reputationalRisks.negative[3].code",
+              "code": "flag_fnsBlocking",
+              "source_paths": [
+                "report.reputationalRisks.negative[3].name"
+              ]
+            },
+            {
+              "claim": "2 завершённых арбитражных дела, где компания была ответчиком, на сумму 1,9 млн ₽; к текущим претензиям не относятся.",
+              "severity": "info",
+              "source_path": "report.arbitrationByStatus.defandantArbitration.defandantArbitrationFinished.dfCount",
+              "code": "arbitration_defendant_finished",
+              "source_paths": [
+                "report.arbitrationByStatus.defandantArbitration.defandantArbitrationFinished.dfCount",
+                "report.arbitrationByStatus.defandantArbitration.defandantArbitrationFinished.dfAmount",
+                "report.reputationalRisks.negative[2].code"
+              ]
+            },
+            {
+              "claim": "4 завершённых исполнительных производства на сумму 9 018,54 ₽ за 2014–2024 годы; к действующим долгам не относятся.",
+              "severity": "info",
+              "source_path": "report.executionProceedings",
+              "code": "enforcement_finished",
+              "source_paths": [
+                "report.executionProceedings[3]",
+                "report.executionProceedings[2]",
+                "report.executionProceedings[1]",
+                "report.executionProceedings[0]"
+              ]
+            },
+            {
+              "claim": "Среди видов деятельности есть коды, которые по статистике ФНС часто выбирают фирмы-однодневки; сам по себе это повод присмотреться, не более.",
+              "severity": "info",
+              "source_path": "report.reputationalRisks.negative[0].code",
+              "code": "flag_massOkved",
+              "source_paths": [
+                "report.reputationalRisks.negative[0].name"
+              ]
+            }
+          ],
+          "ask_before": [
+            "Подтверждение текущего статуса ограничений по банковским счетам.",
+            "Баланс и отчёт о финансовых результатах за два последних года."
+          ],
+          "gaps": [
+            "В отчёте нет сведений о численности сотрудников — оценить по этому критерию нельзя."
+          ],
+          "report_date": "2026-08-25"
+        },
+        {
+          "inn": "1684017097",
+          "name": "ООО «ТЕХПРОФ»",
+          "labels": {
+            "riskLevel": "зелёный",
+            "zskRiskLevel": "зелёный"
+          },
+          "verdict": "ok",
+          "terminal": false,
+          "attention": [],
+          "ask_before": [
+            "Баланс и отчёт о финансовых результатах за два последних года."
+          ],
+          "gaps": [
+            "В отчёте нет сведений о численности сотрудников — оценить по этому критерию нельзя.",
+            "В отчётности за 2024–2025 годы нет строки «прибыль (убыток)» — оценить по этому критерию нельзя.",
+            "В отчётности за 2025 год нет итога оборотных активов или краткосрочных обязательств — текущую ликвидность по отчёту не рассчитать."
+          ],
+          "report_date": "2026-08-28"
+        },
+        {
+          "inn": "2311304742",
+          "name": "ООО «БИЛД-ЮГ»",
+          "labels": {
+            "riskLevel": "зелёный",
+            "zskRiskLevel": "зелёный"
+          },
+          "verdict": "not_recommended",
+          "terminal": false,
+          "attention": [
+            {
+              "claim": "Адрес компании признан недостоверным по данным реестров ФНС — по этому адресу её может не быть.",
+              "severity": "critical",
+              "source_path": "report.reputationalRisks.negative[2].code",
+              "code": "flag_invalidAddress",
+              "source_paths": [
+                "report.reputationalRisks.negative[2].name"
+              ]
+            },
+            {
+              "claim": "2 открытых арбитражных дела (1 в производстве, 1 обжалуется), где компания — ответчик, сумма в отчёте не указана; без суммы соразмерность оценить нельзя.",
+              "severity": "moderate",
+              "source_path": "report.arbitrationByStatus.defandantArbitration.defandantArbitrationPending.dpCount",
+              "code": "arbitration_defendant_open",
+              "source_paths": [
+                "report.arbitrationByStatus.defandantArbitration.defandantArbitrationPending.dpCount",
+                "report.arbitrationByStatus.defandantArbitration.defandantArbitrationAppealed.daCount",
+                "report.finReports[0].liabilities.capitals",
+                "report.reputationalRisks.negative[3].code"
+              ]
+            },
+            {
+              "claim": "1 действующее исполнительное производство, сумма в отчёте не указана; без суммы соразмерность оценить нельзя, начато за последний год.",
+              "severity": "moderate",
+              "source_path": "report.executionProceedings",
+              "code": "enforcement_active",
+              "source_paths": [
+                "report.executionProceedings[1]",
+                "report.finReports[0].liabilities.capitals",
+                "report.reputationalRisks.negative[0].code"
+              ]
+            },
+            {
+              "claim": "На дату отчёта есть блокировка банковских счетов по постановлению налоговой. Такие блокировки часто краткосрочные — уточните, снята ли она.",
+              "severity": "moderate",
+              "source_path": "report.reputationalRisks.negative[5].code",
+              "code": "flag_fnsBlocking",
+              "source_paths": [
+                "report.reputationalRisks.negative[5].name"
+              ]
+            },
+            {
+              "claim": "В ЕГРЮЛ есть отметка о недостоверности регистрационных данных.",
+              "severity": "moderate",
+              "source_path": "report.reputationalRisks.negative[4].code",
+              "code": "flag_invalidRegistrationData",
+              "source_paths": [
+                "report.reputationalRisks.negative[4].name"
+              ]
+            },
+            {
+              "claim": "Статус в реестре (обновлён 02.08.2026): «Юридическим лицом принято решение об изменении места нахождения».",
+              "severity": "moderate",
+              "source_path": "report.status.reasonName",
+              "code": "status_reason",
+              "source_paths": [
+                "report.status.date"
+              ]
+            },
+            {
+              "claim": "6 завершённых арбитражных дел, где компания была ответчиком, на сумму 2,7 млн ₽; к текущим претензиям не относятся.",
+              "severity": "info",
+              "source_path": "report.arbitrationByStatus.defandantArbitration.defandantArbitrationFinished.dfCount",
+              "code": "arbitration_defendant_finished",
+              "source_paths": [
+                "report.arbitrationByStatus.defandantArbitration.defandantArbitrationFinished.dfCount",
+                "report.arbitrationByStatus.defandantArbitration.defandantArbitrationFinished.dfAmount",
+                "report.reputationalRisks.negative[3].code"
+              ]
+            },
+            {
+              "claim": "1 завершённое исполнительное производство на сумму 750 ₽ за 2026 год, за последний год; к действующим долгам не относятся.",
+              "severity": "info",
+              "source_path": "report.executionProceedings",
+              "code": "enforcement_finished",
+              "source_paths": [
+                "report.executionProceedings[0]"
+              ]
+            },
+            {
+              "claim": "Последняя отчётность в отчёте — за 2024 год; отчётность за 2025 год должна была быть сдана к 31 марта 2026 года.",
+              "severity": "info",
+              "source_path": "report.finReports[0].common.year",
+              "code": "fin_stale",
+              "source_paths": []
+            },
+            {
+              "claim": "Среди видов деятельности есть коды, которые по статистике ФНС часто выбирают фирмы-однодневки; сам по себе это повод присмотреться, не более.",
+              "severity": "info",
+              "source_path": "report.reputationalRisks.negative[1].code",
+              "code": "flag_massOkved",
+              "source_paths": [
+                "report.reputationalRisks.negative[1].name"
+              ]
+            }
+          ],
+          "ask_before": [
+            "Подтверждение текущего статуса ограничений по банковским счетам.",
+            "Документы о погашении или текущем состоянии действующих обязательств у приставов.",
+            "Подтверждение актуального адреса и регистрационных данных.",
+            "Баланс и отчёт о финансовых результатах за два последних года."
+          ],
+          "gaps": [
+            "В отчёте нет сведений о численности сотрудников — оценить по этому критерию нельзя.",
+            "У единственного действующего производства в отчёте не указана сумма — размер долга оценить нельзя."
+          ],
+          "report_date": "2026-08-27"
+        }
+      ],
+      "citations": [
+        {
+          "claim": "2 открытых арбитражных дела, где компания — ответчик, на сумму 18,9 млн ₽; это в 5 раз больше чистых активов (капитал и резервы) на конец 2025 года (3,8 млн ₽).",
+          "source_path": "report.arbitrationByStatus.defandantArbitration.defandantArbitrationPending.dpCount",
+          "inn": "6165169320"
+        },
+        {
+          "claim": "По отчётности за 2024 год — убыток 26,2 млн ₽.",
+          "source_path": "report.finReports[1].common.profit",
+          "inn": "6165169320"
+        },
+        {
+          "claim": "Оборотные активы 23,3 млн ₽ против краткосрочных обязательств 47,5 млн ₽ на конец 2024 года: покрытие 0,49.",
+          "source_path": "report.finReports[1].assets.currentAssets.total",
+          "inn": "6165169320"
+        },
+        {
+          "claim": "На дату отчёта есть блокировка банковских счетов по постановлению налоговой. Такие блокировки часто краткосрочные — уточните, снята ли она.",
+          "source_path": "report.reputationalRisks.negative[3].code",
+          "inn": "6165169320"
+        },
+        {
+          "claim": "Адрес компании признан недостоверным по данным реестров ФНС — по этому адресу её может не быть.",
+          "source_path": "report.reputationalRisks.negative[2].code",
+          "inn": "2311304742"
+        },
+        {
+          "claim": "2 открытых арбитражных дела (1 в производстве, 1 обжалуется), где компания — ответчик, сумма в отчёте не указана; без суммы соразмерность оценить нельзя.",
+          "source_path": "report.arbitrationByStatus.defandantArbitration.defandantArbitrationPending.dpCount",
+          "inn": "2311304742"
+        },
+        {
+          "claim": "1 действующее исполнительное производство, сумма в отчёте не указана; без суммы соразмерность оценить нельзя, начато за последний год.",
+          "source_path": "report.executionProceedings",
+          "inn": "2311304742"
+        },
+        {
+          "claim": "На дату отчёта есть блокировка банковских счетов по постановлению налоговой. Такие блокировки часто краткосрочные — уточните, снята ли она.",
+          "source_path": "report.reputationalRisks.negative[5].code",
+          "inn": "2311304742"
+        },
+        {
+          "claim": "В ЕГРЮЛ есть отметка о недостоверности регистрационных данных.",
+          "source_path": "report.reputationalRisks.negative[4].code",
+          "inn": "2311304742"
+        },
+        {
+          "claim": "Статус в реестре (обновлён 02.08.2026): «Юридическим лицом принято решение об изменении места нахождения».",
+          "source_path": "report.status.reasonName",
+          "inn": "2311304742"
+        }
+      ],
+      "invalid_citations": [],
+      "report_dates": {
+        "6165169320": "2026-08-25",
+        "1684017097": "2026-08-28",
+        "2311304742": "2026-08-27"
+      }
+    }
+  },
+  {
+    "question": "С кем лучше работать?",
+    "seconds": 4.82,
+    "answer": {
+      "kind": "comparison",
+      "text_md": "По данным этих отчётов предпочтительнее **ООО «ТЕХПРОФ»**.\n\n- **ООО «ТЕХПРОФ»:** Критических и умеренных сигналов в отчёте не выделено. Финансовые данные неполные.\n\n- **ООО «ГДК»:** 2 открытых арбитражных дела, где компания — ответчик, на сумму 18,9 млн ₽; это в 5 раз больше чистых активов (капитал и резервы) на конец 2025 года (3,8 млн ₽). На дату отчёта есть блокировка банковских счетов по постановлению налоговой.\n\n- **ООО «БИЛД-ЮГ»:** Адрес компании признан недостоверным по данным реестров ФНС — по этому адресу её может не быть. На дату отчёта есть блокировка банковских счетов по постановлению налоговой.",
+      "card": null,
+      "cards": [
+        {
+          "inn": "6165169320",
+          "name": "ООО «ГДК»",
+          "labels": {
+            "riskLevel": "зелёный",
+            "zskRiskLevel": "зелёный"
+          },
+          "verdict": "not_recommended",
+          "terminal": false,
+          "attention": [
+            {
+              "claim": "2 открытых арбитражных дела, где компания — ответчик, на сумму 18,9 млн ₽; это в 5 раз больше чистых активов (капитал и резервы) на конец 2025 года (3,8 млн ₽).",
+              "severity": "critical",
+              "source_path": "report.arbitrationByStatus.defandantArbitration.defandantArbitrationPending.dpCount",
+              "code": "arbitration_defendant_open",
+              "source_paths": [
+                "report.arbitrationByStatus.defandantArbitration.defandantArbitrationPending.dpCount",
+                "report.arbitrationByStatus.defandantArbitration.defandantArbitrationPending.dpAmount",
+                "report.finReports[0].liabilities.capitals",
+                "report.reputationalRisks.negative[2].code"
+              ]
+            },
+            {
+              "claim": "По отчётности за 2024 год — убыток 26,2 млн ₽.",
+              "severity": "moderate",
+              "source_path": "report.finReports[1].common.profit",
+              "code": "fin_loss",
+              "source_paths": []
+            },
+            {
+              "claim": "Оборотные активы 23,3 млн ₽ против краткосрочных обязательств 47,5 млн ₽ на конец 2024 года: покрытие 0,49.",
+              "severity": "moderate",
+              "source_path": "report.finReports[1].assets.currentAssets.total",
+              "code": "fin_low_liquidity",
+              "source_paths": [
+                "report.finReports[1].liabilities.shortTermLiabilities.total"
+              ]
+            },
+            {
+              "claim": "На дату отчёта есть блокировка банковских счетов по постановлению налоговой. Такие блокировки часто краткосрочные — уточните, снята ли она.",
+              "severity": "moderate",
+              "source_path": "report.reputationalRisks.negative[3].code",
+              "code": "flag_fnsBlocking",
+              "source_paths": [
+                "report.reputationalRisks.negative[3].name"
+              ]
+            },
+            {
+              "claim": "2 завершённых арбитражных дела, где компания была ответчиком, на сумму 1,9 млн ₽; к текущим претензиям не относятся.",
+              "severity": "info",
+              "source_path": "report.arbitrationByStatus.defandantArbitration.defandantArbitrationFinished.dfCount",
+              "code": "arbitration_defendant_finished",
+              "source_paths": [
+                "report.arbitrationByStatus.defandantArbitration.defandantArbitrationFinished.dfCount",
+                "report.arbitrationByStatus.defandantArbitration.defandantArbitrationFinished.dfAmount",
+                "report.reputationalRisks.negative[2].code"
+              ]
+            },
+            {
+              "claim": "4 завершённых исполнительных производства на сумму 9 018,54 ₽ за 2014–2024 годы; к действующим долгам не относятся.",
+              "severity": "info",
+              "source_path": "report.executionProceedings",
+              "code": "enforcement_finished",
+              "source_paths": [
+                "report.executionProceedings[3]",
+                "report.executionProceedings[2]",
+                "report.executionProceedings[1]",
+                "report.executionProceedings[0]"
+              ]
+            },
+            {
+              "claim": "Среди видов деятельности есть коды, которые по статистике ФНС часто выбирают фирмы-однодневки; сам по себе это повод присмотреться, не более.",
+              "severity": "info",
+              "source_path": "report.reputationalRisks.negative[0].code",
+              "code": "flag_massOkved",
+              "source_paths": [
+                "report.reputationalRisks.negative[0].name"
+              ]
+            }
+          ],
+          "ask_before": [
+            "Подтверждение текущего статуса ограничений по банковским счетам.",
+            "Баланс и отчёт о финансовых результатах за два последних года."
+          ],
+          "gaps": [
+            "В отчёте нет сведений о численности сотрудников — оценить по этому критерию нельзя."
+          ],
+          "report_date": "2026-08-25"
+        },
+        {
+          "inn": "1684017097",
+          "name": "ООО «ТЕХПРОФ»",
+          "labels": {
+            "riskLevel": "зелёный",
+            "zskRiskLevel": "зелёный"
+          },
+          "verdict": "ok",
+          "terminal": false,
+          "attention": [],
+          "ask_before": [
+            "Баланс и отчёт о финансовых результатах за два последних года."
+          ],
+          "gaps": [
+            "В отчёте нет сведений о численности сотрудников — оценить по этому критерию нельзя.",
+            "В отчётности за 2024–2025 годы нет строки «прибыль (убыток)» — оценить по этому критерию нельзя.",
+            "В отчётности за 2025 год нет итога оборотных активов или краткосрочных обязательств — текущую ликвидность по отчёту не рассчитать."
+          ],
+          "report_date": "2026-08-28"
+        },
+        {
+          "inn": "2311304742",
+          "name": "ООО «БИЛД-ЮГ»",
+          "labels": {
+            "riskLevel": "зелёный",
+            "zskRiskLevel": "зелёный"
+          },
+          "verdict": "not_recommended",
+          "terminal": false,
+          "attention": [
+            {
+              "claim": "Адрес компании признан недостоверным по данным реестров ФНС — по этому адресу её может не быть.",
+              "severity": "critical",
+              "source_path": "report.reputationalRisks.negative[2].code",
+              "code": "flag_invalidAddress",
+              "source_paths": [
+                "report.reputationalRisks.negative[2].name"
+              ]
+            },
+            {
+              "claim": "2 открытых арбитражных дела (1 в производстве, 1 обжалуется), где компания — ответчик, сумма в отчёте не указана; без суммы соразмерность оценить нельзя.",
+              "severity": "moderate",
+              "source_path": "report.arbitrationByStatus.defandantArbitration.defandantArbitrationPending.dpCount",
+              "code": "arbitration_defendant_open",
+              "source_paths": [
+                "report.arbitrationByStatus.defandantArbitration.defandantArbitrationPending.dpCount",
+                "report.arbitrationByStatus.defandantArbitration.defandantArbitrationAppealed.daCount",
+                "report.finReports[0].liabilities.capitals",
+                "report.reputationalRisks.negative[3].code"
+              ]
+            },
+            {
+              "claim": "1 действующее исполнительное производство, сумма в отчёте не указана; без суммы соразмерность оценить нельзя, начато за последний год.",
+              "severity": "moderate",
+              "source_path": "report.executionProceedings",
+              "code": "enforcement_active",
+              "source_paths": [
+                "report.executionProceedings[1]",
+                "report.finReports[0].liabilities.capitals",
+                "report.reputationalRisks.negative[0].code"
+              ]
+            },
+            {
+              "claim": "На дату отчёта есть блокировка банковских счетов по постановлению налоговой. Такие блокировки часто краткосрочные — уточните, снята ли она.",
+              "severity": "moderate",
+              "source_path": "report.reputationalRisks.negative[5].code",
+              "code": "flag_fnsBlocking",
+              "source_paths": [
+                "report.reputationalRisks.negative[5].name"
+              ]
+            },
+            {
+              "claim": "В ЕГРЮЛ есть отметка о недостоверности регистрационных данных.",
+              "severity": "moderate",
+              "source_path": "report.reputationalRisks.negative[4].code",
+              "code": "flag_invalidRegistrationData",
+              "source_paths": [
+                "report.reputationalRisks.negative[4].name"
+              ]
+            },
+            {
+              "claim": "Статус в реестре (обновлён 02.08.2026): «Юридическим лицом принято решение об изменении места нахождения».",
+              "severity": "moderate",
+              "source_path": "report.status.reasonName",
+              "code": "status_reason",
+              "source_paths": [
+                "report.status.date"
+              ]
+            },
+            {
+              "claim": "6 завершённых арбитражных дел, где компания была ответчиком, на сумму 2,7 млн ₽; к текущим претензиям не относятся.",
+              "severity": "info",
+              "source_path": "report.arbitrationByStatus.defandantArbitration.defandantArbitrationFinished.dfCount",
+              "code": "arbitration_defendant_finished",
+              "source_paths": [
+                "report.arbitrationByStatus.defandantArbitration.defandantArbitrationFinished.dfCount",
+                "report.arbitrationByStatus.defandantArbitration.defandantArbitrationFinished.dfAmount",
+                "report.reputationalRisks.negative[3].code"
+              ]
+            },
+            {
+              "claim": "1 завершённое исполнительное производство на сумму 750 ₽ за 2026 год, за последний год; к действующим долгам не относятся.",
+              "severity": "info",
+              "source_path": "report.executionProceedings",
+              "code": "enforcement_finished",
+              "source_paths": [
+                "report.executionProceedings[0]"
+              ]
+            },
+            {
+              "claim": "Последняя отчётность в отчёте — за 2024 год; отчётность за 2025 год должна была быть сдана к 31 марта 2026 года.",
+              "severity": "info",
+              "source_path": "report.finReports[0].common.year",
+              "code": "fin_stale",
+              "source_paths": []
+            },
+            {
+              "claim": "Среди видов деятельности есть коды, которые по статистике ФНС часто выбирают фирмы-однодневки; сам по себе это повод присмотреться, не более.",
+              "severity": "info",
+              "source_path": "report.reputationalRisks.negative[1].code",
+              "code": "flag_massOkved",
+              "source_paths": [
+                "report.reputationalRisks.negative[1].name"
+              ]
+            }
+          ],
+          "ask_before": [
+            "Подтверждение текущего статуса ограничений по банковским счетам.",
+            "Документы о погашении или текущем состоянии действующих обязательств у приставов.",
+            "Подтверждение актуального адреса и регистрационных данных.",
+            "Баланс и отчёт о финансовых результатах за два последних года."
+          ],
+          "gaps": [
+            "В отчёте нет сведений о численности сотрудников — оценить по этому критерию нельзя.",
+            "У единственного действующего производства в отчёте не указана сумма — размер долга оценить нельзя."
+          ],
+          "report_date": "2026-08-27"
+        }
+      ],
+      "citations": [
+        {
+          "claim": "2 открытых арбитражных дела, где компания — ответчик, на сумму 18,9 млн ₽; это в 5 раз больше чистых активов (капитал и резервы) на конец 2025 года (3,8 млн ₽).",
+          "source_path": "report.arbitrationByStatus.defandantArbitration.defandantArbitrationPending.dpCount",
+          "inn": "6165169320"
+        },
+        {
+          "claim": "На дату отчёта есть блокировка банковских счетов по постановлению налоговой. Такие блокировки часто краткосрочные — уточните, снята ли она.",
+          "source_path": "report.reputationalRisks.negative[3].code",
+          "inn": "6165169320"
+        },
+        {
+          "claim": "Адрес компании признан недостоверным по данным реестров ФНС — по этому адресу её может не быть.",
+          "source_path": "report.reputationalRisks.negative[2].code",
+          "inn": "2311304742"
+        },
+        {
+          "claim": "На дату отчёта есть блокировка банковских счетов по постановлению налоговой. Такие блокировки часто краткосрочные — уточните, снята ли она.",
+          "source_path": "report.reputationalRisks.negative[5].code",
+          "inn": "2311304742"
+        }
+      ],
+      "invalid_citations": [],
+      "report_dates": {
+        "6165169320": "2026-08-25",
+        "1684017097": "2026-08-28",
+        "2311304742": "2026-08-27"
+      }
+    }
+  }
+]

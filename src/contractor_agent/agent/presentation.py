@@ -4,7 +4,7 @@ import re
 
 _INTERNAL = re.compile(
     r"\b(?:report|labels|data|computed)\.[A-Za-z_]"
-    r"|\b(?:source_paths?|verdict_ru|signal_counts|riskLevel|zskRiskLevel|gaps|signals)\b"
+    r"|\b(?:source_paths?|verdict_ru|signal_counts|riskLevel|zskRiskLevel|gaps?|signals)\b"
     r"|\b[a-zA-Z]+(?:_[a-zA-Z]+)+\b",
     re.I,
 )
@@ -18,6 +18,16 @@ _BANNER = re.compile(
     r"Часть запрошенных сведений не удалось подтвердить|готово за \d+).*$",
     re.M | re.I,
 )
+_REPORT_DATE_LINE = re.compile(
+    r"(?im)^[ \t]*(?:[-•] )?(?:\*\*)?(?:Отч[её]т|Дата отч[её]та)"
+    r"(?: по ИНН \d{10,12})?\s*(?:от|:)\s*"
+    r"(?:\d{2}\.\d{2}\.\d{4}|\d{4}-\d{2}-\d{2})[.]?(?:\*\*)?[ \t]*$"
+)
+
+
+def comparison_text(text: str) -> str:
+    """Report dates are structured metadata, not repeated paragraphs in a comparison."""
+    return re.sub(r"\n{3,}", "\n\n", _REPORT_DATE_LINE.sub("", text)).strip()
 
 
 def public_text(text: str) -> str:
@@ -27,6 +37,13 @@ def public_text(text: str) -> str:
     Ordinary brackets (dates, company names, explanations) remain intact.
     """
     text = _BANNER.sub("", text)
+    text = re.sub(r"`(?:report|critical|moderate|info)`", "", text)
+    text = re.sub(
+        r"работать только на условиях: предоплата и подтверждающие документы",
+        "есть существенные риски",
+        text,
+        flags=re.I,
+    )
     text = re.sub(r"(?m)[ \t]*\\[ \t]*$", "", text)
     text = re.sub(r"(?i)\b(вывод|рекомендация) банка\b", r"\1 помощника", text)
     # Remove malformed, unclosed annotations before deleting their keywords.

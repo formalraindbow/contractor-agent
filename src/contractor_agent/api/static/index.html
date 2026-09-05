@@ -83,6 +83,7 @@ button:focus-visible,a:focus-visible,input:focus-visible,textarea:focus-visible,
 .overlay.is-open { opacity:1; } .overlay.is-open .drawer { transform:translateX(0); }
 .drawer-header { display:flex; justify-content:space-between; align-items:center; gap:14px; position:sticky; top:-24px; padding:12px 0; background:#fff; z-index:1; border-bottom:1px solid var(--line); } .drawer h2 { margin:0; font-size:21px; } .drawer h3 { margin:22px 0 10px; font-size:16px; } .drawer .fact { border-bottom:1px solid var(--line); padding:15px 0; } .drawer .fact p { margin:0 0 8px; } .drawer .verdict { border-radius:8px; margin:18px 0; padding:14px; } .drawer .gaps { padding:14px 0; } .drawer .meta { margin:10px 0; }
 .source-block { margin:12px 0; font-size:13px; } .source-block summary { color:var(--text); } .error-message { color:var(--crit); font-size:14px; padding:8px 0; }
+.report-option { display:block; width:100%; margin:12px 0; padding:14px; text-align:left; background:#fff; border:1px solid var(--line); border-radius:8px; } .report-option:hover { background:var(--surface); } .report-option small { display:block; color:var(--muted); margin-top:4px; }
 @media(max-width:1050px) { .shell { grid-template-columns:215px minmax(0,1fr); } .page { padding:24px; } .topbar { padding:15px 24px; } .card-extra { grid-template-columns:1fr; } .card-extra .gaps + .gaps { border-left:0; } }
 @media(max-width:720px) { .shell { display:block; height:auto; overflow:visible; } .sidebar { height:auto; padding:14px 16px; gap:14px; border-right:0; border-bottom:1px solid var(--line); } .brand { float:left; } .brand-mark { font-size:24px; } .new-chat { padding:7px 10px; } .tabs { display:flex; flex-wrap:wrap; gap:2px; } .tabs button { font-size:12px; padding:7px 9px; } .sidebar-note { display:none; } #chats { max-height:140px; overflow:auto; } .workspace { overflow:visible; } .topbar { display:none; } .page { padding:18px 12px; } .welcome { padding:15px 4px 24px; } .welcome h1 { font-size:28px; } .row { flex-wrap:wrap; } .row input { flex-basis:65%; } .company h1 { font-size:22px; } .company { padding:0 5px; } .ask { padding:12px; } .ask button { padding:12px; } .bubble { max-width:95%; } .thread { padding:18px 16px; } .drawer { padding:18px; } }
 @media(prefers-reduced-motion:reduce) { *,*::before,*::after { animation:none!important; transition:none!important; scroll-behavior:auto!important; } }
@@ -216,8 +217,8 @@ button:focus-visible,a:focus-visible,input:focus-visible,textarea:focus-visible,
 
 <script>
 const $ = (s) => document.querySelector(s);
-const VERDICT = { ok: "Можно работать", check: "Стоит проверить до договора", not_recommended: "Работать только на условиях: предоплата и подтверждающие документы" };
-const VERDICT_SHORT = { ok: "Можно работать", check: "Проверить до договора", not_recommended: "Предоплата и документы" };
+const VERDICT = { ok: "Можно работать", check: "Стоит проверить до договора", not_recommended: "Есть существенные риски" };
+const VERDICT_SHORT = { ok: "Можно работать", check: "Проверить до договора", not_recommended: "Существенные риски" };
 const SEV = { critical: "важно", moderate: "стоит учесть", info: "к сведению" };
 const TOOLS = { search_company: "ищу компанию", get_report_summary: "читаю сводку", get_risk_signals: "проверяю, на что обратить внимание", get_financials: "смотрю финансы", get_enforcement_summary: "смотрю долги у приставов", get_arbitration_summary: "смотрю суды", get_section: "читаю раздел отчёта", compare_companies: "сравниваю компании" };
 const newThread = () => crypto.randomUUID();
@@ -279,7 +280,7 @@ async function openChat(id) {
   target.innerHTML = '';
   for (const t of chat.turns || []) {
     const el = document.createElement('div'); el.className = 'turn' + (t.who === 'user' ? ' user' : '');
-    el.innerHTML = t.who === 'user' ? `<div class="bubble">${esc(t.text)}</div>` : `<div class="who">Помощник</div><div class="answer"><div class="body">${md(t.text)}</div></div>`;
+    el.innerHTML = t.who === 'user' ? `<div class="bubble">${esc(t.text)}</div>` : `<div class="who">Помощник</div><div class="answer"><div class="body">${md(answerText(t.answer || {text_md:t.text}))}</div></div>`;
     target.append(el);
     if (t.answer) answerActions(el.querySelector('.answer'), t.answer);
   }
@@ -420,6 +421,20 @@ document.addEventListener('keydown',e=>{
 });
 const money = n => n == null ? 'В отчёте не указано' : Number(n).toLocaleString('ru-RU',{maximumFractionDigits:2})+' ₽';
 const displayValue = value => value == null ? 'В отчёте не указано' : typeof value==='object' ? JSON.stringify(value,null,2) : String(value);
+function answerText(a) {
+  // Also remove obsolete boilerplate when restoring a saved conversation.
+  let text=(a.text_md || '').replace(/работать только на условиях: предоплата и подтверждающие документы/gi,'есть существенные риски')
+    .replace(/требуют предоплаты с подтверждающими документами/gi,'требуют дополнительной проверки');
+  if(Object.keys(a.report_dates || {}).length>1) {
+    text=text.replace(/^[ \t]*(?:[-•] )?(?:\*\*)?(?:Отч[её]т|Дата отч[её]та)(?: по ИНН \d{10,12})?\s*(?:от|:)\s*(?:\d{2}\.\d{2}\.\d{4}|\d{4}-\d{2}-\d{2})[.]?(?:\*\*)?[ \t]*$/gim,'');
+  }
+  return text.replace(/\n{3,}/g,'\n\n').trim();
+}
+function openReports(cards) {
+  if(cards.length===1) return openReport(cards[0]);
+  openDrawer('Отчёты компаний',cards.map((c,i)=>`<button type="button" class="report-option" data-report-index="${i}"><strong>${esc(c.name || 'Компания')}</strong><small>ИНН ${esc(c.inn)}${c.report_date ? ' · от '+dateRu(c.report_date) : ''}</small></button>`).join(''));
+  $('#drawerContent').querySelectorAll('[data-report-index]').forEach(b=>b.onclick=()=>openReport(cards[+b.dataset.reportIndex]));
+}
 function answerActions(el,a) {
   if(!el) return;
   const actions=document.createElement('div'); actions.className='actions';
@@ -429,9 +444,13 @@ function answerActions(el,a) {
   if(inns.length===1) {
     const report=document.createElement('button'); report.type='button'; report.className='quiet'; report.textContent='Открыть отчёт';
     report.onclick=()=>openReport({inn:inns[0]}); actions.append(report);
+  } else if(inns.length>1) {
+    const reports=document.createElement('button'); reports.type='button'; reports.className='quiet'; reports.textContent=`Отчёты · ${inns.length}`;
+    reports.onclick=()=>openReports(inns.map(inn=>({...((a.cards || []).find(c=>c.inn===inn) || chosen.find(c=>c.inn===inn)?.card || {inn}),report_date:a.report_dates?.[inn]})));
+    actions.append(reports);
   }
   const copy=document.createElement('button'); copy.type='button'; copy.className='quiet'; copy.textContent='Копировать ответ';
-  copy.onclick=async()=>{try {await navigator.clipboard.writeText(a.text_md || ''); copy.textContent='Скопировано';} catch {copy.textContent='Не удалось скопировать';} setTimeout(()=>copy.textContent='Копировать ответ',1600);};
+  copy.onclick=async()=>{try {await navigator.clipboard.writeText(answerText(a)); copy.textContent='Скопировано';} catch {copy.textContent='Не удалось скопировать';} setTimeout(()=>copy.textContent='Копировать ответ',1600);};
   actions.append(copy); el.append(actions);
 }
 function openSources(a) {
@@ -591,9 +610,9 @@ function renderComparison(cards) {
   html += row("Главное", (c) => `<td>${(c.attention || []).length ? `<ul>${c.attention.slice(0, 3).map((a) => `<li>${esc(a.claim)}</li>`).join("")}</ul>` : `<span class="muted">сигналов не найдено</span>`}</td>`);
   html += row("Чего нет в отчёте", (c) => `<td class="muted">${(c.gaps || []).length ? esc(c.gaps.join(" · ")) : "пробелов нет"}</td>`);
   html += `</tbody></table></div>`;
-  html += '<div class="actions">'+cards.map((c,i)=>`<button type="button" class="quiet" data-report="${i}">Отчёт: ${esc(c.name)}</button>`).join('')+'<button type="button" class="quiet" id="cmpSources">Показать основания сравнения</button></div>';
+  html += `<div class="actions"><button type="button" class="quiet" id="cmpReports">Отчёты · ${cards.length}</button><button type="button" class="quiet" id="cmpSources">Показать основания сравнения</button></div>`;
   $("#cmpBody").innerHTML = html;
-  $('#cmpBody').querySelectorAll('[data-report]').forEach(b=>b.onclick=()=>openReport(cards[+b.dataset.report]));
+  $('#cmpReports').onclick=()=>openReports(cards);
   $('#cmpSources').onclick=()=>openSources({citations:cards.flatMap(c=>cardCitations(c).citations),report_dates:Object.fromEntries(cards.map(c=>[c.inn,c.report_date]))});
 }
 
@@ -693,7 +712,7 @@ async function stream(container, question, shown, onEnd, attempt) {
         if(!raw) continue; let env; try {env=JSON.parse(raw);} catch {continue;}
         if(env.type==='end') {
           ended=true; const a=env.data.output;
-          status.hidden=true; body.innerHTML=md(a.text_md || 'В отчёте недостаточно сведений для ответа.');
+          status.hidden=true; body.innerHTML=md(answerText(a) || 'В отчёте недостаточно сведений для ответа.');
           answerActions(turn.querySelector('.answer'),a);
           chatTurn('agent',a.text_md,a);
           if(onEnd) await onEnd(a);
