@@ -10,6 +10,7 @@ from collections import defaultdict
 from dataclasses import dataclass, field
 from statistics import mean
 
+from evals.checks import visible_invalid_citations
 from evals.runner import RunRecord
 
 JUDGE_PASS = 4
@@ -27,7 +28,7 @@ class Metrics:
     missed_critical_share: float | None = None  # пропущенные критичные факты (card)
     judge_mean: float | None = None
     stability: float | None = None  # доля вопросов с одинаковым исходом во всех повторах
-    by_type: dict[str, dict[str, float | int]] = field(default_factory=dict)
+    by_type: dict[str, dict[str, float | int | None]] = field(default_factory=dict)
     mean_duration_s: float | None = None
 
 
@@ -69,7 +70,9 @@ def compute_metrics(records: list[RunRecord]) -> Metrics:
         if r.judge and ("invented_fact" in r.judge.failures or "false_alarm" in r.judge.deductions)
     ]
     m.invented_share = _share(len(invented), sum(r.judge is not None for r in ok))
-    bad_cit = [r for r in ok if r.answer and r.answer.invalid_citations]  # ссылка не на то поле
+    bad_cit = [
+        r for r in ok if r.answer and visible_invalid_citations(r.answer)
+    ]  # ссылка не на то поле
     m.bad_citation_share = _share(len(bad_cit), len(ok))
 
     cards = [r for r in ok if r.type == "card"]
@@ -87,21 +90,26 @@ def compute_metrics(records: list[RunRecord]) -> Metrics:
     m.mean_duration_s = round(mean(durations), 1) if durations else None
 
     outcomes: dict[str, set[tuple]] = defaultdict(set)
-    for r in ok:
+    for r in records:
         verdict = r.answer.card.verdict.value if r.answer and r.answer.card else None
-        outcomes[r.question_id].add((r.checks_passed, verdict))
-    repeated = {q: o for q, o in outcomes.items() if sum(1 for r in ok if r.question_id == q) > 1}
+        outcomes[r.question_id].add((bool(r.error), r.checks_passed, verdict))
+    repeated = {
+        q: o for q, o in outcomes.items() if sum(1 for r in records if r.question_id == q) > 1
+    }
     if repeated:
         m.stability = _share(sum(1 for o in repeated.values() if len(o) == 1), len(repeated))
 
     for kind in ("card", "answer", "refuse", "infer"):
-        rows = [r for r in ok if r.type == kind]
+        rows = [r for r in records if r.type == kind]
         if rows:
             m.by_type[kind] = {
                 "n": len(rows),
-                "checks_pass": _share(sum(1 for r in rows if r.checks_passed), len(rows)) or 0,
+                "checks_pass": _share(
+                    sum(1 for r in rows if not r.error and r.checks_passed), len(rows)
+                )
+                or 0,
                 "judge_mean": round(mean(r.judge.score for r in rows if r.judge), 2)
                 if any(r.judge for r in rows)
-                else 0,
+                else None,
             }
     return m

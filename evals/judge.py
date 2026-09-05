@@ -89,7 +89,8 @@ def judge_messages(question: GoldQuestion, answer: Answer, tool_outputs: str) ->
         f"{card_line}"
         f"Цитаты, прошедшие проверку кодом (утверждение → поле отчёта): "
         f"{[c.model_dump() for c in answer.citations]}\n"
-        f"Цитаты, не прошедшие проверку: {[c.model_dump() for c in answer.invalid_citations]}"
+        f"Журнал отклонённых цитат черновика (не считать ошибкой, если утверждение удалено "
+        f"или исправлено в показанном ответе): {[c.model_dump() for c in answer.invalid_citations]}"
     )
     return [SystemMessage(content=JUDGE_PROMPT), HumanMessage(content=user)]
 

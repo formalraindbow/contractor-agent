@@ -130,11 +130,11 @@ def render_sections(
             )
         else:
             lines.append(response.note or "Сведения о производствах недоступны.")
-    if "get_section" in called:
+    if {"get_section", "get_report_summary"} & called:
         for pattern, section, label in [
             (r"проверок|проверки|проверяли|инспекц", "inspections", "проверках госорганов"),
             (r"лиценз", "licenses", "лицензиях"),
-            (r"филиал", "branches", "филиалах"),
+            (r"филиал", "branchesInfo", "филиалах"),
         ]:
             if not re.search(pattern, question, re.I):
                 continue

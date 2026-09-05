@@ -13,6 +13,7 @@ import asyncio
 import hashlib
 import html
 import json
+import math
 import re
 import statistics
 import time
@@ -110,10 +111,15 @@ def report(out, records, manifest):
                 len((r.get("answer") or {}).get("invalid_citations") or []) for r in rows
             ),
             "median_s": round(statistics.median(dur), 2) if dur else None,
-            "p95_s": dur[min(len(dur) - 1, int(len(dur) * 0.95))] if dur else None,
+            "p95_s": dur[math.ceil(len(dur) * 0.95) - 1] if dur else None,
             "input_tokens": sum(r.get("usage", {}).get("input_tokens", 0) for r in runtimes),
             "output_tokens": sum(r.get("usage", {}).get("output_tokens", 0) for r in runtimes),
             "llm_calls": sum(r.get("llm_calls", 0) for r in runtimes),
+            "usage_incomplete_runs": sum(
+                not r.get("answer")
+                or (r["answer"].get("runtime") or {}).get("usage_complete") is False
+                for r in rows
+            ),
         }
     (out / "summary.json").write_text(json.dumps(summaries, ensure_ascii=False, indent=2))
     lines = [
@@ -165,7 +171,7 @@ def report(out, records, manifest):
         rows.append(
             "<section><h2>"
             + esc(case)
-            + f" · ход {turn + 1}</h2><p>"
+            + f" · повтор {_rep + 1} · ход {turn + 1}</h2><p>"
             + esc(q)
             + '</p><div class="pair">'
             + "".join(cols)
@@ -173,7 +179,7 @@ def report(out, records, manifest):
         )
     (out / "report.html").write_text(
         '<!doctype html><html lang="ru"><meta charset="utf-8"><title>Сравнение версий</title><style>body{max-width:1440px;margin:40px auto;padding:0 28px;background:#f3f5f7;color:#172331;font:15px/1.6 Arial}h1{font-size:32px}.pair{display:grid;grid-template-columns:1fr 1fr;gap:20px}article{background:white;border:1px solid #dce1e7;padding:22px;border-radius:10px}pre{white-space:pre-wrap;font:14px/1.7 Arial;overflow-wrap:anywhere}.meta{font-size:12px;color:#647181}section{margin:35px 0}@media(max-width:700px){.pair{grid-template-columns:1fr}}</style><h1>develop / review-v4</h1><p>Одна модель. Одинаковые сценарии. Ответы без редактирования.</p><pre>'
-        + esc("\n".join(lines[:10]))
+        + esc("\n".join(lines[:12]))
         + "</pre>"
         + "".join(rows)
         + "</html>"
@@ -222,6 +228,8 @@ async def main(args):
             json.dumps(cases, sort_keys=True).encode()
         ).hexdigest()
         manifest["repeats"] = args.repeats
+        manifest["started_at"] = datetime.now().astimezone().isoformat()
+        manifest["evaluator_sha256"] = hashlib.sha256(Path(__file__).read_bytes()).hexdigest()
         manifest["context_turns_per_version"] = (
             sum(bool(c.get("context_question")) for c in cases) * args.repeats
         )

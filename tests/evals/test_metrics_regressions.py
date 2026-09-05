@@ -26,3 +26,16 @@ def test_api_failures_remain_in_success_denominator():
     assert result.grounded_share == 0.5
     assert result.refusal_share == 0
     assert result.mean_duration_s == 2
+
+
+def test_failed_repeat_is_not_hidden_and_missing_judge_is_unknown():
+    base = dict(inn="1", model="x", question="q", question_id="same", type="answer")
+    rows = [
+        RunRecord(repeat=0, checks_passed=True, **base),
+        RunRecord(repeat=1, error="timeout", **base),
+    ]
+    result = compute_metrics(rows)
+    assert result.stability == 0
+    assert result.by_type["answer"]["n"] == 2
+    assert result.by_type["answer"]["checks_pass"] == 0.5
+    assert result.by_type["answer"]["judge_mean"] is None

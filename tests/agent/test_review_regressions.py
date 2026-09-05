@@ -137,3 +137,58 @@ async def test_invalid_plain_number_is_not_published(snapshot, tmp_path):
         answer = await rt.ask("Выручка ТЕХПРОФ 1684017097")
     assert "999" not in answer.text_md
     assert answer.verification["removed_lines"] == 1
+
+
+async def test_structured_failure_uses_retrieved_enforcement_facts(snapshot, tmp_path):
+    llm = scripted_llm(
+        [
+            tool_call("get_enforcement_summary", "a", inn="2311304742"),
+            AIMessage("готово"),
+            None,
+            None,
+        ]
+    )
+    async with AgentRuntime(Settings(runs_dir=tmp_path), source=snapshot, llm=llm) as rt:
+        answer = await rt.ask(
+            "Сколько БИЛД-ЮГ 2311304742 выплатит по действующему исполнительному производству?"
+        )
+    assert answer.kind == "answer"
+    assert "сумма не указана" in answer.text_md
+    assert "Повторите запрос" not in answer.text_md
+    assert answer.citations
+    assert all(check_citation(snapshot, ["2311304742"], c).ok for c in answer.citations)
+
+
+def test_presentation_does_not_change_bank_labels_or_source_paths():
+    from contractor_agent.agent.nodes import presentation_text
+
+    assert (
+        presentation_text("Вердикт банка: стоит проверить дополнительно.")
+        == "Рекомендация по отчёту: стоит проверить дополнительно."
+    )
+    assert "null" not in presentation_text("Указано **null** — численность отсутствует.")
+    assert presentation_text("Светофор банка: зелёный.") == "Светофор банка: зелёный."
+
+
+def test_section_absence_can_use_retrieved_report_summary(snapshot):
+    from contractor_agent.agent.section_answer import render_sections
+    from contractor_agent.mcp_server.tools import Tools
+
+    text, _ = render_sections(
+        Tools(snapshot),
+        "2311304742",
+        "Нет раздела проверок — значит, не проверяли?",
+        {"get_report_summary"},
+    )
+    assert "не означает" in text
+    assert "get_section" not in text
+
+
+def test_branch_section_fallback_uses_real_schema_name(snapshot):
+    from contractor_agent.agent.section_answer import render_sections
+    from contractor_agent.mcp_server.tools import Tools
+
+    report = next(r for r in snapshot if r.report.branches_info is not None)
+    text, _ = render_sections(Tools(snapshot), report.inn, "Какие есть филиалы?", {"get_section"})
+    assert "присутствует" in text
+    assert "нет доступных" not in text

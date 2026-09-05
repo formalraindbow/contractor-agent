@@ -47,7 +47,7 @@ def test_answer_checks_must_mention_and_citations() -> None:
     ).passed
     bad = check(q, _answer("Производств много."), "2026-07-31")
     assert not bad.passed and any("не названо" in f for f in bad.failures)
-    invented = check(q, _answer("54 производства", invalid=1), "2026-07-31")
+    invented = check(q, _answer("54 производства и выдумка", invalid=1), "2026-07-31")
     assert not invented.passed and any("невалидных цитат" in f for f in invented.failures)
 
 
@@ -86,7 +86,7 @@ def test_card_checks_verdict_labels_facts_and_date() -> None:
     )
     q = gold.questions({"card"})[0]
     good = _answer(
-        "Компания признана банкротом [report.status.reasonName], 507 производств. Только на условиях. Отчёт от 31.07.2026.",
+        "Компания признана банкротом [report.status.reasonName], 507 производств. Нужна дополнительная проверка перед взаимодействием. Отчёт от 31.07.2026.",
         kind="card",
         card=_card(),
     )
@@ -177,3 +177,50 @@ def test_role_synonyms_count_as_role():
     assert _has("Завершённые иски к компании: 8 дел", "ответчик")
     assert _has("Компания сама подавала 20 раз", "истец")
     assert not _has("Всего 8 дел", "ответчик")
+
+
+def test_removed_invalid_claim_is_not_a_visible_failure():
+    q = GoldQuestion(id="q", inn="5032257375", type="answer", question="?")
+    assert check(q, _answer("Подтверждённый факт.", invalid=1), "2026-07-31").passed
+
+
+def test_refusal_cannot_hide_visible_invalid_claim():
+    q = GoldQuestion(id="q", inn="5032257375", type="refuse", question="?")
+    result = check(q, _answer("Нет данных. Выдумка.", kind="refusal", invalid=1), "2026-07-31")
+    assert not result.passed and not result.notes["citations_valid"]
+
+
+def test_denied_absence_claim_is_not_penalized():
+    from evals.checks import _has_prohibited
+
+    assert not _has_prohibited("Это не означает, что проверок не было.", "проверок не было")
+    assert _has_prohibited(
+        "Это не означает, что проверок не было. Проверок не было.", "проверок не было"
+    )
+    assert _has_prohibited("Проверок не было.", "проверок не было")
+
+
+def test_correct_structured_verdict_cannot_hide_wrong_visible_verdict():
+    q = GoldQuestion(
+        id="q", inn="5032257375", type="card", question="?", expected_verdict="not_recommended"
+    )
+    result = check(
+        q, _answer("Можно работать. 31.07.2026", kind="card", card=_card()), "2026-07-31"
+    )
+    assert not result.passed and not result.notes["verdict_match"]
+
+
+def test_audit_matching_preserves_the_sign():
+    from evals.checks import visible_invalid_citations
+
+    answer = Answer(
+        kind="answer",
+        text_md="Прибыль -26 млн. Прибыль 26 млн.",
+        citations=[
+            Citation(claim="Прибыль -26 млн", source_path="report.finReports[0].common.profit")
+        ],
+        invalid_citations=[
+            Citation(claim="Прибыль 26 млн", source_path="report.finReports[0].common.profit")
+        ],
+    )
+    assert len(visible_invalid_citations(answer)) == 1

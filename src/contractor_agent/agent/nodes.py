@@ -169,6 +169,7 @@ def make_nodes(llm: LLM, tools: list[Any], source: ReportSource) -> dict[str, No
             and not (search_payload.get("data") or {}).get("items")
             and not state.get("turn_inns")
         )
+        structured_failed = False
         try:
             draft = (
                 Draft(
@@ -182,12 +183,22 @@ def make_nodes(llm: LLM, tools: list[Any], source: ReportSource) -> dict[str, No
             )
             if not isinstance(draft, Draft):
                 draft = Draft.model_validate(draft)
-        except Exception:  # модель не смогла выдать структуру — честный отказ, не падение
+        except Exception:  # malformed structure: use only already retrieved report facts
+            structured_failed = True
             draft = Draft(
                 kind="refusal",
                 lines=["Не удалось подготовить подтверждённый ответ. Повторите запрос."],
                 citations=[],
             )
+        draft = draft.model_copy(
+            update={
+                "lines": [presentation_text(line) for line in draft.lines],
+                "citations": [
+                    c.model_copy(update={"claim": presentation_text(c.claim)})
+                    for c in draft.citations
+                ],
+            }
+        )
         citations = list(draft.citations)
         seen_paths = {c.source_path for c in citations}
         for extra in extract_inline_citations(
@@ -200,6 +211,26 @@ def make_nodes(llm: LLM, tools: list[Any], source: ReportSource) -> dict[str, No
         inns = list(state.get("turn_inns") or state.get("selected_inns") or [])
         cards = [c for c in (build_card(tools_layer, inn) for inn in inns) if c]
         kind_hint, _ = question_kind_hint(question)
+        if structured_failed and len(inns) == 1:
+            fallback, facts = render_sections(
+                tools_layer,
+                inns[0],
+                question,
+                {t.name for t in state.get("trace") or []},
+            )
+            if (
+                not fallback
+                and cards
+                and any(t.name == "get_risk_signals" for t in state.get("trace") or [])
+                and kind_hint in (None, "card")
+            ):
+                fallback, facts = render_card(cards[0], tools_layer)
+                fallback_kind = "card"
+            else:
+                fallback_kind = "answer"
+            if fallback:
+                draft = Draft(kind=fallback_kind, lines=fallback.splitlines(), citations=facts)
+                citations = facts
         if kind_hint == "comparison" and len(cards) >= 2 and draft.kind != "comparison":
             draft = draft.model_copy(
                 update={"kind": "comparison"}
@@ -904,6 +935,17 @@ PURPOSES = (
     (re.compile(r"постав|закупщик|закупок", re.I), "поставка"),
     (re.compile(r"претензи|юрист|взыскан", re.I), "претензия"),
 )
+
+
+def presentation_text(text: str) -> str:
+    """Keep data absence human-readable and do not attribute our recommendation to the bank."""
+    text = re.sub(
+        r"\bвердикт\s+банка\s*:(?=\s*(?:стоит проверить|нужна дополнительная|можно работать))",
+        "Рекомендация по отчёту:",
+        text,
+        flags=re.I,
+    )
+    return re.sub(r"(?:\*\*|`)null(?:\*\*|`)|\bзначение\s+null\b", "нет данных", text, flags=re.I)
 
 
 def normalized_claim(text: str) -> str:

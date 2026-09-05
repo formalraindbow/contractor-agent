@@ -54,6 +54,38 @@ def _has(text: str, needle: str) -> bool:
     )
 
 
+def _has_prohibited(text: str, needle: str) -> bool:
+    """A directly denied claim is not an asserted fact; keep this exception narrow."""
+    lowered = re.sub(r"\s+", " ", text.casefold())
+    denial = re.compile(
+        r"(?:не (?:означает|значит|доказывает)|нельзя (?:утверждать|считать|говорить|делать вывод))"
+        r"\s*[:,]?\s*(?:что\s*)?[«\"“]?\s*$"
+    )
+    for variant in needle.split(" | "):
+        normalized = re.sub(r"\s+", " ", variant.strip().casefold())
+        if not normalized:
+            continue
+        for match in re.finditer(re.escape(normalized), lowered):
+            if not denial.search(lowered[: match.start()]):
+                return True
+    return False
+
+
+def _claim_key(text: str) -> str:
+    return re.sub(r"[\s*`_]+", " ", text.casefold()).strip(" .;,:")
+
+
+def visible_invalid_citations(answer: Answer):
+    """Discarded drafts are an audit trail, not errors in the final visible answer."""
+    text = _claim_key(answer.text_md)
+    confirmed = {_claim_key(c.claim) for c in answer.citations}
+    return [
+        c
+        for c in answer.invalid_citations
+        if (key := _claim_key(c.claim)) and key in text and key not in confirmed
+    ]
+
+
 _REFUSAL_RE = re.compile(
     r"(оценить|сказать|определить|посчитать|рассчитать|ответить)[^.\n]{0,60}(нельзя|невозможно)"
     r"|не указан|не раскрыт|пробел в данных|невозможно оценить"
@@ -88,9 +120,13 @@ def check(question: GoldQuestion, answer: Answer, report_date: str) -> CheckResu
     for needle in question.must_not_mention + (
         FORBIDDEN_LABELS if question.type != "refuse" else []
     ):
-        if _has(text, needle):
+        if _has_prohibited(text, needle):
             failures.append(f"запрещённое: «{needle}»")
-    notes["labels_ok"] = not any(_has(text, n) for n in FORBIDDEN_LABELS)
+    notes["labels_ok"] = not any(_has_prohibited(text, n) for n in FORBIDDEN_LABELS)
+    invalid = visible_invalid_citations(answer)
+    notes["citations_valid"] = not invalid
+    if invalid:
+        failures.append(f"невалидных цитат в видимом ответе: {len(invalid)}")
 
     if question.type == "refuse":
         refused = is_refusal(answer)
@@ -107,21 +143,17 @@ def check(question: GoldQuestion, answer: Answer, report_date: str) -> CheckResu
         for needle in question.must_mention:
             if not _has(text, needle):
                 failures.append(f"не названо «{needle}»")
-        notes["citations_valid"] = not answer.invalid_citations
-        if answer.invalid_citations:
-            failures.append(f"невалидных цитат: {len(answer.invalid_citations)}")
-        if (
-            question.type in ("answer", "infer")
-            and not answer.citations
-            and not answer.invalid_citations
-        ):
+        if question.type in ("answer", "infer") and not answer.citations and not invalid:
             failures.append("ни одной цитаты с адресом поля")
 
     if question.type in ("card", "infer") and question.expected_verdict:
         actual = answer.card.verdict.value if answer.card else verdict_in_text(answer.text_md)
-        notes["verdict_match"] = actual == question.expected_verdict
+        visible = verdict_in_text(answer.text_md)
+        notes["verdict_match"] = actual == visible == question.expected_verdict
         if actual != question.expected_verdict:
             failures.append(f"вывод {actual} вместо {question.expected_verdict}")
+        if visible != question.expected_verdict:
+            failures.append(f"вывод в тексте {visible} вместо {question.expected_verdict}")
 
     if question.type == "card":
         missed = [fact for fact in question.must_name if not _has(text, fact)]
