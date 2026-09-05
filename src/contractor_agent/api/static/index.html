@@ -89,6 +89,9 @@
   .chip.x { padding-right: 8px; } .chip.x b { margin-left: 6px; color: var(--muted); font-weight: 600; cursor: pointer; }
   .chips.goals { border-top: 0; border-bottom: 1px solid var(--line); padding-bottom: 12px; }
   .chip.on { background: var(--ink); color: var(--ink-text); border-color: var(--ink); }
+  #chats { border-bottom: 1px solid var(--line); }
+  #chats .chip small { color: var(--muted); margin-left: 6px; font-size: 11.5px; }
+  #chats .chip.on small { color: inherit; opacity: .7; }
   .goalnote { padding: 0 20px 12px; font-size: 12.5px; color: var(--muted); border-bottom: 1px solid var(--line); }
   .mcpintro { padding: 14px 20px; font-size: 14px; color: var(--text); border-bottom: 1px solid var(--line); max-width: 78ch; }
   .mcpcfg { padding: 14px 20px 18px; display: grid; gap: 10px; justify-items: start; }
@@ -203,6 +206,7 @@
         <button class="chip" type="button" data-ask="Что с финансами?">Финансы</button>
         <button class="chip" type="button" data-ask="Можно давать отсрочку платежа?">Можно давать отсрочку?</button>
       </div>
+      <div class="chips" id="chats" hidden></div>
       <div class="thread" id="thread"></div>
       <form class="ask" id="askform">
         <input id="ask" placeholder="Свой вопрос про эту компанию…" autocomplete="off">
@@ -271,6 +275,66 @@ const VERDICT_SHORT = { ok: "Можно работать", check: "Провер�
 const SEV = { critical: "важно", moderate: "стоит учесть", info: "к сведению" };
 const TOOLS = { search_company: "ищу компанию", get_report_summary: "читаю сводку", get_risk_signals: "проверяю, на что обратить внимание", get_financials: "смотрю финансы", get_enforcement_summary: "смотрю долги у приставов", get_arbitration_summary: "смотрю суды", get_section: "читаю раздел отчёта", compare_companies: "сравниваю компании" };
 const newThread = () => "web-" + Math.random().toString(36).slice(2, 10);
+
+// Диалоги живут между обновлениями страницы: реплики — в браузере, память агента — в файле на
+// сервере (тот же thread_id). Поэтому после F5 разговор продолжается, а не начинается заново.
+const CHATS_KEY = "kontragent.chats.v1";
+const CHATS_MAX = 12;
+function loadChats() {
+  try { return JSON.parse(localStorage.getItem(CHATS_KEY) || "[]"); } catch (e) { return []; }
+}
+function saveChats(list) {
+  try { localStorage.setItem(CHATS_KEY, JSON.stringify(list.slice(0, CHATS_MAX))); } catch (e) {}
+}
+function chatPut(patch) {
+  const list = loadChats();
+  const i = list.findIndex((c) => c.id === thread);
+  const chat = Object.assign({ id: thread, turns: [] }, i >= 0 ? list[i] : {}, patch);
+  chat.updated = Date.now();
+  if (i >= 0) list.splice(i, 1);
+  list.unshift(chat);
+  saveChats(list);
+  renderChats();
+  return chat;
+}
+function chatTurn(who, text) {
+  const list = loadChats();
+  const chat = list.find((c) => c.id === thread) || { id: thread, turns: [] };
+  chat.turns = (chat.turns || []).concat([{ who, text }]).slice(-40);
+  chatPut({ turns: chat.turns });
+}
+function chatDrop(id) {
+  saveChats(loadChats().filter((c) => c.id !== id));
+  renderChats();
+}
+const chatTitle = (c) => c.name || (c.turns && c.turns[0] ? c.turns[0].text.slice(0, 40) : "Без компании");
+const whenRu = (ms) => {
+  const d = new Date(ms || Date.now()), t = (n) => String(n).padStart(2, "0");
+  const today = new Date().toDateString() === d.toDateString();
+  return today ? `${t(d.getHours())}:${t(d.getMinutes())}` : `${t(d.getDate())}.${t(d.getMonth() + 1)}`;
+};
+// в списке держим только состоявшиеся разговоры: вопрос без ответа восстанавливать нечего
+const hasAnswer = (c) => (c.turns || []).some((t) => t.who === "agent");
+
+function renderChats() {
+  const box = $("#chats"); if (!box) return;
+  const list = loadChats().filter(hasAnswer);
+  box.hidden = !list.length;
+  box.innerHTML = list.length
+    ? `<span class="lbl">Ваши проверки:</span>` + list.map((c) => `<span class="chip x${c.id === thread ? " on" : ""}" data-chat="${esc(c.id)}">${esc(chatTitle(c))} <small>${whenRu(c.updated)}</small><b data-drop="${esc(c.id)}" role="button" aria-label="убрать">✕</b></span>`).join("")
+    : "";
+}
+async function openChat(id) {
+  const chat = loadChats().find((c) => c.id === id); if (!chat) return;
+  thread = id; goal = null; sentGoal = false;
+  $("#thread").innerHTML = (chat.turns || []).map((t) => t.who === "user"
+    ? `<div class="turn user"><div class="who">Вы</div><div class="bubble">${esc(t.text)}</div></div>`
+    : `<div class="turn"><div class="who">Агент</div><div class="answer"><div class="body">${md(t.text)}</div></div></div>`).join("");
+  if (chat.inn) { try { showCompany(await fetchJson(`/report/${chat.inn}/card`)); } catch (e) {} }
+  else { $("#agent").hidden = false; $("#card").innerHTML = ""; }
+  renderChats();
+  $("#ask").focus();
+}
 let thread = newThread();
 let current = null;   // одна компания: {inn, name, date}
 let chosen = [];      // сравнение: [{inn, name, date, card}]
@@ -387,6 +451,7 @@ function withoutCardEcho(a) {
 
 function showCompany(c) {
   current = { inn: c.inn, name: c.name, date: c.report_date };
+  chatPut({ inn: c.inn, name: c.name });
   $("#company").hidden = false; $("#agent").hidden = false;
   $("#cname").textContent = c.name;
   $("#cmeta").textContent = `ИНН ${c.inn} · отчёт банка от ${dateRu(c.report_date)}`;
@@ -478,6 +543,7 @@ async function stream(container, question, shown, onEnd, attempt) {
   if (busy && !attempt) return;
   setBusy(true);
   container.insertAdjacentHTML("beforeend", `<div class="turn user"><div class="who">Вы</div><div class="bubble">${esc(shown || question)}</div></div>`);
+  if (container.id === "thread" && !attempt) chatTurn("user", shown || question);
   const turn = document.createElement("div"); turn.className = "turn";
   turn.innerHTML = `<div class="who">Агент</div><div class="answer"><div class="status">агент работает… 0 с</div><div class="steps"></div><div class="body"></div></div>`;
   container.appendChild(turn); turn.scrollIntoView({ block: "nearest" });
@@ -517,6 +583,7 @@ async function stream(container, question, shown, onEnd, attempt) {
             body.style.opacity = "0.35";
             setTimeout(() => { body.innerHTML = finalHtml; body.style.opacity = "1"; }, 120);
           }
+          if (container.id === "thread") chatTurn("agent", withoutCardEcho(a));
           if (onEnd) { try { await onEnd(a); } catch (e) {} }
           const dates = [...new Set(Object.values(a.report_dates || {}))].sort();
           const when = dates.length === 1 ? ` от ${dateRu(dates[0])}` : "";
@@ -677,15 +744,28 @@ $("#cmpExample").addEventListener("click", async () => { chosen = []; renderChos
 $("#cmpAskForm").addEventListener("submit", (e) => { e.preventDefault(); const q = $("#cmpAsk").value.trim(); if (!q) return; $("#cmpAsk").value = ""; askMany(q); });
 $("#cmpChips").querySelectorAll("button[data-ask]").forEach((b) => b.addEventListener("click", () => askMany(b.dataset.ask, b.textContent.trim())));
 $("#reset").addEventListener("click", () => {
-  thread = newThread(); current = null; chosen = []; goal = null; sentGoal = false;
+  thread = newThread(); current = null; chosen = []; goal = null; sentGoal = false; renderChats();
   $("#goals").querySelectorAll("button[data-goal]").forEach((x) => x.classList.remove("on"));
   renderAsks();
   $("#company").hidden = true; $("#agent").hidden = true; $("#thread").innerHTML = ""; $("#q").value = ""; $("#picker").hidden = true;
   $("#cmpPanel").hidden = true; $("#cmpThread").innerHTML = ""; $("#addq").value = ""; $("#picker2").hidden = true; renderChosen();
   switchMode("one");
 });
+$("#chats").addEventListener("click", (e) => {
+  const drop = e.target.closest("b[data-drop]");
+  if (drop) { e.stopPropagation(); const id = drop.dataset.drop; chatDrop(id); if (id === thread) $("#reset").click(); return; }
+  const chip = e.target.closest("span[data-chat]");
+  if (chip && chip.dataset.chat !== thread) openChat(chip.dataset.chat);
+});
+
 renderChosen();
 renderAsks();
+
+// продолжаем последний разговор после обновления страницы
+(async () => {
+  const last = loadChats().find(hasAnswer);
+  if (last) await openChat(last.id);
+})();
 </script>
 </body>
 </html>

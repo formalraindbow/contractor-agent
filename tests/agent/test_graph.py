@@ -559,3 +559,11 @@ def test_scrubbed_verdict_is_not_doubled() -> None:
         enforce_verdict(scrub_forbidden(replace_verdict_codes(tidy_text(draft)), VERDICT_RU[v]), v)
     )
     assert out.lower().count("только на условиях: предоплата") == 1, out
+
+
+def test_absence_problem_catches_more_phrasings() -> None:
+    from contractor_agent.agent.nodes import absence_problem
+
+    assert absence_problem("Никаких действующих производств не зафиксировано.")
+    assert absence_problem("Действующих производств не зафиксировано.")
+    assert absence_problem("В отчёте не найдено производств — это не значит, что их нет.") is None

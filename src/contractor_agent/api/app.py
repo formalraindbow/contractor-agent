@@ -71,7 +71,12 @@ class RunInput(BaseModel):
         raise HTTPException(400, "input должен содержать messages или inn/question")
 
 
-def create_app(runtime_factory: Callable[[], AgentRuntime] | None = None) -> FastAPI:
+def create_app(
+    runtime_factory: Callable[[], AgentRuntime] | None = None,
+    settings: Settings | None = None,
+) -> FastAPI:
+    settings = settings or Settings()
+
     @asynccontextmanager
     async def lifespan(app: FastAPI):
         runtime = runtime_factory() if runtime_factory else AgentRuntime()
@@ -90,7 +95,7 @@ def create_app(runtime_factory: Callable[[], AgentRuntime] | None = None) -> Fas
             headers={"Cache-Control": "no-store, must-revalidate"},
         )
 
-    web_password = Settings().web_password
+    web_password = settings.web_password
     if web_password:  # публичная ссылка: в данных ИНН физлиц, закрываем паролем
         expected_basic = "Basic " + base64.b64encode(f"alfa:{web_password}".encode()).decode()
 

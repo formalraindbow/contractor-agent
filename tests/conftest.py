@@ -15,6 +15,13 @@ JSON_PATH = DATA_DIR / "contractors_audit.snapshot.json"
 CSV_PATH = DATA_DIR / "contractors_audit.snapshot_C12613591.csv"
 
 
+@pytest.fixture(autouse=True)
+def isolated_sessions(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Тесты не пишут в общий файл диалогов и не зависят от пароля стенда из .env."""
+    monkeypatch.setenv("SESSION_STORE", "memory")
+    monkeypatch.setenv("WEB_PASSWORD", "")
+
+
 @pytest.fixture(scope="session")
 def data_dir() -> Path:
     """Каталог со снапшотом; только чтение."""

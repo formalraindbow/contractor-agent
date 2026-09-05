@@ -23,13 +23,16 @@ Prebuilt ``create_agent`` делает внутри ровно то же для 
 
 from __future__ import annotations
 
-from collections.abc import Sequence
+from collections.abc import AsyncIterator, Sequence
+from contextlib import AbstractAsyncContextManager, asynccontextmanager
+from pathlib import Path
 from typing import Any
 
 from langchain_core.messages import BaseMessage
 from langgraph.checkpoint.base import BaseCheckpointSaver
 from langgraph.checkpoint.memory import InMemorySaver
 from langgraph.checkpoint.serde.jsonplus import JsonPlusSerializer
+from langgraph.checkpoint.sqlite.aio import AsyncSqliteSaver
 from langgraph.graph import END, START, StateGraph
 from langgraph.graph.state import CompiledStateGraph
 
@@ -73,6 +76,20 @@ ALLOWED_STATE_TYPES = (
     + [("contractor_agent.agent.state", "ToolCallTrace")]
     + [("contractor_agent.signals.model", name) for name in ("Verdict", "Severity")]
 )
+
+
+def sqlite_saver(path: Path) -> AbstractAsyncContextManager[BaseCheckpointSaver]:
+    """Чекпоинтер в файле: диалог не теряется при обновлении страницы и перезапуске сервиса.
+    В контуре банка тот же интерфейс даёт ``PostgresSaver`` — меняется только строка подключения."""
+    path.parent.mkdir(parents=True, exist_ok=True)
+    return _sqlite_saver(path)
+
+
+@asynccontextmanager
+async def _sqlite_saver(path: Path) -> AsyncIterator[BaseCheckpointSaver]:
+    async with AsyncSqliteSaver.from_conn_string(str(path)) as saver:
+        saver.serde = JsonPlusSerializer(allowed_msgpack_modules=ALLOWED_STATE_TYPES)
+        yield saver
 
 
 def memory_saver() -> InMemorySaver:

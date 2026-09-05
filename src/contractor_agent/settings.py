@@ -45,6 +45,9 @@ class Settings(BaseSettings):
     groq_api_key: str | None = None
     yandex_api_key: str | None = None
     llm_api_key_override: str | None = None  # LLM_API_KEY_OVERRIDE: ключ для произвольного base_url
+    # диалоги переживают перезапуск страницы и сервера: память графа лежит в файле
+    session_store: Literal["sqlite", "memory"] = "sqlite"
+    session_db_path: Path = Path(".cache/sessions.sqlite")
     recursion_limit: int = 16
     runs_dir: Path = Path("runs")
 
