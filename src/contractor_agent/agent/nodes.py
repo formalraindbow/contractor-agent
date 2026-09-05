@@ -36,7 +36,11 @@ from contractor_agent.agent.prompt import (
     citation_repair_prompt,
 )
 from contractor_agent.agent.schema import Answer, Attention, Card, CardLabels, Citation, Draft
-from contractor_agent.agent.section_answer import asks_registration_status, render_sections
+from contractor_agent.agent.section_answer import (
+    asks_registration_status,
+    needs_section_layout,
+    render_sections,
+)
 from contractor_agent.agent.state import AgentState, ToolCallTrace
 from contractor_agent.data.loader import ReportSource
 from contractor_agent.mcp_server.tools import Tools
@@ -239,6 +243,7 @@ def make_nodes(llm: LLM, tools: list[Any], source: ReportSource) -> dict[str, No
             draft.kind == "card"
             or re.search(r"\bпол[ея]\s+[*`_]*[a-z_]\w*", draft.text_md, re.I)
             or (asks_registration_status(question) and re.search(r"\bCURRENT\b", draft.text_md))
+            or needs_section_layout(draft.text_md, question)
         )
         if (structured_failed or focused_fallback) and len(inns) == 1:
             fallback, facts = render_sections(
@@ -463,7 +468,10 @@ _SECTION_HINTS = (  # слова вопроса → раздел отчёта: �
     ("долги у приставов", re.compile(r"пристав|исполнительн", re.I)),
     ("налоги", re.compile(r"налог|блокиров|реестр", re.I)),
     ("суды", re.compile(r"\bсуд|\bиск|арбитраж", re.I)),
-    ("финансы", re.compile(r"финанс|выручк|прибыл|убыт|актив|капитал|ликвидн|отчётност|оборот", re.I)),
+    (
+        "финансы",
+        re.compile(r"финанс|выручк|прибыл|убыт|актив|капитал|ликвидн|отчётност|оборот", re.I),
+    ),
     ("лицензии", re.compile(r"лиценз", re.I)),
     ("филиалы", re.compile(r"филиал", re.I)),
     ("проверки госорганов", re.compile(r"проверк[аи]\b|проверял|инспекц|надзор", re.I)),
