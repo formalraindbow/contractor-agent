@@ -17,6 +17,11 @@ button:focus-visible,a:focus-visible,input:focus-visible,textarea:focus-visible,
 .brand { display:flex; gap:12px; align-items:center; line-height:1.25; }
 .brand-mark { font:bold 32px/1 Arial; color:var(--accent); border-bottom:5px solid var(--accent); padding-bottom:4px; }
 .brand strong { display:block; font-size:16px; } .brand small { font-size:12px; color:var(--muted); }
+.sidebar-top { display:flex; align-items:center; justify-content:space-between; gap:12px; }
+.sidebar-content { display:flex; flex-direction:column; gap:24px; flex:1; }
+.nav-toggle { display:none; border:1px solid var(--line); background:#fff; border-radius:8px; padding:8px 12px; font-size:13px; }
+.bank-note { margin:14px 22px; padding:10px 12px; border-left:3px solid var(--crit); background:var(--crit-bg); font-size:14px; }
+.bank-note p { margin:4px 0 0; }
 .new-chat { border:1px solid #b6c0cc; background:#fff; border-radius:10px; padding:11px 10px; text-align:left; font-weight:600; }
 .tabs { display:grid; gap:5px; } .tabs button { border:0; border-radius:8px; text-align:left; background:transparent; padding:10px 12px; color:var(--muted); font-size:14px; }
 .tabs button.on { color:var(--text); background:var(--surface); font-weight:600; } .tabs button:hover { background:var(--surface); }
@@ -111,12 +116,20 @@ button:focus-visible,a:focus-visible,input:focus-visible,textarea:focus-visible,
 @media(max-width:1050px) { .shell { grid-template-columns:215px minmax(0,1fr); } .page { padding:24px; } .topbar { padding:15px 24px; } .card-extra { grid-template-columns:1fr; } .card-extra .gaps + .gaps { border-left:0; } }
 @media(max-width:720px) { .shell { display:block; height:auto; overflow:visible; } .sidebar { height:auto; padding:14px 16px; gap:14px; border-right:0; border-bottom:1px solid var(--line); } .brand { float:left; } .brand-mark { font-size:24px; } .new-chat { padding:7px 10px; } .tabs { display:flex; flex-wrap:wrap; gap:2px; } .tabs button { font-size:12px; padding:7px 9px; } .sidebar-note { display:none; } #chats { max-height:140px; overflow:auto; } .workspace { overflow:visible; } .topbar { display:none; } .page { padding:18px 12px; } .welcome { padding:15px 4px 24px; } .welcome h1 { font-size:28px; } .row { flex-wrap:wrap; } .row input { flex-basis:65%; } .company h1 { font-size:22px; } .company { padding:0 5px; } .ask { padding:12px; } .ask button { padding:12px; } .bubble { max-width:95%; } .thread { padding:18px 16px; } .drawer { padding:18px; } }
 @media(prefers-reduced-motion:reduce) { *,*::before,*::after { animation:none!important; transition:none!important; scroll-behavior:auto!important; } }
+@media(max-width:720px) {
+  .sidebar { position:sticky; top:0; z-index:5; display:block; overflow:visible; background:var(--page); }
+  .nav-toggle { display:block; }
+  .sidebar-content { position:absolute; top:100%; left:0; right:0; display:none; max-height:calc(100dvh - 90px); overflow-y:auto; gap:12px; padding:0 16px 16px; background:var(--page); border-bottom:1px solid var(--line); box-shadow:0 8px 16px #17233112; }
+  .sidebar[data-open="true"] .sidebar-content { display:flex; padding-top:14px; }
+  #chats { max-height:none; overflow:visible; }
+}
 </style>
 </head>
 <body>
 <div class="shell">
 <aside class="sidebar" aria-label="Навигация">
-  <div class="brand"><span class="brand-mark" aria-hidden="true">А</span><div><strong>Контрагент</strong><small>Помощник по отчёту банка</small></div></div>
+  <div class="sidebar-top"><div class="brand"><span class="brand-mark" aria-hidden="true">А</span><div><strong>Контрагент</strong><small>Помощник по отчёту банка</small></div></div><button id="navToggle" class="nav-toggle" type="button" aria-expanded="false" aria-controls="sidebarContent">Меню</button></div>
+  <div class="sidebar-content" id="sidebarContent">
   <button id="reset" type="button" class="new-chat">＋ Новая проверка</button>
   <nav class="tabs" aria-label="Разделы">
     <button type="button" class="on" id="tabOne" aria-current="page">Проверка компании</button>
@@ -126,6 +139,7 @@ button:focus-visible,a:focus-visible,input:focus-visible,textarea:focus-visible,
   </nav>
   <div id="chats" hidden></div>
   <div class="sidebar-note">Данные из отчётов банка.<br>200 компаний в демобазе.</div>
+  </div>
 </aside>
 <main class="workspace" id="workspace">
 <div class="topbar"><strong id="pageTitle">Проверка контрагента</strong><span>По данным отчётов</span></div>
@@ -243,8 +257,8 @@ button:focus-visible,a:focus-visible,input:focus-visible,textarea:focus-visible,
 
 <script>
 const $ = (s) => document.querySelector(s);
+const PUBLIC_TEXT_RULES = __PUBLIC_TEXT_RULES__;
 const VERDICT = { ok: "Можно работать", check: "Нужна дополнительная проверка", not_recommended: "Есть существенные риски" };
-const VERDICT_SHORT = { ok: "Можно работать", check: "Нужна дополнительная проверка", not_recommended: "Существенные риски" };
 const SEV = { critical: "важно", moderate: "стоит учесть", info: "к сведению" };
 const TOOLS = { search_company: "ищу компанию", get_report_summary: "читаю сводку", get_risk_signals: "проверяю, на что обратить внимание", get_financials: "смотрю финансы", get_enforcement_summary: "смотрю долги у приставов", get_arbitration_summary: "смотрю суды", get_section: "читаю раздел отчёта", compare_companies: "сравниваю компании" };
 const newThread = () => crypto.randomUUID();
@@ -298,6 +312,7 @@ function renderChats() {
 async function openChat(id) {
   if (busy) return;
   const chat = loadChats().find(c => c.id === id); if (!chat) return;
+  clearComposers(); setNavigationOpen(false);
   thread = id; current = null; goal = chat.goal || null; sentGoal = false;
   chosen = chat.chosen || [];
   const many = chat.mode === 'many';
@@ -328,6 +343,35 @@ let chosen = [];      // сравнение: [{inn, name, date, card}]
 let busy = false;
 
 const esc = (s) => String(s ?? "").replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+const escapePattern = s => s.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
+const publicTermPattern = `\\b(?:${PUBLIC_TEXT_RULES.terms.map(escapePattern).join('|')}|[a-zA-Z]+(?:_[a-zA-Z]+)+)\\b`;
+const internalText = new RegExp(publicTermPattern+'|\\b(?:report|labels|data|computed)\\.[A-Za-z_]|\\b(?:'+PUBLIC_TEXT_RULES.annotations.map(escapePattern).join('|')+')\\b','i');
+const publicLabels = Object.fromEntries(Object.entries(PUBLIC_TEXT_RULES.labels).map(([key,value])=>[key.toLowerCase(),value]));
+function cleanText(value) {
+  const urls=[];
+  let text=String(value ?? '').replace(/https?:\/\/[^\s<>)]*/gi,url=>{urls.push(url);return `⟪${urls.length-1}⟫`;});
+  Object.entries(PUBLIC_TEXT_RULES.phrases || {}).forEach(([old,replacement])=>text=text.replaceAll(old,replacement));
+  for(const pattern of [/\([^()\n]*(?:\([^()\n]*\)[^()\n]*)*\)/g,/\[(?:[^\[\]\n]|\[\d+\])*\]/g]) {
+    text=text.replace(pattern,part=>internalText.test(part)?'':part);
+  }
+  text=text.replace(/`?\b(?:report|labels|data|computed)\.[A-Za-z_][A-Za-z0-9_.]*(?:\[\d+\][A-Za-z0-9_.]*)*`?/g,'');
+  const nested=new RegExp('`?\\b(?:'+PUBLIC_TEXT_RULES.terms.map(escapePattern).join('|')+')(?:\\[\\d+\\])?(?:\\.[A-Za-z_]\\w*(?:\\[\\d+\\])?)+`?','g');
+  text=text.replace(nested,'').replace(new RegExp(publicTermPattern,'gi'),word=>publicLabels[word.toLowerCase()] || '');
+  text=text.replace(/`([^`\n]+)`/g,'$1');
+  text=text.replace(/\([\s.,;:=]*\)|\[[\s.,;:=]*\]|``/g,'').replace(/(\S)[ \t]+\*{4}(?=[ \t]*(?:\n|$))/g,'$1');
+  text=text.replace(/о оборотных/gi,'об оборотных').replace(/([а-яё])[ \t]+[-‐‑‒–][ \t]+(?=\S)/gi,'$1 — ');
+  text=text.replace(/[ \t]{2,}/g,' ').replace(/[ \t]+([.,;:])/g,'$1').replace(/\n{3,}/g,'\n\n').trim();
+  urls.forEach((url,i)=>text=text.replaceAll(`⟪${i}⟫`,url));
+  return text;
+}
+function clearComposers() {
+  for(const input of [$('#ask'),$('#cmpAsk')]) { input.value=''; input.style.height='auto'; }
+}
+function setNavigationOpen(open) {
+  $('.sidebar').dataset.open=String(open);
+  $('#navToggle').setAttribute('aria-expanded',String(open));
+  $('#navToggle').textContent=open?'Закрыть':'Меню';
+}
 const dateRu = (iso) => { if (!iso) return ""; const p = String(iso).split("-"); return p.length === 3 ? `${p[2]}.${p[1]}.${p[0]}` : iso; };
 const pillClass = (v) => /зел/.test(v || "") ? "g" : /ж[её]лт|средн/.test(v || "") ? "y" : /красн|высок/.test(v || "") ? "r" : "";
 function setBusy(b) {
@@ -382,9 +426,9 @@ async function fetchJson(url) {
   return r.json();
 }
 // связь оборвалась — это не «отчёта нет»: у публичной ссылки такое бывает, надо звать повторить
-const failText = (e, inn) => e && e.offline
-  ? "Связь со стендом прервалась. Обновите страницу и попробуйте ещё раз."
-  : `Отчёта по ИНН ${inn} в базе нет.`;
+const failText = (e, inn) => e?.status===404
+  ? `Компании с ИНН ${inn} нет в демобазе. В ней 200 компаний.`
+  : "Связь со стендом прервалась. Обновите страницу и попробуйте ещё раз.";
 
 async function resolveCompany(q) {
   q = q.trim();
@@ -415,7 +459,7 @@ function openDrawer(title, html) {
   if (wasHidden) drawerFocus=document.activeElement;
   drawerVersion++; drawerClosing=false;
   $('#drawerTitle').textContent=title; $('#drawerContent').innerHTML=html;
-  overlay.hidden=false; $('.shell').inert=true; document.documentElement.classList.add('dialog-open');
+  overlay.hidden=false; overlay.inert=false; overlay.style.pointerEvents=''; $('.shell').inert=true; document.documentElement.classList.add('dialog-open');
   if(wasHidden) overlay.getBoundingClientRect(); // Establish the entrance state before transitioning.
   overlay.classList.add('is-open');
   if(!wasHidden) revealDrawerContent();
@@ -426,17 +470,18 @@ function closeDrawer() {
   if(drawerClosing || $('#overlay').hidden) return;
   const version=++drawerVersion; drawerClosing=true;
   $('#overlay').classList.remove('is-open');
+  $('#overlay').inert=true; $('#overlay').style.pointerEvents='none'; $('.shell').inert=false;
+  document.documentElement.classList.remove('dialog-open');
+  drawerFocus?.focus({preventScroll:true});
   setTimeout(()=>{
     if(version!==drawerVersion) return;
-    $('#overlay').hidden=true; $('.shell').inert=false; drawerClosing=false;
-    document.documentElement.classList.remove('dialog-open');
-    drawerFocus?.focus({preventScroll:true});
+    $('#overlay').hidden=true; $('#overlay').inert=false; $('#overlay').style.pointerEvents=''; drawerClosing=false;
   },reducedMotion.matches ? 0 : 220);
 }
 $('#closeDrawer').onclick=closeDrawer;
 $('#overlay').onclick=e=>{if(e.target===$('#overlay')) closeDrawer();};
 document.addEventListener('keydown',e=>{
-  if($('#overlay').hidden) return;
+  if($('#overlay').hidden || drawerClosing) return;
   if(e.key==='Escape') {e.preventDefault(); closeDrawer();}
   if(e.key==='Tab') {
     const items=[...$('.drawer').querySelectorAll('button:not(:disabled),summary,a[href],input,select,[tabindex="0"]')].filter(el=>el.getClientRects().length);
@@ -448,7 +493,7 @@ document.addEventListener('keydown',e=>{
 const money = n => n == null ? 'В отчёте не указано' : Number(n).toLocaleString('ru-RU',{maximumFractionDigits:2})+' ₽';
 function answerText(a) {
   // Also remove obsolete boilerplate when restoring a saved conversation.
-  let text=(a.text_md || '').replace(/работать только на условиях: предоплата и подтверждающие документы/gi,'есть существенные риски')
+  let text=cleanText(a.text_md || '').replace(/работать только на условиях: предоплата и подтверждающие документы/gi,'есть существенные риски')
     .replace(/стоит проверить до договора/gi,'Нужна дополнительная проверка')
     .replace(/требуют предоплаты с подтверждающими документами/gi,'требуют дополнительной проверки');
   if(Object.keys(a.report_dates || {}).length>1) {
@@ -491,11 +536,13 @@ async function openReport(card) {
     const [summary,fin,c]=await Promise.all([fetchJson(`/report/${card.inn}/summary`),fetchJson(`/report/${card.inn}/financials`),card.verdict ? Promise.resolve(card) : fetchJson(`/report/${card.inn}/card`)]);
     if(version!==drawerVersion) return;
     const d=summary.data || {},years=fin.data?.years || [];
+    const companyStatus=({CURRENT:'Действующая',LIQUIDATED:'Прекратила деятельность',CLOSED:'Прекратила деятельность'})[d.status] || 'Статус в отчёте не указан';
+    const statusText=companyStatus+(d.status_reason ? '. '+d.status_reason : '');
     const item=(label,value)=>`<tr><th>${label}</th><td>${esc(value ?? 'В отчёте не указано')}</td></tr>`;
     $('#drawerTitle').textContent=c.name;
-    $('#drawerContent').innerHTML=`<p class="meta">ИНН ${esc(c.inn)} · отчёт от ${dateRu(c.report_date)}</p><p>Сводка исходных данных из отчёта банка.</p><h3>Сведения о компании</h3><table>${item('Адрес',d.address)}${item('Регистрация',dateRu(d.registered))}${item('Статус',d.status_reason || 'Основание статуса не указано')}${item('Руководитель',d.head ? `${d.head.name} · ${d.head.position}${d.head.since ? ' · с '+dateRu(d.head.since) : ''}` : null)}${item('Сотрудники',d.staff)}${item('Светофор банка',c.labels.riskLevel)}${item('ЗСК',c.labels.zskRiskLevel)}</table><h3>Финансовая отчётность</h3>`+
+    $('#drawerContent').innerHTML=`<p class="meta">ИНН ${esc(c.inn)} · отчёт от ${dateRu(c.report_date)}</p><p>Сводка исходных данных из отчёта банка.</p><h3>Сведения о компании</h3><table>${item('Адрес',d.address)}${item('Регистрация',dateRu(d.registered))}${item('Статус',statusText)}${item('Руководитель',d.head ? `${d.head.name} · ${d.head.position}${d.head.since ? ' · с '+dateRu(d.head.since) : ''}` : null)}${item('Сотрудники',d.staff)}${item('Светофор банка',c.labels.riskLevel)}${item('ЗСК',c.labels.zskRiskLevel)}</table><h3>Финансовая отчётность</h3>`+
       (years.length ? years.map(y=>`<h3>${esc(y.year)} год</h3><table>${item('Выручка',money(y.proceeds))}${item('Прибыль / убыток',money(y.profit))}${item('Капитал и резервы',money(y.capitals))}${item('Текущая ликвидность',y.current_liquidity == null ? 'Не рассчитать: нет необходимых данных об оборотных активах или краткосрочных обязательствах' : Number(y.current_liquidity).toLocaleString('ru-RU',{maximumFractionDigits:3}))}</table>`).join('') : `<p>${esc(fin.note || 'Бухгалтерской отчётности нет — оценить финансовое положение нельзя.')}</p>`)+
-      `<h3>Что отмечено в отчёте</h3><ul>${c.attention.map(f=>`<li>${esc(f.claim)}</li>`).join('') || '<li>Существенные факторы риска по правилам проверки не выделены.</li>'}</ul>${c.gaps.length ? `<h3>Ограничения данных</h3><ul>${c.gaps.map(g=>`<li>${esc(g)}</li>`).join('')}</ul>` : ''}`;
+      `<h3>Что отмечено в отчёте</h3><ul>${c.attention.map(f=>`<li>${esc(cleanText(f.claim))}</li>`).join('') || '<li>Существенные факторы риска по правилам проверки не выделены.</li>'}</ul>${c.gaps.length ? `<h3>Ограничения данных</h3><ul>${c.gaps.map(g=>`<li>${esc(cleanText(g))}</li>`).join('')}</ul>` : ''}`;
     revealDrawerContent();
   } catch { if(version===drawerVersion) $('#drawerContent').innerHTML='<p class="error-message">Не удалось загрузить отчёт. Попробуйте открыть его ещё раз.</p>'; }
 }
@@ -522,7 +569,7 @@ function cardRequests(c) {
   if (goal === 'pay') return c.terminal ? ['Реквизиты и основание платежа у конкурсного управляющего или ликвидатора.'] : [];
   if (goal === 'deal') return ['Баланс и отчёт о финансовых результатах за два последних года.'];
   if (goal === 'supply') return ['Подтверждение адреса и опыта похожих поставок или работ.', 'Лицензия, если для вашей задачи она требуется.'];
-  if (goal === 'legal') return [];
+  if (goal === 'legal') return ['Документы, подтверждающие требование: договор или иное основание, акты и платёжные документы.', 'Актуальный адрес для направления претензии.'];
   return c.ask_before || [];
 }
 function bankMarks(labels, compact=false) {
@@ -532,13 +579,7 @@ function bankMarks(labels, compact=false) {
   }).join('')+'</div>';
 }
 function recommendationText(c) {
-  if(c.verdict!=='check') return VERDICT[c.verdict];
-  return {
-    pay:'Перед оплатой нужна дополнительная проверка',
-    deal:'Перед предоставлением отсрочки нужна дополнительная проверка',
-    supply:'Перед заказом нужна дополнительная проверка',
-    legal:'Для подготовки претензии стоит уточнить сведения',
-  }[goal] || VERDICT.check;
+  return VERDICT[c.verdict];
 }
 function clearCard(html='') {
   $('#cardAssessment').innerHTML = '';
@@ -546,11 +587,11 @@ function clearCard(html='') {
 }
 function renderCard(c) {
   const facts = orderedFacts(c);
-  const li = a => `<li>${esc(a.claim)}</li>`;
+  const li = a => `<li>${esc(cleanText(a.claim))}</li>`;
   const sub = c.terminal ? 'Компания в процедуре банкротства или исключается из реестра: сделки могут быть оспорены, обязательства не исполнены.' :
     c.verdict === 'ok' ? 'По доступным данным существенных факторов риска не выделено. Ограничения отчёта приведены ниже.' : '';
   $('#cardAssessment').innerHTML = `<div class="assessment"><div class="verdict ${c.verdict}"><div class="assessment-label">Рекомендация помощника</div><div class="v">${recommendationText(c)}</div>${sub ? `<div class="s">${sub}</div>` : ''}</div></div>`;
-  let html = '';
+  let html = pillClass(c.labels.riskLevel)==='r' ? '<aside class="bank-note"><b>Светофор банка — красный</b><p>Это самостоятельный повод для дополнительной проверки. Причина оценки в отчёте не раскрыта. ЗСК — отдельная оценка; её зелёный цвет не отменяет красный светофор.</p></aside>' : '';
   const primary = goal && goal !== 'look' ? facts : facts.filter(a => a.severity !== 'info');
   const rest = facts.filter(a => !primary.includes(a));
   html += primary.length ? `<ul class="facts">${primary.map(li).join('')}</ul>` :
@@ -558,7 +599,7 @@ function renderCard(c) {
   if (rest.length) html += `<details class="more-facts"><summary>Ещё факты из отчёта · ${rest.length}</summary><ul class="facts">${rest.map(li).join('')}</ul></details>`;
   const gaps = [...(c.gaps || [])].sort((a,b)=>goal==='deal' ? Number(/прибыл|ликвид|финанс/.test(b))-Number(/прибыл|ликвид|финанс/.test(a)) : 0), asks = cardRequests(c);
   if (gaps.length || asks.length) html += '<div class="card-extra">' +
-    (gaps.length ? `<div class="gaps"><b>Чего не хватает для оценки</b><ul>${gaps.map(g => `<li>${esc(g)}</li>`).join('')}</ul></div>` : '') +
+    (gaps.length ? `<div class="gaps"><b>Чего не хватает для оценки</b><ul>${gaps.map(g => `<li>${esc(cleanText(g))}</li>`).join('')}</ul></div>` : '') +
     (asks.length ? `<div class="gaps"><b>Что можно запросить</b><ul>${asks.map(a => `<li>${esc(a)}</li>`).join('')}</ul></div>` : '') + '</div>';
   html += '<div class="actions"><button type="button" class="quiet" id="openReport">Открыть отчёт</button></div>';
   $('#cardDetails').innerHTML = html;
@@ -567,6 +608,7 @@ function renderCard(c) {
 function withoutCardEcho(a) { return a.text_md || ''; }
 
 function showCompany(c) {
+  setNavigationOpen(false);
   current = { inn: c.inn, name: c.name, date: c.report_date, card:c };
   chatPut({ inn:c.inn, name:c.name, mode:"one", goal });
   $("#searchArea").hidden = true;
@@ -590,13 +632,14 @@ async function check(q) {
   setBusy(true);
   try {
     const res = await resolveCompany(q); $('#picker').hidden = true;
-    if (!res) { showMessage($('#picker'), `Компания «${q}» не найдена. Попробуйте ИНН или другое название.`); return; }
+    if (!res) { showMessage($('#picker'), `Компания «${q}» не найдена в демобазе из 200 компаний. Попробуйте ИНН или другое название.`); return; }
     if (res.pick) { showPicker($('#picker'),res.pick,check,'Нашлось несколько компаний — выберите нужную:'); return; }
-    if (!current || current.inn !== res.inn) { thread=newThread(); $('#thread').innerHTML=''; goal=null; sentGoal=false; }
     const card = await fetchJson(`/report/${res.inn}/card`);
+    if (!current || current.inn !== res.inn) { clearComposers(); thread=newThread(); $('#thread').innerHTML=''; goal=null; sentGoal=false; }
+    $('#q').value='';
     showCompany(card); renderAsks(); $("#goals").querySelectorAll("[data-goal]").forEach(x=>x.classList.toggle("on",x.dataset.goal===goal));
     $('#company').scrollIntoView({block:'start'});
-  } catch (e) { showMessage($('#picker'), 'Не удалось загрузить компанию. Попробуйте ещё раз.'); }
+  } catch (e) { showMessage($('#picker'), failText(e,q.trim())); }
   finally { setBusy(false); }
 }
 
@@ -633,9 +676,9 @@ function renderComparison(cards) {
   const row = (label, cell) => `<tr><td>${label}</td>${cards.map(cell).join("")}</tr>`;
   let html = `<div class="cmpwrap"><table class="cmp"><thead><tr><th></th>${cards.map((c) => `<th>${esc(c.name)}<small>отчёт от ${dateRu(c.report_date)}</small></th>`).join("")}</tr></thead><tbody>`;
   html += row("Оценки банка", (c) => `<td>${bankMarks(c.labels,true)}</td>`);
-  html += row("Рекомендация помощника", (c) => `<td><div class="comparison-verdict ${c.verdict}">${VERDICT_SHORT[c.verdict]}</div></td>`);
-  html += row("Главное", (c) => `<td>${(c.attention || []).length ? `<ul>${c.attention.slice(0, 3).map((a) => `<li>${esc(a.claim)}</li>`).join("")}</ul>` : `<span class="muted">Сигналов не найдено</span>`}</td>`);
-  html += row("Чего нет в отчёте", (c) => `<td class="muted">${(c.gaps || []).length ? esc(c.gaps.join(" · ")) : "Пробелов нет"}</td>`);
+  html += row("Рекомендация помощника", (c) => `<td><div class="comparison-verdict ${c.verdict}">${VERDICT[c.verdict]}</div></td>`);
+  html += row("Главное", (c) => `<td>${(c.attention || []).length ? `<ul>${c.attention.slice(0, 3).map((a) => `<li>${esc(cleanText(a.claim))}</li>`).join("")}</ul>` : `<span class="muted">Сигналов не найдено</span>`}</td>`);
+  html += row("Чего нет в отчёте", (c) => `<td class="muted">${(c.gaps || []).length ? esc(cleanText(c.gaps.join(" · "))) : "Пробелов нет"}</td>`);
   html += `</tbody></table></div>`;
   html += `<div class="actions"><button type="button" class="quiet" id="cmpReports">Отчёты · ${cards.length}</button></div>`;
   $("#cmpBody").innerHTML = html;
@@ -644,6 +687,7 @@ function renderComparison(cards) {
 
 function compare() {
   if (busy || chosen.length < 2) return;
+  clearComposers(); setNavigationOpen(false);
   thread = newThread(); $("#cmpThread").innerHTML = "";
   $("#cmpPanel").hidden = false;
   $("#cmphead").textContent = `${chosen.length} компании`;
@@ -901,8 +945,10 @@ async function loadMcp() {
 }
 function switchMode(mode) {
   if (busy) return;
+  setNavigationOpen(false);
   const active=loadChats().find(c=>c.id===thread);
   if ((mode==='one' || mode==='many') && active?.mode && active.mode!==mode) {
+    clearComposers();
     thread=newThread(); goal=null; sentGoal=false;
     if(mode==='one') {current=null;$('#company').hidden=true;$('#agent').hidden=true;$('#searchArea').hidden=false;$('#thread').innerHTML='';renderAsks();}
     else {chosen=[];renderChosen();$('#cmpPanel').hidden=true;$('#cmpThread').innerHTML='';}
@@ -925,7 +971,7 @@ $("#mcpcopy").addEventListener("click", async () => {
   try { await navigator.clipboard.writeText($("#mcpjson").textContent); } catch (e) {}
   const ok = $("#mcpcopied"); ok.hidden = false; setTimeout(() => { ok.hidden = true; }, 1500);
 });
-$("#search").addEventListener("submit", (e) => { e.preventDefault(); const q = $("#q").value; if (q.trim()) check(q); });
+$("#search").addEventListener("submit", (e) => { e.preventDefault(); if(busy) return; const q = $("#q").value; if (q.trim()) {$("#q").value='';check(q);} });
 document.querySelectorAll("#modeOne .hint button").forEach((b) => b.addEventListener("click", () => { $("#q").value = b.dataset.q; check(b.dataset.q); }));
 $("#askform").addEventListener("submit", (e) => { e.preventDefault(); const q = $("#ask").value.trim(); if (!q || busy) return; $("#ask").value = ""; askOne(q); });
 $("#goals").querySelectorAll("button[data-goal]").forEach((b) => b.addEventListener("click", () => {
@@ -938,6 +984,7 @@ $("#cmpAskForm").addEventListener("submit", (e) => { e.preventDefault(); const q
 $("#cmpChips").querySelectorAll("button[data-ask]").forEach((b) => b.addEventListener("click", () => askMany(b.dataset.ask, b.textContent.trim())));
 $("#reset").addEventListener("click", () => {
   if (busy) return;
+  clearComposers(); setNavigationOpen(false);
   $("#searchArea").hidden=false;
   history.replaceState(null,"",location.pathname);
   thread = newThread(); current = null; chosen = []; goal = null; sentGoal = false; renderChats();
@@ -962,6 +1009,8 @@ for(const input of [$('#ask'),$('#cmpAsk')]) {
   input.addEventListener('input',()=>{input.style.height='auto';input.style.height=Math.min(input.scrollHeight,150)+'px';});
   input.form.addEventListener('submit',()=>{if(!input.value) input.style.height='auto';});
 }
+$('#navToggle').addEventListener('click',()=>setNavigationOpen($('#navToggle').getAttribute('aria-expanded')!=='true'));
+document.addEventListener('keydown',e=>{if(e.key==='Escape' && $('#navToggle').getAttribute('aria-expanded')==='true'){setNavigationOpen(false);$('#navToggle').focus();}});
 renderChosen();
 renderAsks();
 renderChats();

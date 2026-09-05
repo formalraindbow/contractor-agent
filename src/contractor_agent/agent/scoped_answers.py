@@ -133,6 +133,74 @@ def scoped_answer(tools: Tools, inns: list[str], question: str) -> Draft | None:
                 "Поэтому отсутствие выявленных сигналов не означает, что компания "
                 "проверена по всем критериям.",
             ]
+    elif re.search(r"финанс|выручк|прибыл|ликвид|отч[её]тност", q, re.I) and not re.search(
+        r"суд|пристав|руковод|зск|светофор|документ|оплат|отсроч|почему|что значит", q, re.I
+    ):
+        financials = tools.get_financials(inn)
+        if financials.available:
+            if not re.search(r"финанс", q, re.I) or re.search(
+                r"динамик|измен|почему|сравни|означает|значит|поясни|объясни", q, re.I
+            ):
+                return None
+            requested_years = set(re.findall(r"\b20\d{2}\b", q))
+            years = [
+                row
+                for row in financials.data["years"]
+                if not requested_years or str(row["year"]) in requested_years
+            ]
+            for row in years:
+                lines += ["", f"### {row['year']} год"]
+                for field, label in [
+                    ("proceeds", "Выручка"),
+                    ("profit", "Прибыль / убыток"),
+                    ("capitals", "Капитал и резервы"),
+                ]:
+                    value = row[field]
+                    if field == "profit" and value is not None and Decimal(str(value)) < 0:
+                        label, value = "Убыток", abs(Decimal(str(value)))
+                    claim = (
+                        label
+                        + ": "
+                        + (
+                            rub(Decimal(str(value)))
+                            if value is not None
+                            else "строка в отчёте отсутствует"
+                        )
+                    )
+                    lines.append("- " + claim)
+                    cite(claim, row["paths"][field])
+                liquidity = row["current_liquidity"]
+                if liquidity is None:
+                    missing = [
+                        label
+                        for key, label in [
+                            ("current_assets", "итога оборотных активов"),
+                            ("short_term_liabilities", "краткосрочных обязательств"),
+                        ]
+                        if row[key] is None
+                    ]
+                    value = (
+                        "не рассчитать — в отчёте нет " + " и ".join(missing)
+                        if missing
+                        else "не рассчитана: краткосрочные обязательства равны нулю"
+                    )
+                else:
+                    value = str(liquidity).replace(".", ",")
+                claim = "Текущая ликвидность: " + value
+                lines.append("- " + claim)
+                cite(claim, row["path"])
+            for year in sorted(requested_years - {str(row["year"]) for row in years}):
+                lines += ["", f"В отчёте нет финансовой отчётности за {year} год."]
+            if not requested_years:
+                for fact in financials.data["signals"]:
+                    if fact["code"] == "fin_stale":
+                        lines += ["", fact["explanation"]]
+                        cite(fact["explanation"], fact["source_path"])
+        else:
+            lines = [
+                financials.note or "В отчёте нет финансовой отчётности — оценить финансы нельзя."
+            ]
+            cite(lines[0], "report.finReports")
     elif STAFF.search(q) and not re.search(r"финанс|суд|пристав|руковод|зск|светофор", q, re.I):
         if summary["staff"] is not None:
             return None
