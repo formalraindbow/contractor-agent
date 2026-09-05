@@ -225,7 +225,13 @@ def make_nodes(llm: LLM, tools: list[Any], source: ReportSource) -> dict[str, No
             comparison_followup(answer.cards, str(state.get("question") or "")) is None
         )
         verdict_problem = (
-            refusal_problem(answer, state.get("trace") or [])
+            scope_problem(
+                answer,
+                str(state.get("question") or ""),
+                list(state.get("selected_inns") or []),
+                source,
+            )
+            or refusal_problem(answer, state.get("trace") or [])
             or empty_problem(answer)
             or verdict_mismatch(answer, require_comparison=require_comparison)
             or forbidden_problem(answer.text_md)
@@ -396,6 +402,9 @@ _DOCUMENTS_Q = re.compile(r"что (?:запросить|уточнить)|ка�
 _EXPLAIN_Q = re.compile(
     r"почему.{0,70}(?:вывод|сигнал|риск)|объясни.{0,20}(?:рекомендац|вывод)", re.I
 )
+_MEANING_Q = re.compile(
+    r"что\s+(?:это\s+)?(?:значит|означает)|как\s+(?:это\s+)?понимать|поясни|объясни", re.I
+)
 _HEAD_Q = re.compile(r"руковод|управляющ|директор|сколько лет|возраст компан", re.I)
 _LABEL_Q = re.compile(r"зск|светофор|метк[аиу]|оценк[аиу] банка", re.I)
 
@@ -412,6 +421,11 @@ def requested_inns(question: str, candidates: list[str], source: ReportSource) -
     subject = normalize_name(question_subject(question))
     if re.search(r"остальн|другими|всеми|у всех|каждой|обоих|из них|с кем", subject):
         return []
+    return mentioned_inns(subject, candidates, source)
+
+
+def mentioned_inns(text: str, candidates: list[str], source: ReportSource) -> list[str]:
+    subject = normalize_name(text)
     mentioned = []
     for inn in dict.fromkeys(candidates):
         report = source.get(inn)
@@ -425,13 +439,33 @@ def requested_inns(question: str, candidates: list[str], source: ReportSource) -
     return mentioned
 
 
+def scope_problem(
+    answer: Answer, question: str, candidates: list[str], source: ReportSource
+) -> str | None:
+    focus = requested_inns(question, candidates, source)
+    if not focus:
+        return None
+    outside = [inn for inn in candidates if inn not in focus]
+    if mentioned_inns(answer.text_md, outside, source) or any(
+        citation.inn in outside for citation in answer.citations
+    ):
+        return (
+            "Ответ вышел за рамки текущего вопроса. Объясни только запрошенный факт для ИНН "
+            + ", ".join(focus)
+            + ". Убери остальные компании, их выводы и цитаты; прошлое сравнение повторять не нужно."
+        )
+    return None
+
+
 def comparison_needs_verdict(question: str) -> bool:
     """A question about specific sections does not need the general verdict repeated."""
     question = question_subject(question)
     if re.search(r"с кем|кого выбрать|кто из них|можно.{0,20}работать", question, re.I):
         return True
     return not (
-        _DOCUMENTS_Q.search(question) or any(rx.search(question) for _, rx in _SECTION_HINTS)
+        _DOCUMENTS_Q.search(question)
+        or _MEANING_Q.search(question)
+        or any(rx.search(question) for _, rx in _SECTION_HINTS)
     )
 
 
@@ -459,6 +493,8 @@ def tool_subset(question: str) -> list[str] | None:
     selected = ["search_company", "get_report_summary"]
     if _DOCUMENTS_Q.search(question) or _EXPLAIN_Q.search(question):
         selected.extend(["get_risk_signals", "get_financials"])
+    if _MEANING_Q.search(question):
+        selected.append("get_risk_signals")
     if _HEAD_Q.search(question) or _LABEL_Q.search(question):
         selected.append("get_risk_signals")
     for name, rx in _SECTION_HINTS:
@@ -536,6 +572,14 @@ def question_kind_hint(question: str) -> tuple[str | None, str | None]:
             "Подсказка: просят решение (можно ли работать, давать отсрочку, кому верить) — "
             "kind «card» с выводом из verdict_ru; факты по разделу из вопроса — первыми."
         )
+    if _MEANING_Q.search(question):
+        return (
+            "answer",
+            "Объясни только запрошенный факт или выражение: что оно означает и что подтверждено "
+            "в отчёте. Для отметок ФНС, адреса и блокировок обязательно используй get_risk_signals. "
+            "Наличие адреса в реквизитах не опровергает отметку о его недостоверности. "
+            "Не добавляй общий вердикт, перечень других рисков и выводы по остальным компаниям.",
+        )
     if _HEAD_Q.search(question):
         return (
             "answer",
@@ -586,7 +630,9 @@ def format_problem(answer: Answer, question: str) -> str | None:
     if kind != "answer":
         return None
     text = answer.text_md.casefold()
-    summary_like = answer.kind == "card" or "обратить внимание" in text
+    summary_like = (
+        answer.kind == "card" or "обратить внимание" in text or "выводы по компаниям" in text
+    )
     if not summary_like:
         return None
     return (

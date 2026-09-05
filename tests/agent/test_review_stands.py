@@ -355,3 +355,102 @@ async def test_single_company_followup_keeps_comparison_memory(snapshot, tmp_pat
     assert "ГДК" not in answer.text_md and "БИЛД" not in answer.text_md
     assert state.values["selected_inns"] == inns
     assert state.values["turn_inns"] == ["1684017097"]
+
+
+@pytest.mark.parametrize(
+    "question",
+    [
+        "Недостоверный адрес у 2311304742 что это значит",
+        "Недостоверный адрес у БИЛД-ЮГ — что это означает?",
+        "Поясни отметку о блокировке счетов у 2311304742",
+    ],
+)
+def test_fact_explanations_do_not_request_full_comparisons(snapshot, question):
+    from contractor_agent.agent.nodes import comparison_needs_verdict, requested_inns
+
+    context = " Компании: ГДК (ИНН 6165169320), ТЕХПРОФ (ИНН 1684017097), БИЛД-ЮГ (ИНН 2311304742)."
+    q = question + context
+    assert question_kind_hint(q)[0] == "answer"
+    assert "get_risk_signals" in tool_subset(q)
+    assert "compare_companies" not in tool_subset(q)
+    assert not comparison_needs_verdict(q)
+    assert requested_inns(q, ["6165169320", "1684017097", "2311304742"], snapshot) == ["2311304742"]
+    assert question_kind_hint(question + ". Можно ли им платить?")[0] == "card"
+
+
+async def test_fact_explanation_repairs_unrequested_company_summaries(snapshot, tmp_path):
+    from contractor_agent.agent.schema import Citation
+
+    inns = ["6165169320", "1684017097", "2311304742"]
+    concise = "У ООО «БИЛД-ЮГ» в отчёте есть отметка о недостоверных регистрационных данных."
+    llm = scripted_llm(
+        [
+            tool_call("compare_companies", "previous", inns=inns),
+            AIMessage(content="Данные получены."),
+            AIMessage(content="Продолжаю."),
+            Draft(
+                kind="answer",
+                lines=[
+                    concise,
+                    "ООО «ГДК»: есть существенные риски. ООО «ТЕХПРОФ»: можно работать.",
+                ],
+            ),
+            tool_call("get_risk_signals", "focused", inn="2311304742"),
+            AIMessage(content="Данные получены."),
+            Draft(
+                kind="answer",
+                lines=[concise],
+                citations=[
+                    Citation(
+                        claim="Отмечены недостоверные регистрационные данные",
+                        source_path="report.reputationalRisks.negative[4].code",
+                        inn="2311304742",
+                    )
+                ],
+            ),
+        ]
+    )
+    settings = Settings(session_db_path=tmp_path / "scope.sqlite", runs_dir=tmp_path / "runs")
+    context = " Компании: ГДК (ИНН 6165169320), ТЕХПРОФ (ИНН 1684017097), БИЛД-ЮГ (ИНН 2311304742)."
+    async with AgentRuntime(settings, source=snapshot, llm=llm) as runtime:
+        await runtime.ask("С кем лучше работать?" + context, "address")
+        answer = await runtime.ask(
+            "Недостоверные регистрационные данные у 2311304742 что это значит" + context, "address"
+        )
+        state = await runtime.graph.aget_state({"configurable": {"thread_id": "address"}})
+    assert state.values["citation_retry"] == 1
+    assert state.values["selected_inns"] == inns
+    assert answer.kind == "answer" and not answer.card and not answer.cards
+    assert set(answer.report_dates) == {"2311304742"}
+    assert not answer.invalid_citations
+    assert "ГДК" not in answer.text_md and "ТЕХПРОФ" not in answer.text_md
+    assert "По данным отчётов" not in answer.text_md
+    assert "недостоверных регистрационных данных" in answer.text_md
+
+
+@pytest.mark.parametrize(
+    ("question", "path"),
+    [
+        (
+            "Недостоверный адрес у 2311304742 что это значит",
+            "report.reputationalRisks.negative[2].code",
+        ),
+        (
+            "Блокировка счетов у БИЛД-ЮГ что это значит",
+            "report.reputationalRisks.negative[5].code",
+        ),
+    ],
+)
+def test_flag_meaning_uses_confirmed_fact_without_other_risks(snapshot, question, path):
+    from contractor_agent.agent.citations import validate_citations
+    from contractor_agent.agent.scoped_answers import scoped_answer
+
+    result = scoped_answer(Tools(snapshot), ["2311304742"], question)
+    assert result and result.kind == "answer"
+    assert len(result.text_md) < 650
+    assert "ГДК" not in result.text_md and "ТЕХПРОФ" not in result.text_md
+    assert not any(t in result.text_md for t in ["скрыть", "фиктивн", "вердикт", "flag_"])
+    assert [c.source_path for c in result.citations] == [path]
+    assert all(c.ok for c in validate_citations(snapshot, ["2311304742"], result.citations))
+    assert scoped_answer(Tools(snapshot), ["1684017097"], question) is None
+    assert scoped_answer(Tools(snapshot), ["2311304742"], question + " И что с судами?") is None
