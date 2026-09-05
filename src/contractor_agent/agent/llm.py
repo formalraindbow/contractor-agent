@@ -12,7 +12,7 @@ from __future__ import annotations
 from typing import Any
 
 from langchain_core.language_models import BaseChatModel
-from langchain_core.runnables import Runnable
+from langchain_core.runnables import Runnable, RunnableLambda
 from langchain_openai import ChatOpenAI
 
 from contractor_agent.settings import Settings
@@ -42,8 +42,13 @@ class LLM:
     def structured(self, schema: type) -> Runnable:
         chains: list[Runnable] = []
         for m in self.models:
-            chains.append(m.with_structured_output(schema, method="function_calling"))
-            chains.append(m.with_structured_output(schema, method="json_schema"))
+            for method in ("json_schema", "function_calling"):
+                # Some compatible endpoints ignore forced tool_choice and return text.
+                # LangChain parses that as None; validate inside the fallback chain.
+                chains.append(
+                    m.with_structured_output(schema, method=method)
+                    | RunnableLambda(schema.model_validate)
+                )
         return chains[0].with_fallbacks(chains[1:])
 
 
