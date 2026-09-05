@@ -61,7 +61,7 @@ class Verdict(StrEnum):
 
 
 VERDICT_RU: dict[Verdict, str] = {
-    Verdict.OK: "существенных факторов риска в отчёте не выявлено",
+    Verdict.OK: "можно работать",
     Verdict.CHECK: "нужна дополнительная проверка",
     Verdict.NOT_RECOMMENDED: "в отчёте есть факты, требующие особого внимания",
 }
@@ -74,6 +74,7 @@ LEGACY_VERDICT_RU = {
     "выявлены существенные риски": Verdict.NOT_RECOMMENDED,
     "можно работать": Verdict.OK,
     "работать можно": Verdict.OK,
+    "существенных факторов риска в отчёте не выявлено": Verdict.OK,
     "стоит проверить до договора": Verdict.CHECK,
 }
 
