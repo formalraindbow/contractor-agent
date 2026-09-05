@@ -146,7 +146,7 @@ def test_label_payment_and_documents_are_grounded(snapshot):
     assert "не раскрывает" in answer.text_md
     assert "подтвердить" in answer.text_md and "18,9 млн" in answer.text_md
     assert "26,2 млн" in answer.text_md
-    assert "Вывод помощника" in answer.text_md
+    assert "Что важно: в отчёте есть факты" in answer.text_md
     assert "не учитывает" not in answer.text_md
     docs = scoped_answer(tools, ["5032257375"], "Какие документы запросить перед оплатой?")
     assert "полномочий" in docs.text_md and "ограничений" in docs.text_md
@@ -204,7 +204,7 @@ def test_obsolete_verdict_does_not_prescribe_payment_terms():
     from contractor_agent.signals.model import VERDICT_RU, Verdict
 
     old = "Работать только на условиях: предоплата и подтверждающие документы"
-    assert public_text(old) == VERDICT_RU[Verdict.NOT_RECOMMENDED]
+    assert public_text(old).casefold() == VERDICT_RU[Verdict.NOT_RECOMMENDED]
     assert "предоплат" not in " ".join(VERDICT_RU.values())
 
 
@@ -217,7 +217,7 @@ def test_default_recommendation_does_not_assume_a_contract(snapshot):
     text = enforce_verdict("Есть факты, которые нужно уточнить.", card.verdict)
     assert VERDICT_RU[Verdict.CHECK] in text and "договор" not in text
     assert verdict_present(text, Verdict.CHECK)
-    assert public_text("Стоит проверить до договора.") == "нужна дополнительная проверка."
+    assert public_text("Стоит проверить до договора.") == "Нужна дополнительная проверка."
 
 
 async def test_comparison_documents_do_not_append_verdicts_or_report_lines(snapshot, tmp_path):
@@ -561,3 +561,57 @@ async def test_offtopic_turn_skips_model_and_keeps_company_context(snapshot, tmp
     assert not answer.citations and not answer.report_dates
     assert "ЯНПОЛОВ" not in answer.text_md
     assert state.values["selected_inns"] == ["052500690823"]
+
+
+@pytest.mark.parametrize(
+    ("old", "verdict"),
+    [
+        ("Есть существенные риски", "not_recommended"),
+        ("Работать только на условиях: предоплата и подтверждающие документы", "not_recommended"),
+        ("Можно работать", "ok"),
+        ("С компанией можно работать", "ok"),
+        ("Нужна дополнительная проверка", "check"),
+    ],
+)
+def test_public_findings_describe_report_instead_of_rating_company(old, verdict):
+    from contractor_agent.agent.nodes import verdict_present
+    from contractor_agent.signals.model import VERDICT_RU, Verdict
+
+    result = public_text(old)
+    assert result.casefold() == VERDICT_RU[Verdict(verdict)]
+    assert verdict_present(result, Verdict(verdict))
+    assert public_text(result) == result
+
+
+def test_terminal_finding_keeps_registry_fact_without_generic_deal_forecast(snapshot):
+    tools = Tools(snapshot)
+    card = build_card(tools, "5032257375")
+    assert card.terminal and card.verdict == "not_recommended"
+    assert card.labels.riskLevel == card.labels.zskRiskLevel == "зелёный"
+    assert any("конкурсное производство" in fact.claim for fact in card.attention)
+    label = tools.get_risk_signals(card.inn).data["verdict_ru"]
+    assert "в отчёте есть факты" in label and "сделки" not in label
+    old = (
+        "Рекомендация помощника: Есть существенные риски.\n\n"
+        "Компания в процедуре банкротства или исключается из реестра: "
+        "сделки могут быть оспорены, обязательства не исполнены.\n\n"
+        "В реестре указано: открыто конкурсное производство."
+    )
+    result = public_text(old)
+    assert "Что важно в отчёте" in result and "сделки" not in result
+    assert "В реестре указано: открыто конкурсное производство." in result
+
+
+def test_legacy_wording_does_not_strengthen_registry_flag():
+    old = (
+        "Адрес: адрес организации отмечен как фиктивный в реестрах ФНС.\n"
+        "Блокировка счетов (модератный риск).\n"
+        "### Итоговое заключение из отчёта"
+    )
+    result = public_text(old)
+    assert "отмечен как недостоверный" in result
+    assert "фиктивн" not in result and "модератн" not in result
+    assert "Что важно по данным отчёта" in result
+    assert public_text(
+        'В отчёте отмечено: **«в отчёте есть факты, требующие особого внимания»**'
+    ) == "В отчёте есть факты, требующие особого внимания."

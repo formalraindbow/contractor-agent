@@ -4,6 +4,7 @@ import re
 
 from contractor_agent.data.model import Report
 from contractor_agent.signals.flags import RULES as FLAG_RULES
+from contractor_agent.signals.model import normalize_verdict_text
 
 PUBLIC_LABELS = {
     "finReports": "финансовая отчётность",
@@ -22,7 +23,21 @@ _MISSING_FINANCIALS = (
     "В отчёте нет финансовой отчётности: выручку, прибыль, капитал и ликвидность оценить нельзя."
 )
 PUBLIC_PHRASES = {
-    "Вердикт:": "Рекомендация помощника:",
+    "Вердикт:": "Что важно в отчёте:",
+    "Рекомендация помощника": "Что важно в отчёте",
+    "Итоговое заключение из отчёта": "Что важно по данным отчёта",
+    "(модератный риск)": "",
+    "адрес организации отмечен как фиктивный в реестрах ФНС": (
+        "адрес организации отмечен как недостоверный в реестрах ФНС"
+    ),
+    (
+        "Компания в процедуре банкротства или исключается из реестра: "
+        "сделки могут быть оспорены, обязательства не исполнены."
+    ): "",
+    (
+        "; компания в процедуре банкротства или исключается из реестра — "
+        "сделки могут быть оспорены, обязательства не исполнены"
+    ): "",
     (
         "Раздел «Финансовая отчётность» в отчёте есть, но данных в нём нет — "
         "оценить финансы по отчёту нельзя."
@@ -97,17 +112,11 @@ def public_text(text: str) -> str:
         return f"⟪{len(urls) - 1}⟫"
 
     text = _URL.sub(keep_url, text)
+    text = normalize_verdict_text(text)
     for old, new in PUBLIC_PHRASES.items():
         text = text.replace(old, new)
     text = _BANNER.sub("", text)
-    text = re.sub(r"стоит проверить до договора", "нужна дополнительная проверка", text, flags=re.I)
     text = re.sub(r"`(?:report|critical|moderate|info)`", "", text)
-    text = re.sub(
-        r"работать только на условиях: предоплата и подтверждающие документы",
-        "есть существенные риски",
-        text,
-        flags=re.I,
-    )
     text = re.sub(r"(?m)[ \t]*\\[ \t]*$", "", text)
     text = re.sub(r"(?i)\b(вывод|рекомендация) банка\b", r"\1 помощника", text)
     # Remove malformed, unclosed annotations before deleting their keywords.

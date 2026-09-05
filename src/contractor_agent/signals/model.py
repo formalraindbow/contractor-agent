@@ -20,6 +20,7 @@
 
 from __future__ import annotations
 
+import re
 from datetime import date
 from decimal import Decimal
 from enum import StrEnum
@@ -54,20 +55,55 @@ class Verdict(StrEnum):
     Коды в контракте с API и фронтом не меняются.
     """
 
-    OK = "ok"  # можно работать
+    OK = "ok"  # существенных факторов в отчёте не выявлено
     CHECK = "check"  # требуется дополнительная проверка
-    NOT_RECOMMENDED = "not_recommended"  # существенные риски
+    NOT_RECOMMENDED = "not_recommended"  # факты требуют особого внимания
 
 
 VERDICT_RU: dict[Verdict, str] = {
-    Verdict.OK: "можно работать",
+    Verdict.OK: "существенных факторов риска в отчёте не выявлено",
     Verdict.CHECK: "нужна дополнительная проверка",
-    Verdict.NOT_RECOMMENDED: "есть существенные риски",
+    Verdict.NOT_RECOMMENDED: "в отчёте есть факты, требующие особого внимания",
 }
-TERMINAL_RU = (  # штатный исход + причина: валидатор находит фразу исхода, судья — оговорку
-    f"{VERDICT_RU[Verdict.NOT_RECOMMENDED]}; компания в процедуре банкротства "
-    "или исключается из реестра — сделки могут быть оспорены, обязательства не исполнены"
-)
+# Specific registry status is already a cited fact; do not add a generic forecast
+# about deals to every terminal report, regardless of the user's purpose.
+TERMINAL_RU = VERDICT_RU[Verdict.NOT_RECOMMENDED]
+LEGACY_VERDICT_RU = {
+    "работать только на условиях: предоплата и подтверждающие документы": Verdict.NOT_RECOMMENDED,
+    "есть существенные риски": Verdict.NOT_RECOMMENDED,
+    "выявлены существенные риски": Verdict.NOT_RECOMMENDED,
+    "можно работать": Verdict.OK,
+    "работать можно": Verdict.OK,
+    "стоит проверить до договора": Verdict.CHECK,
+}
+
+
+def normalize_verdict_text(text: str) -> str:
+    """Historical labels use current report-focused wording without changing category."""
+    for old, verdict in LEGACY_VERDICT_RU.items():
+        label = VERDICT_RU[verdict]
+        text = re.sub(
+            re.escape(old),
+            lambda match, label=label: label.capitalize() if match[0][0].isupper() else label,
+            text,
+            flags=re.I,
+        )
+    # A replaced permission must not leave "С компанией в отчёте есть факты".
+    labels = "|".join(map(re.escape, VERDICT_RU.values()))
+    text = re.sub(
+        rf"\b[Сс] (?:этой |данной )?компанией\s+({labels})",
+        lambda match: match[1][0].upper() + match[1][1:] if match[0][0].isupper() else match[1],
+        text,
+        flags=re.I,
+    )
+    text = re.sub(
+        rf'^(?:В отч[её]те (?:отмечено|указано)|Итоговое заключение из отч[её]та):'
+        rf'\s*[*«" ]*({labels})[»"* .]*$',
+        lambda match: match[1][0].upper() + match[1][1:] + ".",
+        text,
+        flags=re.M | re.I,
+    )
+    return text
 
 
 class Origin(StrEnum):

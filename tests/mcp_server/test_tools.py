@@ -137,7 +137,9 @@ def test_compare_companies_carries_verdict_ru_and_paths(snapshot):
 
     resp = Tools(snapshot).compare_companies(["5032257375", "6165169320", "0000000000"])
     items = {i["inn"]: i for i in resp.data["items"]}
-    assert items["5032257375"]["verdict_ru"].startswith("есть существенные риски")
+    assert items["5032257375"]["verdict_ru"].startswith(
+        "в отчёте есть факты, требующие особого внимания"
+    )
     assert all("source_path" in m for m in items["6165169320"]["moderate"])
     assert items["0000000000"]["available"] is False and "0000000000" in (resp.note or "")
     assert resp.data["total"] == 3 and resp.data["truncated"] is False

@@ -177,7 +177,7 @@ button:focus-visible,a:focus-visible,input:focus-visible,textarea:focus-visible,
 
       <div class="chips" id="chips">
         <span class="lbl">Спросить агента:</span>
-        <button class="chip" type="button" data-ask="Почему такой вывод?">Объясни рекомендацию</button>
+        <button class="chip" type="button" data-ask="Почему такой вывод?">Объясни вывод</button>
         <button class="chip" type="button" data-ask="Что запросить у контрагента?">Что запросить у контрагента?</button>
         <button class="chip" type="button" data-ask="Что с судами: сколько дел и кто с кем?">Суды</button>
         <button class="chip" type="button" data-ask="Есть ли долги у приставов?">Долги у приставов</button>
@@ -258,7 +258,7 @@ button:focus-visible,a:focus-visible,input:focus-visible,textarea:focus-visible,
 <script>
 const $ = (s) => document.querySelector(s);
 const PUBLIC_TEXT_RULES = __PUBLIC_TEXT_RULES__;
-const VERDICT = { ok: "Можно работать", check: "Нужна дополнительная проверка", not_recommended: "Есть существенные риски" };
+const VERDICT = Object.fromEntries(Object.entries(PUBLIC_TEXT_RULES.verdicts).map(([key,label])=>[key,label.charAt(0).toUpperCase()+label.slice(1)]));
 const SEV = { critical: "важно", moderate: "стоит учесть", info: "к сведению" };
 const TOOLS = { search_company: "ищу компанию", get_report_summary: "читаю сводку", get_risk_signals: "проверяю, на что обратить внимание", get_financials: "смотрю финансы", get_enforcement_summary: "смотрю долги у приставов", get_arbitration_summary: "смотрю суды", get_section: "читаю раздел отчёта", compare_companies: "сравниваю компании" };
 const newThread = () => crypto.randomUUID();
@@ -350,6 +350,12 @@ const publicLabels = Object.fromEntries(Object.entries(PUBLIC_TEXT_RULES.labels)
 function cleanText(value) {
   const urls=[];
   let text=String(value ?? '').replace(/https?:\/\/[^\s<>)]*/gi,url=>{urls.push(url);return `⟪${urls.length-1}⟫`;});
+  Object.entries(PUBLIC_TEXT_RULES.verdict_phrases).forEach(([old,label])=>{
+    text=text.replace(new RegExp(escapePattern(old),'gi'),match=>match[0]===match[0].toUpperCase()?label.charAt(0).toUpperCase()+label.slice(1):label);
+  });
+  const findingPattern=Object.values(PUBLIC_TEXT_RULES.verdicts).map(escapePattern).join('|');
+  text=text.replace(new RegExp('с (?:этой |данной )?компанией\\s+('+findingPattern+')','gi'),(match,label)=>match[0]==='С'?label.charAt(0).toUpperCase()+label.slice(1):label);
+  text=text.replace(new RegExp('^(?:В отч[её]те (?:отмечено|указано)|Итоговое заключение из отч[её]та):\\s*[*«" ]*('+findingPattern+')[»"* .]*$','gim'),(_,label)=>label.charAt(0).toUpperCase()+label.slice(1)+'.');
   Object.entries(PUBLIC_TEXT_RULES.phrases || {}).forEach(([old,replacement])=>text=text.replaceAll(old,replacement));
   for(const pattern of [/\([^()\n]*(?:\([^()\n]*\)[^()\n]*)*\)/g,/\[(?:[^\[\]\n]|\[\d+\])*\]/g]) {
     text=text.replace(pattern,part=>internalText.test(part)?'':part);
@@ -493,8 +499,7 @@ document.addEventListener('keydown',e=>{
 const money = n => n == null ? 'В отчёте не указано' : Number(n).toLocaleString('ru-RU',{maximumFractionDigits:2})+' ₽';
 function answerText(a) {
   // Also remove obsolete boilerplate when restoring a saved conversation.
-  let text=cleanText(a.text_md || '').replace(/работать только на условиях: предоплата и подтверждающие документы/gi,'есть существенные риски')
-    .replace(/стоит проверить до договора/gi,'Нужна дополнительная проверка')
+  let text=cleanText(a.text_md || '')
     .replace(/требуют предоплаты с подтверждающими документами/gi,'требуют дополнительной проверки');
   if(Object.keys(a.report_dates || {}).length>1) {
     text=text.replace(/^[ \t]*(?:[-•] )?(?:\*\*)?(?:Отч[её]т|Дата отч[её]та)(?: по ИНН \d{10,12})?\s*(?:от|:)\s*(?:\d{2}\.\d{2}\.\d{4}|\d{4}-\d{2}-\d{2})[.]?(?:\*\*)?[ \t]*$/gim,'');
@@ -588,9 +593,7 @@ function clearCard(html='') {
 function renderCard(c) {
   const facts = orderedFacts(c);
   const li = a => `<li>${esc(cleanText(a.claim))}</li>`;
-  const sub = c.terminal ? 'Компания в процедуре банкротства или исключается из реестра: сделки могут быть оспорены, обязательства не исполнены.' :
-    c.verdict === 'ok' ? 'По доступным данным существенных факторов риска не выделено. Ограничения отчёта приведены ниже.' : '';
-  $('#cardAssessment').innerHTML = `<div class="assessment"><div class="verdict ${c.verdict}"><div class="assessment-label">Рекомендация помощника</div><div class="v">${recommendationText(c)}</div>${sub ? `<div class="s">${sub}</div>` : ''}</div></div>`;
+  $('#cardAssessment').innerHTML = `<div class="assessment"><div class="verdict ${c.verdict}"><div class="assessment-label">Что важно в отчёте</div><div class="v">${recommendationText(c)}</div></div></div>`;
   let html = pillClass(c.labels.riskLevel)==='r' ? '<aside class="bank-note"><b>Светофор банка — красный</b><p>Это самостоятельный повод для дополнительной проверки. Причина оценки в отчёте не раскрыта. ЗСК — отдельная оценка; её зелёный цвет не отменяет красный светофор.</p></aside>' : '';
   const primary = goal && goal !== 'look' ? facts : facts.filter(a => a.severity !== 'info');
   const rest = facts.filter(a => !primary.includes(a));
@@ -676,7 +679,7 @@ function renderComparison(cards) {
   const row = (label, cell) => `<tr><td>${label}</td>${cards.map(cell).join("")}</tr>`;
   let html = `<div class="cmpwrap"><table class="cmp"><thead><tr><th></th>${cards.map((c) => `<th>${esc(c.name)}<small>отчёт от ${dateRu(c.report_date)}</small></th>`).join("")}</tr></thead><tbody>`;
   html += row("Оценки банка", (c) => `<td>${bankMarks(c.labels,true)}</td>`);
-  html += row("Рекомендация помощника", (c) => `<td><div class="comparison-verdict ${c.verdict}">${VERDICT[c.verdict]}</div></td>`);
+  html += row("Что важно в отчёте", (c) => `<td><div class="comparison-verdict ${c.verdict}">${VERDICT[c.verdict]}</div></td>`);
   html += row("Главное", (c) => `<td>${(c.attention || []).length ? `<ul>${c.attention.slice(0, 3).map((a) => `<li>${esc(cleanText(a.claim))}</li>`).join("")}</ul>` : `<span class="muted">Сигналов не найдено</span>`}</td>`);
   html += row("Чего нет в отчёте", (c) => `<td class="muted">${(c.gaps || []).length ? esc(cleanText(c.gaps.join(" · "))) : "Пробелов нет"}</td>`);
   html += `</tbody></table></div>`;
@@ -827,7 +830,7 @@ const GOALS = {
   },
 };
 let goal = null, sentGoal = false;
-const DEFAULT_ASKS = [["Объясни рекомендацию", "Почему такой вывод?"], ["Что запросить у контрагента?", "Что запросить у контрагента?"], ["Суды", "Что с судами: сколько дел и кто с кем?"], ["Долги у приставов", "Есть ли долги у приставов?"], ["Финансы", "Что с финансами?"], ["Можно давать отсрочку?", "Можно давать отсрочку платежа?"]];
+const DEFAULT_ASKS = [["Объясни вывод", "Почему такой вывод?"], ["Что запросить у контрагента?", "Что запросить у контрагента?"], ["Суды", "Что с судами: сколько дел и кто с кем?"], ["Долги у приставов", "Есть ли долги у приставов?"], ["Финансы", "Что с финансами?"], ["Можно давать отсрочку?", "Можно давать отсрочку платежа?"]];
 
 function statedGoal(text) {
   if(/если|допустим|например|фраз|не\s+(?:хочу|планирую|собираюсь|буду|плачу|оплачиваю)/i.test(text)) return null;

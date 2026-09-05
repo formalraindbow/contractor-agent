@@ -219,7 +219,7 @@ def scoped_answer(tools: Tools, inns: list[str], question: str) -> Draft | None:
         kind = "card"
         lines = [
             "### Отсрочка платежа",
-            "Вывод помощника по отчёту: " + VERDICT_RU[Verdict(risks["verdict"])] + ".",
+            "Что важно: " + VERDICT_RU[Verdict(risks["verdict"])] + ".",
             "Светофор банка: "
             + summary["labels"]["svetofor"]
             + ". ЗСК: "
@@ -321,7 +321,7 @@ def scoped_answer(tools: Tools, inns: list[str], question: str) -> Draft | None:
                 cite(fact["explanation"], fact["source_path"])
             lines += [
                 "",
-                "Вывод помощника по отчёту: " + VERDICT_RU[Verdict(risks["verdict"])] + ".",
+                "Что важно: " + VERDICT_RU[Verdict(risks["verdict"])] + ".",
             ]
     elif DOCUMENTS.search(q) and not re.search(r"сколько|кто руковод|почему", q, re.I):
         risk_response = tools.get_risk_signals(inn)

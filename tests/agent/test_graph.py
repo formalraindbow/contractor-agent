@@ -79,7 +79,7 @@ async def test_card_flow_with_one_citation_repair(snapshot: Snapshot, tmp_path) 
     ]
     assert len(repair) == 1 and "report.baseInfo.staff" in repair[0].content
     assert "не совпадает с рекомендацией" in repair[0].content  # «стоит проверить» против карточки
-    assert "существенные риски" in answer.text_md.casefold()
+    assert "факты, требующие особого внимания" in answer.text_md.casefold()
     assert "\n\n" in answer.text_md  # строки склеены кодом
     tool_msgs = [m for m in values["messages"] if isinstance(m, ToolMessage)]
     assert len(tool_msgs) == 2 and '"available": true' in tool_msgs[0].content
@@ -151,8 +151,10 @@ def test_enforce_verdict_replaces_and_appends() -> None:
 
     text = "Итог: Нужна дополнительная проверка. Отчёт от 01.08.2026."
     fixed = enforce_verdict(text, Verdict.NOT_RECOMMENDED)
-    assert "существенные риски" in fixed and "проверить до договора." not in fixed
-    assert enforce_verdict("Без вывода.", Verdict.OK).endswith("**Рекомендация:** можно работать.")
+    assert "факты, требующие особого внимания" in fixed and "проверить до договора." not in fixed
+    assert enforce_verdict("Без вывода.", Verdict.OK).endswith(
+        "**По данным отчёта:** существенных факторов риска в отчёте не выявлено."
+    )
 
 
 def test_draft_accepts_text_instead_of_lines():
@@ -212,7 +214,8 @@ async def test_comparison_verdict_is_enforced_by_code(snapshot: Snapshot, tmp_pa
         answer = await rt.ask("Сравни 5032257375 и 6165169320", thread_id="cmp2")
     assert answer.kind == "comparison" and len(answer.cards) == 2
     assert "По данным отчётов" in answer.text_md
-    assert answer.text_md.count("есть существенные риски") == 2
+    assert answer.text_md.count("в отчёте есть факты, требующие особого внимания") == 2
+    assert "существенных факторов риска в отчёте не выявлено" not in answer.text_md
 
 
 def test_inns_from_args_accepts_string_list() -> None:
@@ -227,9 +230,7 @@ def test_forbidden_phrase_is_flagged_and_scrubbed() -> None:
 
     text = "**МАКСМАРКЕТ — работать нельзя, компания в банкротстве.**\nФакты…"
     assert "работать нельзя" in (forbidden_problem(text) or "")
-    scrubbed = scrub_forbidden(
-        text, "есть существенные риски"
-    )
+    scrubbed = scrub_forbidden(text, "есть существенные риски")
     assert "нельзя" not in scrubbed and "есть существенные риски" in scrubbed
     assert forbidden_problem("Нужна дополнительная проверка.") is None
 
@@ -268,7 +269,10 @@ def test_verdict_codes_are_replaced_with_phrases() -> None:
         "Итог: ГДК – not_recommended, ТЕХПРОФ – ok. Поле check_id не трогаем."
     )
     assert "not_recommended" not in out and " ok" not in out
-    assert "есть существенные риски" in out and "можно работать" in out
+    assert (
+        "факты, требующие особого внимания" in out
+        and "существенных факторов риска в отчёте не выявлено" in out
+    )
     assert "check_id" in out
 
 
@@ -320,9 +324,7 @@ def test_forbidden_phrase_with_words_between() -> None:
 
     text = "**Работать с ООО «МАКСМАРКЕТ» нельзя — компания в процедуре банкротства.**"
     assert forbidden_problem(text)
-    assert "нельзя" not in scrub_forbidden(
-        text, "есть существенные риски"
-    )
+    assert "нельзя" not in scrub_forbidden(text, "есть существенные риски")
 
 
 def test_empty_answer_triggers_repair() -> None:
@@ -354,9 +356,7 @@ async def test_comparison_after_card_uses_only_this_turn_companies(
             AIMessage(content="ок"),
             Draft(
                 kind="card",
-                lines=[
-                    "МАКСМАРКЕТ: есть существенные риски. Отчёт от 31.07.2026."
-                ],
+                lines=["МАКСМАРКЕТ: есть существенные риски. Отчёт от 31.07.2026."],
                 citations=[],
             ),
             tool_call("compare_companies", "c2", inns=["6165169320", "1684017097"]),
@@ -373,7 +373,8 @@ async def test_comparison_after_card_uses_only_this_turn_companies(
         )
     assert answer.kind == "comparison"
     assert [c.inn for c in answer.cards] == ["6165169320", "1684017097"]
-    assert "предпочтительнее" in answer.text_md
+    assert "предпочтительнее" not in answer.text_md
+    assert "У **ООО «ТЕХПРОФ»** в отчёте не выявлено существенных факторов риска" in answer.text_md
     assert "МАКСМАРКЕТ" not in answer.text_md
 
 
@@ -559,7 +560,8 @@ def test_scrubbed_verdict_is_not_doubled() -> None:
     out = tidy_text(
         enforce_verdict(scrub_forbidden(replace_verdict_codes(tidy_text(draft)), VERDICT_RU[v]), v)
     )
-    assert out.lower().count("есть существенные риски") == 1, out
+    assert out.lower().count(VERDICT_RU[v]) == 1, out
+    assert "С компанией в отчёте" not in out
 
 
 def test_absence_problem_catches_more_phrasings() -> None:

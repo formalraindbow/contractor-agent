@@ -45,8 +45,8 @@ def comparison_followup(cards: list[Card], question: str) -> Draft | None:
     rank = {Verdict.OK: 0, Verdict.CHECK: 1, Verdict.NOT_RECOMMENDED: 2}
     ordered = sorted(cards, key=lambda c: rank[c.verdict])
     best = [c for c in ordered if c.verdict == ordered[0].verdict]
-    if len(best) == 1:
-        lines = [f"По данным этих отчётов предпочтительнее **{best[0].name}**."]
+    if len(best) == 1 and best[0].verdict == Verdict.OK:
+        lines = [f"У **{best[0].name}** в отчёте не выявлено существенных факторов риска."]
     else:
         lines = ["Однозначного выбора по этим отчётам нет. Ключевые различия:"]
     for card in ordered:

@@ -37,7 +37,7 @@ from contractor_agent.agent.section_answers import section_answer
 from contractor_agent.agent.state import AgentState, ToolCallTrace
 from contractor_agent.data.loader import ReportSource, normalize_name, strip_legal_form
 from contractor_agent.mcp_server.tools import Tools
-from contractor_agent.signals.model import VERDICT_RU, Severity, Verdict
+from contractor_agent.signals.model import VERDICT_RU, Severity, Verdict, normalize_verdict_text
 
 MAX_CITATION_RETRIES = 1
 Node = Callable[[AgentState], Awaitable[dict[str, Any]]]
@@ -351,7 +351,7 @@ def verdict_mismatch(answer: Answer, *, require_comparison: bool = True) -> str 
     При сравнении — с вердиктом каждой компании."""
     if answer.card is not None:
         expected = VERDICT_RU[answer.card.verdict]
-        lowered = answer.text_md.casefold()
+        lowered = normalize_verdict_text(answer.text_md).casefold()
         if verdict_present(answer.text_md, answer.card.verdict):
             return None
         others = [v for v in VERDICT_RU.values() if v != expected and v in lowered]
@@ -363,7 +363,9 @@ def verdict_mismatch(answer: Answer, *, require_comparison: bool = True) -> str 
         return f"В тексте нет рекомендации. Добавь буквально: «{expected}»."
     if answer.cards and require_comparison:
         missing = [
-            c for c in answer.cards if VERDICT_RU[c.verdict] not in answer.text_md.casefold()
+            c
+            for c in answer.cards
+            if VERDICT_RU[c.verdict] not in normalize_verdict_text(answer.text_md).casefold()
         ]
         if missing:
             wanted = "; ".join(
@@ -865,39 +867,48 @@ def drop_invalid_lines(text: str, invalid: list[Citation]) -> str:
 
 def enforce_comparison(text: str, cards: list[Card]) -> str:
     """После неудачного круга исправления итог сравнения дописывается кодом."""
-    text = replace_verdict_codes(text)
+    text = normalize_verdict_text(replace_verdict_codes(text))
     lowered = text.casefold()
     missing = [c for c in cards if VERDICT_RU[c.verdict] not in lowered]
     if not missing:
         return text
+    # If every card contradicts a category in the draft, do not retain that
+    # incorrect verdict alongside the repaired ones. Keep the factual lines.
+    absent = [
+        label for verdict, label in VERDICT_RU.items() if all(c.verdict != verdict for c in cards)
+    ]
+    if absent:
+        text = "\n".join(
+            line
+            for line in text.splitlines()
+            if not any(label in line.casefold() for label in absent)
+        )
     lines = [f"- {c.name} (ИНН {c.inn}): {VERDICT_RU[c.verdict]}" for c in missing]
     return f"{text.rstrip()}\n\n**По данным отчётов:**\n" + "\n".join(lines)
 
 
 _VERDICT_CORE = {
-    Verdict.OK: re.compile(r"можно работать|работать можно", re.I),
-    Verdict.CHECK: re.compile(r"нужна дополнительная проверка", re.I),
-    Verdict.NOT_RECOMMENDED: re.compile(r"(?:есть |выявлены )?существенные риски", re.I),
+    verdict: re.compile(re.escape(label), re.I) for verdict, label in VERDICT_RU.items()
 }
 
 
 def verdict_present(text: str, verdict: Verdict) -> bool:
     """Вывод в тексте уже есть, даже если модель вплела его в предложение."""
-    return bool(_VERDICT_CORE[verdict].search(text))
+    return bool(_VERDICT_CORE[verdict].search(normalize_verdict_text(text)))
 
 
 def enforce_verdict(text: str, verdict: Verdict) -> str:
     """После неудачного круга исправления вывод в тексте заменяется кодом."""
     expected = VERDICT_RU[verdict]
-    out = text
+    out = normalize_verdict_text(text)
     for other_verdict, other in VERDICT_RU.items():
         if other_verdict is verdict:
             continue
         if _VERDICT_CORE[other_verdict].search(out):
             out = re.compile(re.escape(other), re.IGNORECASE).sub(expected, out)
     if not verdict_present(out, verdict):
-        out = f"{out.rstrip()}\n\n**Рекомендация:** {expected}."
-    return out
+        out = f"{out.rstrip()}\n\n**По данным отчёта:** {expected}."
+    return normalize_verdict_text(out)
 
 
 def build_card(tools: Tools, inn: str) -> Card | None:
