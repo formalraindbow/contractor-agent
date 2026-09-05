@@ -173,3 +173,9 @@ def test_meta_paths_and_year_only_claims(snapshot):
         claim="нет данных о текущей ликвидности", source_path="report.finReports[0].assets"
     )
     assert check_citation(snapshot, ["2100006761"], c2).ok  # объект финансов — не сводка дел
+
+
+def test_exact_money_cannot_use_five_percent_tolerance():
+    assert not number_matches(Decimal("4000486.53"), Decimal("3995486.53"))
+    assert not number_matches(Decimal("55"), Decimal("54"))
+    assert number_matches(Decimal("4000000"), Decimal("3995486.53"))

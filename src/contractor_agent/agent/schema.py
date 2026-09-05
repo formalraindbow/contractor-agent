@@ -32,6 +32,8 @@ class Attention(BaseModel):
     claim: str
     severity: Severity
     source_path: str
+    code: str = ""
+    source_paths: list[str] = Field(default_factory=list)
 
 
 class CardLabels(BaseModel):

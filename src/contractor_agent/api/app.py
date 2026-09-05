@@ -28,22 +28,46 @@ from contractor_agent import __version__
 from contractor_agent.agent.nodes import build_card
 from contractor_agent.agent.runtime import AgentRuntime
 from contractor_agent.agent.stream import CONTRACT_VERSION, new_run_id, stream_run
+from contractor_agent.api.evidence import evidence
+from contractor_agent.data.paths import PathNotFoundError
 from contractor_agent.mcp_server.server import DESCRIPTIONS
 from contractor_agent.mcp_server.tools import Tools
 from contractor_agent.settings import Settings
 
 STATIC = Path(__file__).parent / "static"
-QUALITY_NAMES = {  # папки кэша прогонов → понятные имена для страницы
-    "gpt_b1gir8dkimq5j60i6ajf_deepseek-v4-flash_latest": (
-        "deepseek-v4-flash — сильная модель, для сравнения"
-    ),
-    "gpt_b1gir8dkimq5j60i6ajf_gpt-oss-20b_latest": (
-        "gpt-oss-20b — целевая, первая версия подсказок"
-    ),
-    "gpt_b1gir8dkimq5j60i6ajf_gpt-oss-20b_latest_prompt-v2_": (
-        "gpt-oss-20b — целевая, текущая версия"
-    ),
-}
+
+
+def quality_name(model: str, folder: str) -> str:
+    """No provider paths or raw model URIs in the presentation table."""
+    value = (model + " " + folder).lower()
+    family = next(
+        (
+            name
+            for token, name in (
+                ("gpt-oss-20b", "GPT-OSS-20B"),
+                ("gpt-oss-120b", "GPT-OSS-120B"),
+                ("deepseek-v4-flash", "DeepSeek V4 Flash"),
+                ("glm-5.3-flash", "GLM 5.3 Flash"),
+            )
+            if token in value
+        ),
+        "Другая модель",
+    )
+    version = (
+        "третья версия подсказок"
+        if "v3" in value
+        else ("вторая версия подсказок" if "v2" in value else "первая версия подсказок")
+    )
+    return f"{family} · {version}"
+
+
+def quality_role(model: str, folder: str) -> str:
+    value = (model + " " + folder).lower()
+    if "deepseek-v4-flash" in value and "v3" not in value:
+        return "control"
+    if "gpt-oss-20b" in value:
+        return "current" if "v3" in value else ("first" if "v2" not in value else "other")
+    return "other"
 
 
 class RunInput(BaseModel):
@@ -175,11 +199,13 @@ def create_app(
     @app.get("/v1/mcp/info")
     def mcp_info() -> dict[str, Any]:
         """Как подключить наши инструменты к любому агенту по MCP: описания и готовый конфиг."""
-        project = str(Path(__file__).resolve().parents[3])
-        args = ["run", "--directory", project, "kontragent-mcp", "--source", "snapshot"]
+        args = ["run", "kontragent-mcp", "--source", "snapshot"]
         return {
             "server": "kontragent",
             "transport": ["stdio", "streamable-http"],
+            "setup_note": "Подключение по stdio на машине разработчика. Запускайте клиент "
+            "из каталога установленного проекта с доступом к отчётам. "
+            "Публичный MCP-адрес не настроен.",
             "command": "uv " + " ".join(args),
             "tools": [{"name": n, "description": d} for n, d in DESCRIPTIONS.items()],
             "envelope": {
@@ -195,27 +221,31 @@ def create_app(
     @app.get("/v1/quality")
     def quality() -> dict[str, Any]:
         """Как агента проверяли: эталон, доли и оценка судьи по каждому прогону."""
-        cache = Settings().runs_dir / "evals"
+        cache = settings.runs_dir / "evals"
         rows = []
         for folder in sorted(p for p in cache.iterdir() if p.is_dir()) if cache.exists() else []:
-            records = [
-                RunRecord.model_validate_json(f.read_text(encoding="utf-8"))
-                for f in sorted(folder.glob("*.json"))
-            ]
+            records = []
+            for f in sorted(folder.glob("*.json")):
+                try:
+                    records.append(RunRecord.model_validate_json(f.read_text(encoding="utf-8")))
+                except (ValueError, OSError):
+                    continue
             if not records:
                 continue
             m = compute_metrics(records)
             rows.append(
                 {
-                    "model": QUALITY_NAMES.get(folder.name, m.model),
+                    "model": quality_name(m.model, folder.name),
+                    "role": quality_role(m.model, folder.name),
                     "total": m.total,
+                    "errors": m.errors,
                     "grounded": m.grounded_share,
                     "refusal": m.refusal_share,
                     "invented": m.invented_share,
                     "bad_citation": m.bad_citation_share,
                     "missed_critical": m.missed_critical_share,
                     "judge": m.judge_mean,
-                    "seconds": m.mean_duration_s,
+                    "seconds": None,  # old durations include the judge, not only the answer
                 }
             )
         return {"rows": rows, "questions": 50, "companies": 12}
@@ -239,6 +269,22 @@ def create_app(
     def report_financials(inn: str, request: Request) -> dict[str, Any]:
         tools: Tools = request.app.state.tools
         return tools.get_financials(inn).model_dump(mode="json")
+
+    @app.get("/report/{inn}/summary")
+    def report_summary(inn: str, request: Request) -> dict[str, Any]:
+        return request.app.state.tools.get_report_summary(inn).model_dump(mode="json")
+
+    @app.get("/report/{inn}/source")
+    def report_evidence(
+        inn: str,
+        request: Request,
+        path: str = Query(max_length=300),
+        signal: str | None = Query(default=None, max_length=100),
+    ) -> dict[str, Any]:
+        try:
+            return evidence(request.app.state.tools, inn, path, signal)
+        except PathNotFoundError as e:
+            raise HTTPException(404, "Поле отчёта или расчёт не найден") from e
 
     return app
 

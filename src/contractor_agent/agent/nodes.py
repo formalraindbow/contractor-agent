@@ -11,6 +11,7 @@ validate  вход: answer, selected_inns                        выход: ans
 from __future__ import annotations
 
 import json
+import logging
 import re
 from collections.abc import Awaitable, Callable
 from typing import Any
@@ -22,12 +23,16 @@ from langgraph.prebuilt import ToolNode
 from contractor_agent.agent.citations import (
     extract_inline_citations,
     is_meta_path,
+    normalize_path,
     numbers_in,
     validate_citations,
 )
 from contractor_agent.agent.llm import LLM
+from contractor_agent.agent.presentation import public_text
 from contractor_agent.agent.prompt import FINALIZE_PROMPT, SYSTEM_PROMPT, citation_repair_prompt
 from contractor_agent.agent.schema import Answer, Attention, Card, CardLabels, Citation, Draft
+from contractor_agent.agent.scoped_answers import scoped_answer
+from contractor_agent.agent.section_answers import section_answer
 from contractor_agent.agent.state import AgentState, ToolCallTrace
 from contractor_agent.data.loader import ReportSource
 from contractor_agent.mcp_server.tools import Tools
@@ -119,25 +124,32 @@ def make_nodes(llm: LLM, tools: list[Any], source: ReportSource) -> dict[str, No
             str(state.get("question") or "")
         ):
             hint = ((hint + " ") if hint else "") + FOLLOW_UP_HINT
-        history = visible_history(state["messages"], str(state.get("question") or ""))
+        question = str(state.get("question") or "")
+        identities = ", ".join(state.get("turn_inns") or state.get("selected_inns") or [])
+        history = finalization_history(state["messages"], question)
         messages = [
             SystemMessage(content=SYSTEM_PROMPT),
             *history,
-            HumanMessage(content=f"{FINALIZE_PROMPT}\n\n{hint}" if hint else FINALIZE_PROMPT),
+            HumanMessage(
+                content=f"{FINALIZE_PROMPT}\n\n{hint or ''}\n\n"
+                f"Компании в разговоре (ИНН): {identities}.\n"
+                f"Текущий вопрос, на который нужно ответить: {question}"
+            ),
         ]
         try:
-            draft = await structured.ainvoke(messages)
+            # Narrow policy answers still use current report evidence and the same validator.
+            turn_inns = list(state.get("turn_inns") or [])
+            draft = section_answer(tools_layer, turn_inns, question) or scoped_answer(
+                tools_layer, turn_inns, question
+            )
+            if draft is None:
+                draft = await structured.ainvoke(messages)
             if not isinstance(draft, Draft):
                 draft = Draft.model_validate(draft)
-        except Exception as e:  # модель не смогла выдать структуру — честный отказ, не падение
-            last = next(
-                (m.content for m in reversed(state["messages"]) if isinstance(m, AIMessage)), ""
-            )
-            draft = Draft(
-                kind="refusal",
-                text_md=str(last) or f"Не удалось собрать ответ: {type(e).__name__}.",
-                citations=[],
-            )
+        except Exception as e:
+            logging.getLogger(__name__).exception("Structured answer failed")
+            # Tool reasoning and incomplete drafts must never become a public answer.
+            raise RuntimeError("Не удалось собрать проверяемый ответ") from e
         citations = list(draft.citations)
         seen_paths = {c.source_path for c in citations}
         for extra in extract_inline_citations(
@@ -154,6 +166,8 @@ def make_nodes(llm: LLM, tools: list[Any], source: ReportSource) -> dict[str, No
             draft = draft.model_copy(
                 update={"kind": "comparison"}
             )  # несколько компаний — сравнение
+        elif kind_hint == "answer" and draft.kind == "card":
+            draft = draft.model_copy(update={"kind": "answer"})
         elif kind_hint == "card" and cards and draft.kind in ("refusal", "answer"):
             # просили проверить компанию, карточка собрана кодом: пробелы в отчёте не повод
             # отдавать ответ без рекомендации — иначе интерфейс теряет вывод и вид ответа
@@ -164,7 +178,9 @@ def make_nodes(llm: LLM, tools: list[Any], source: ReportSource) -> dict[str, No
             card=cards[0] if draft.kind == "card" and cards else None,
             cards=cards if draft.kind == "comparison" else [],
             citations=citations,
-            report_dates=dict(state.get("report_dates") or {}),
+            report_dates={
+                inn: day for inn, day in (state.get("report_dates") or {}).items() if inn in inns
+            },
         )
         return {"draft": draft, "answer": answer}
 
@@ -196,7 +212,7 @@ def make_nodes(llm: LLM, tools: list[Any], source: ReportSource) -> dict[str, No
                 "citation_retry": retry + 1,
                 "answer": None,
             }
-        base = drop_invalid_lines(tidy_text(answer.text_md), [c.citation for c in invalid])
+        base = tidy_text(drop_invalid_lines(answer.text_md, [c.citation for c in invalid]))
         if answer.card:
             text = enforce_verdict(
                 scrub_forbidden(replace_verdict_codes(base), VERDICT_RU[answer.card.verdict]),
@@ -206,15 +222,63 @@ def make_nodes(llm: LLM, tools: list[Any], source: ReportSource) -> dict[str, No
             text = enforce_comparison(scrub_forbidden(base, None), answer.cards)
         else:
             text = scrub_forbidden(base, None)
-        text = tidy_text(text)  # ещё раз: подстановки кода тоже приводим к общему виду
+        text = public_text(tidy_text(text))
+        dates = answer.report_dates
+        if len(dates) == 1 and re.search(
+            r"финанс|выручк|ликвид|отч[её]тност",
+            question_subject(str(state.get("question") or "")),
+            re.I,
+        ):
+            inn = next(iter(dates))
+            financials = tools_layer.get_financials(inn)
+            if financials.available:
+                stale = next(
+                    (s for s in financials.data.get("signals", []) if s["code"] == "fin_stale"),
+                    None,
+                )
+                if stale and not re.search(r"31[.]03[.]|31 марта", text):
+                    note = stale["explanation"]
+                    start = re.search(r"(?m)^Отч[её]т от ", text)
+                    at = start.start() if start else len(text)
+                    text = text[:at].rstrip() + "\n\n" + note + "\n\n" + text[at:]
+        subject = question_subject(str(state.get("question") or ""))
+        if len(dates) == 1 and _COURT_Q.search(subject) and not re.search(r"20\d{2}", subject):
+            inn = next(iter(dates))
+            courts = tools_layer.get_arbitration_summary(inn)
+            if courts.available:
+                for signal in courts.data.get("signals", []):
+                    if "mismatch" in signal["code"] and signal["explanation"] not in text:
+                        text += "\n\n" + signal["explanation"]
+        for inn, day in dates.items():
+            ru = ".".join(reversed(day.split("-")))
+            if ru not in text and day not in text:
+                text += f"\n\nОтчёт{' по ИНН ' + inn if len(dates) > 1 else ''} от {ru}."
+        text = public_text(text)
         checked = answer.model_copy(
             update={
                 "text_md": text,
-                "citations": [c.citation for c in checks if c.ok],
+                "citations": [
+                    c.citation.model_copy(
+                        update={
+                            "claim": public_text(c.citation.claim),
+                            "source_path": normalize_path(path),
+                            "inn": c.inn,
+                        }
+                    )
+                    for c in checks
+                    if c.ok
+                    for path in re.split(r"[,;]", c.citation.source_path)
+                    if path.strip()
+                ],
                 "invalid_citations": [c.citation for c in invalid],
             }
         )
-        return {"answer": checked}
+        return {
+            "answer": checked,
+            "messages": [
+                AIMessage(content=checked.text_md, additional_kwargs={"final_answer": True})
+            ],
+        }
 
     return {
         "guard": guard,
@@ -269,7 +333,10 @@ def verdict_mismatch(answer: Answer) -> str | None:
 _SECTION_HINTS = (  # слова вопроса → раздел отчёта: подсказка виду ответа, чтобы слабая модель не давала сводку
     ("долги у приставов", re.compile(r"пристав|исполнительн|долг", re.I)),
     ("суды", re.compile(r"\bсуд|\bиск|арбитраж", re.I)),
-    ("финансы", re.compile(r"выручк|прибыл|убыт|актив|капитал|ликвидн|отчётност|оборот", re.I)),
+    (
+        "финансы",
+        re.compile(r"финанс|выручк|прибыл|убыт|актив|капитал|ликвидн|отч[её]тност|оборот", re.I),
+    ),
     ("лицензии", re.compile(r"лиценз", re.I)),
     ("филиалы", re.compile(r"филиал", re.I)),
     ("проверки госорганов", re.compile(r"проверк[аи]\b|проверял|инспекц|надзор", re.I)),
@@ -284,9 +351,19 @@ _CARD_RE = re.compile(
 )
 _COMPARE_RE = re.compile(r"сравни|с кем лучше|кого выбрать|кто из них", re.I)
 _DECISION_RE = re.compile(
-    r"можно ли|стоит ли|давать ли|кому верить|или лучше|безопасно ли|рискованно ли|надо ли|потянет ли",
+    r"можно (?:ли|им|давать|платить|работать)|стоит ли|давать ли|кому верить|или лучше|"
+    r"безопасно ли|рискованно ли|надо ли|потянет ли",
     re.I,
 )
+_DOCUMENTS_Q = re.compile(r"что (?:запросить|уточнить)|какие документы|список документов", re.I)
+_EXPLAIN_Q = re.compile(r"почему такой вывод|объясни.{0,20}(?:рекомендац|вывод)", re.I)
+_HEAD_Q = re.compile(r"руковод|управляющ|директор|сколько лет|возраст компан", re.I)
+_LABEL_Q = re.compile(r"зск|светофор|метк[аиу]|оценк[аиу] банка", re.I)
+
+
+def question_subject(question: str) -> str:
+    # The UI appends company identity and goal; those are context, not another question.
+    return question.split("Речь о компании", 1)[0].strip()
 
 
 _SECTION_TOOLS = {
@@ -304,15 +381,21 @@ _SECTION_TOOLS = {
 
 def tool_subset(question: str) -> list[str] | None:
     """Имена инструментов под вид вопроса; None — все (карточка и неопределённые вопросы)."""
+    question = question_subject(question)
     kind, _ = question_kind_hint(question)
     if kind == "comparison":
         return ["search_company", "compare_companies"]
     if kind != "answer":
         return None
+    selected = ["search_company", "get_report_summary"]
+    if _DOCUMENTS_Q.search(question) or _EXPLAIN_Q.search(question):
+        selected.extend(["get_risk_signals", "get_financials"])
+    if _HEAD_Q.search(question) or _LABEL_Q.search(question):
+        selected.append("get_risk_signals")
     for name, rx in _SECTION_HINTS:
         if rx.search(question):
-            return ["search_company", "get_report_summary", *_SECTION_TOOLS[name]]
-    return None
+            selected.extend(_SECTION_TOOLS[name])
+    return list(dict.fromkeys(selected)) if len(selected) > 2 else None
 
 
 _ABUSE_RE = re.compile(
@@ -364,8 +447,19 @@ def offtopic_reply(question: str) -> str | None:
 def question_kind_hint(question: str) -> tuple[str | None, str | None]:
     """Вид ответа по словам вопроса и подсказка модели: несколько компаний → comparison,
     вопрос про раздел → answer, «можно ли работать» → card. Решает модель, но с якорем."""
+    question = question_subject(question)
     if _COMPARE_RE.search(question) or len(re.findall(r"\b\d{10,12}\b", question)) >= 2:
         return "comparison", "Подсказка: в вопросе несколько компаний — kind «comparison»."
+    if _DOCUMENTS_Q.search(question):
+        return (
+            "answer",
+            "Нужен список документов с причиной каждого запроса по фактам компании; не пересказ судов или приставов.",
+        )
+    if _EXPLAIN_Q.search(question):
+        return (
+            "answer",
+            "Объясни вывод из get_risk_signals и 3–4 факта, которые к нему привели. Это вывод помощника, не рекомендация банка.",
+        )
     if _DECISION_RE.search(
         question
     ):  # просят решение — карточка с выводом, даже если назван раздел
@@ -373,11 +467,16 @@ def question_kind_hint(question: str) -> tuple[str | None, str | None]:
             "Подсказка: просят решение (можно ли работать, давать отсрочку, кому верить) — "
             "kind «card» с выводом из verdict_ru; факты по разделу из вопроса — первыми."
         )
+    if _HEAD_Q.search(question):
+        return (
+            "answer",
+            "Назови руководителя, должность, дату назначения и возраст, если их спросили. Не перерисовывай карточку.",
+        )
     for name, rx in _SECTION_HINTS:
         if rx.search(question):
             return "answer", (
-                f"Подсказка: вопрос про один раздел ({name}) — kind «answer»: сначала ответ по "
-                "существу с числами, карточку не повторяй; если спрашивают, можно ли работать "
+                f"Подсказка: вопрос касается раздела ({name}) — kind «answer»: ответь на все части "
+                "вопроса по существу с числами, карточку не повторяй; если спрашивают, можно ли работать "
                 "или давать отсрочку — добавь вывод verdict_ru одной строкой."
             )
     if _CARD_RE.search(question):
@@ -418,14 +517,12 @@ def format_problem(answer: Answer, question: str) -> str | None:
     if kind != "answer":
         return None
     text = answer.text_md.casefold()
-    summary_like = (
-        answer.kind == "card" or "обратить внимание" in text or len(text.splitlines()) > 10
-    )
+    summary_like = answer.kind == "card" or "обратить внимание" in text
     if not summary_like:
         return None
     return (
         "Это вопрос про один раздел отчёта. Перепиши как kind «answer»: сначала ответ по существу "
-        "с числами (одна-три строки), потом не больше одной строки контекста. Полную карточку "
+        "с числами, по смысловым блокам, затем необходимый контекст. Полную карточку "
         "и список «на что обратить внимание» не повторяй."
     )
 
@@ -554,7 +651,7 @@ _TIDY = (  # слабая модель протаскивает в текст и
     ),  # ISO → ДД.ММ.ГГГГ
     (  # «25 авг 2026 г.» → «25.08.2026»
         re.compile(
-            r"\b(\d{1,2})\s+(янв|фев|мар|апр|ма[йя]|июн|июл|авг|сен|окт|ноя|дек)\w*\s+(\d{4})(?:\s*г\.?)?",
+            r"\b(\d{1,2})\s+(янв|фев|мар|апр|ма[йя]|июн|июл|авг|сен|окт|ноя|дек)\w*\s+(\d{4})(?:\s*(?:года|год|г\.?))?",
             re.I,
         ),
         lambda m: (
@@ -613,7 +710,6 @@ def drop_invalid_lines(text: str, invalid: list[Citation]) -> str:
         return text
     lines = text.split("\n")
     keep: list[str] = []
-    dropped = 0
     for line in lines:
         hit = False
         for c in invalid:
@@ -628,15 +724,8 @@ def drop_invalid_lines(text: str, invalid: list[Citation]) -> str:
                 hit = True
                 break
         if hit and line.strip():
-            dropped += 1
             continue
         keep.append(line)
-    if dropped:
-        keep.append("")
-        keep.append(
-            f"Убрано утверждений, которые не подтвердились отчётом: {dropped}. "
-            "Числа для них в отчёте другие или отсутствуют."
-        )
     return "\n".join(keep)
 
 
@@ -686,16 +775,22 @@ def build_card(tools: Tools, inn: str) -> Card | None:
     data, info = signals.data, summary.data
     attention = [
         Attention(
-            claim=s["explanation"], severity=Severity(s["severity"]), source_path=s["source_path"]
+            claim=public_text(s["explanation"]),
+            severity=Severity(s["severity"]),
+            source_path=s["source_path"],
+            code=s["code"],
+            source_paths=s.get("source_paths", []),
         )
         # info тоже показываем: у компаний без рисков это единственное содержание карточки
         for severity in (Severity.CRITICAL, Severity.MODERATE, Severity.INFO)
         for s in data["signals"][severity.value]
     ]
-    asks = list(dict.fromkeys(g["ask"] for g in data["gaps"] if g.get("ask")))
+    from contractor_agent.agent.requests import requested_documents
+
+    asks = requested_documents(data, tools.get_financials(inn))
     return Card(
         inn=inn,
-        name=info["short_name"],
+        name=public_text(info["short_name"]),
         labels=CardLabels(riskLevel=data["labels"]["svetofor"], zskRiskLevel=data["labels"]["zsk"]),
         verdict=Verdict(data["verdict"]),
         terminal=bool(data.get("terminal")),
@@ -722,8 +817,9 @@ _FULL_CHECK_RE = re.compile(
 )
 FOLLOW_UP_HINT = (
     "Это продолжение разговора: пользователь уже видел проверку компании. Отвечай репликой на "
-    "заданный вопрос, а не бланком: карточку, список «на что обратить внимание», вывод и то, что "
-    "уже говорил, не повторяй. Если вопрос неоднозначный — переспроси одной строкой."
+    "заданный вопрос, карточку целиком не повторяй. Если спрашивают о рекомендации или решении, "
+    "назови вывод и объясни его фактами, которые относятся к вопросу. Переспроси только если "
+    "без уточнения невозможно определить компанию или понять вопрос."
 )
 
 
@@ -748,13 +844,32 @@ def visible_history(messages: list[BaseMessage], question: str) -> list[BaseMess
         ),
         0,
     )
+    has_checked = any(m.additional_kwargs.get("final_answer") for m in messages[:start])
     past = [
         m
         for m in messages[:start]
         if isinstance(m, HumanMessage)
-        or (isinstance(m, AIMessage) and not m.tool_calls and m.content)
+        or (
+            isinstance(m, AIMessage)
+            and not m.tool_calls
+            and m.content
+            and (not has_checked or m.additional_kwargs.get("final_answer"))
+        )
     ]
     return [*past, *messages[start:]]
+
+
+def finalization_history(messages: list[BaseMessage], question: str) -> list[BaseMessage]:
+    """Finalize from current tool evidence, not previous answers or unverified drafts."""
+    start = next(
+        (
+            i
+            for i in range(len(messages) - 1, -1, -1)
+            if isinstance(messages[i], HumanMessage) and messages[i].content == question
+        ),
+        len(messages),
+    )
+    return [m for m in messages[start:] if not isinstance(m, AIMessage) or m.tool_calls]
 
 
 def _item_dates(payload: Any) -> dict[str, str]:

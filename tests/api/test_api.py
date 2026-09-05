@@ -112,6 +112,7 @@ def test_stream_contract_and_reference_endpoints(snapshot: Snapshot, tmp_path) -
             "assistant",
             "tool",
             "assistant",
+            "assistant",
         ]
         assert state["answer"]["card"]["inn"] == "5032257375"
 
@@ -155,3 +156,31 @@ def test_mcp_info_lists_tools_and_config(snapshot: Snapshot, tmp_path) -> None:
     assert all(t["description"] for t in info["tools"])
     assert info["client_config"]["mcpServers"]["kontragent"]["command"] == "uv"
     assert "kontragent-mcp" in info["command"]
+
+
+def test_report_evidence_and_portable_mcp(snapshot, tmp_path):
+    settings = _settings(tmp_path)
+    app = create_app(lambda: _runtime(snapshot, tmp_path, []), settings=settings)
+    with TestClient(app) as client:
+        summary = client.get("/report/5032257375/summary").json()
+        assert summary["data"]["head"]["position"] == "КОНКУРСНЫЙ УПРАВЛЯЮЩИЙ"
+        response = client.get("/report/5032257375/source", params={"path": "report.baseInfo.staff"})
+        assert response.status_code == 200 and response.json()["value"] is None
+        response = client.get("/report/5032257375/source", params={"path": "../../.env"})
+        assert response.status_code == 404
+        response = client.get("/report/0000000000/source", params={"path": "report.baseInfo.staff"})
+        assert response.status_code == 404
+        info = client.get("/v1/mcp/info").json()
+        assert len(info["tools"]) == 8
+        assert "Публичный MCP-адрес не настроен" in info["setup_note"]
+        assert "/Users/" not in json.dumps(info)
+
+
+def test_quality_names_do_not_expose_provider_paths():
+    from contractor_agent.api.app import quality_name, quality_role
+
+    uri = "gpt://test-folder/gpt-oss-20b/latest"
+    assert "gpt://" not in quality_name(uri, "prompt-v3")
+    assert "GPT-OSS-20B" in quality_name(uri, "prompt-v3")
+    assert quality_role(uri, "prompt-v3") == "current"
+    assert quality_role(uri, "original") == "first"
