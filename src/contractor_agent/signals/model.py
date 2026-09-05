@@ -61,13 +61,16 @@ class Verdict(StrEnum):
 
 VERDICT_RU: dict[Verdict, str] = {
     Verdict.OK: "можно работать",
-    Verdict.CHECK: "стоит проверить до договора",
-    Verdict.NOT_RECOMMENDED: "работать только на условиях: предоплата и подтверждающие документы",
+    Verdict.CHECK: "стоит проверить дополнительно",
+    Verdict.NOT_RECOMMENDED: "нужна дополнительная проверка перед взаимодействием",
 }
-TERMINAL_RU = (  # штатный исход + причина: валидатор находит фразу исхода, судья — оговорку
-    f"{VERDICT_RU[Verdict.NOT_RECOMMENDED]}; компания в процедуре банкротства "
-    "или исключается из реестра — сделки могут быть оспорены, обязательства не исполнены"
-)
+
+
+def recommendation_text(ss: SignalSet) -> str:
+    """Рекомендация с конкретным основанием терминального статуса."""
+    text = VERDICT_RU[ss.verdict]
+    reasons = [s.explanation_ru for s in ss.signals if s.terminal]
+    return text + (". " + " ".join(dict.fromkeys(reasons)) if reasons else "")
 
 
 class Origin(StrEnum):

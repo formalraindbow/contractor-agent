@@ -30,12 +30,13 @@ class Settings(BaseSettings):
     )
     api_port: int = 8080
 
-    llm_base_url: str = "https://openrouter.ai/api/v1"
-    llm_model: str = "nvidia/nemotron-3-super-120b-a12b:free"
-    llm_fallback_models: str = (
-        "minimax/minimax-m2.7:free,z-ai/glm-5.2:free,google/gemma-4-31b-it:free"
-    )
-    llm_timeout: float = 90
+    llm_base_url: str = "https://ai.api.cloud.yandex.net/v1"
+    llm_model: str = "gpt://<folder-id>/gpt-oss-120b"
+    llm_fallback_models: str = ""  # резервы только при явной настройке
+    llm_timeout: float = 60
+    run_timeout_s: float = 180
+    llm_max_tokens: int = 4096
+    llm_max_retries: int = 1
     llm_reasoning_effort: str | None = (
         "low"  # gpt-oss: low в 3 раза быстрее medium на том же ответе
     )

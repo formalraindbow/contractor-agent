@@ -12,12 +12,13 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+from datetime import date
 from decimal import Decimal
 from typing import Any
 
-from contractor_agent.data.loader import ReportSource
+from contractor_agent.data.loader import ReportSource, normalize_name, rank
 from contractor_agent.data.model import SECTIONS
-from contractor_agent.data.paths import resolve
+from contractor_agent.data.paths import nearest_path, resolve
 from contractor_agent.labels import svetofor_ru, zsk_ru
 from contractor_agent.mcp_server.envelope import (
     ITEM_LIMIT,
@@ -28,7 +29,7 @@ from contractor_agent.mcp_server.envelope import (
 )
 from contractor_agent.signals import arbitration, enforcement, finance
 from contractor_agent.signals.engine import compute
-from contractor_agent.signals.model import TERMINAL_RU, VERDICT_RU, Severity, SignalSet
+from contractor_agent.signals.model import Severity, SignalSet, recommendation_text
 
 NOT_FOUND_NOTE = "Компании с таким ИНН в базе нет — ответить по ней нельзя."
 NOT_FOUND_TEXT_NOTE = "«Не найдено» — не значит «нет»: данные могли не найтись."
@@ -45,6 +46,9 @@ class Tools:
     def search_company(self, query: str, limit: int = 5) -> ToolResponse:
         limit = max(1, min(limit, SEARCH_LIMIT_MAX))
         hits = self.source.search(query, limit)
+        exact = [h for h in hits if rank(normalize_name(h.short_name), normalize_name(query)) == 0]
+        if exact:
+            hits = exact
         items = [
             {
                 "inn": h.inn,
@@ -124,22 +128,27 @@ class Tools:
                 "zsk": "report.zskRiskLevel",
             },
             "counts": {
-                "execution_proceedings": len(report.execution_proceedings or []),
-                "licenses": len(report.licenses or []),
-                "inspections": len(report.inspections or []),
-                "related_companies": len(report.related_companies or []),
+                "execution_proceedings": len(report.execution_proceedings)
+                if report.execution_proceedings is not None
+                else None,
+                "licenses": len(report.licenses) if report.licenses is not None else None,
+                "inspections": len(report.inspections) if report.inspections is not None else None,
+                "related_companies": len(report.related_companies)
+                if report.related_companies is not None
+                else None,
                 "negative_flags": len(report.reputational_risks.negative or [])
                 if report.reputational_risks
                 else None,
             },
         }
+        data["paths"] = {k: nearest_path(report, p) for k, p in data["paths"].items()}
         return ok(
             data,
             source_paths=[
                 "report.baseInfo",
                 "report.status",
                 "report.zskRiskLevel",
-                "report.kindsOfActivityInfo.mainKindOfActivity",
+                nearest_path(report, "report.kindsOfActivityInfo.mainKindOfActivity"),
             ],
             report_date=report.report_date,
         )
@@ -152,6 +161,13 @@ class Tools:
             return unavailable("not_found", note=NOT_FOUND_NOTE)
         signal_set = compute(report)
         data = _signal_set_data(signal_set)
+        for group, items in data["signals"].items():
+            for index, item in enumerate(items):
+                item["explanation_path"] = f"computed.risks.signals.{group}[{index}].explanation"
+        data["citing"] = (
+            "Дословное explanation можно цитировать через explanation_path. "
+            "Для отдельного числа нужен его собственный адрес."
+        )
         data["labels"] = {
             "svetofor": svetofor_ru(report.base_info.risk_level),
             "svetofor_path": "report.baseInfo.riskLevel",
@@ -205,11 +221,11 @@ class Tools:
                     "capitals": capitals,
                     "current_liquidity": _ratio(current, short),
                     "profitability_pct": _ratio(profit, proceeds, 100),
-                    "sustainability": _ratio((capitals or 0) + (long or 0), total_assets)
-                    if capitals is not None
+                    "sustainability": _ratio(capitals + long, total_assets)
+                    if capitals is not None and long is not None
                     else None,
                     "path": row.path,
-                    "paths": _fin_paths(row.path),
+                    "paths": _fin_paths(row.path, report, len(years)),
                 }
             )
         coef = report.coefficient
@@ -231,7 +247,7 @@ class Tools:
         net = finance.net_assets(report)
         data = {
             "citing": "адрес каждого показателя — в paths года; производные показатели "
-            "(ликвидность, рентабельность) цитируйте адресом года, например report.finReports[0]",
+            "(ликвидность, рентабельность) цитируйте выданным адресом computed.financials.*",
             "unit": "руб.",
             "years": years,
             "net_assets": {"value": net.value, "year": net.year, "path": net.path} if net else None,
@@ -258,15 +274,15 @@ class Tools:
         result = enforcement.run(report)
         flag = enforcement._bank_flag(report)
         data = {
-            "active": _aggregate_data(active),
-            "finished": _aggregate_data(finished),
+            "active": _aggregate_data(active, "active"),
+            "finished": _aggregate_data(finished, "finished"),
             "unknown_status_count": len(unknown),
             "top_active": [_item_data(i) for i in active.top()],
             "recent_active": [
                 _item_data(i)
-                for i in sorted(
-                    active.items, key=lambda i: i.data.date or i.data.date.min, reverse=True
-                )[:5]
+                for i in sorted(active.items, key=lambda i: i.data.date or date.min, reverse=True)[
+                    :5
+                ]
             ],
             "total": active.count + finished.count + len(unknown),
             "bank_flag": {"negative": flag[1], "text": flag[2], "path": flag[0]} if flag else None,
@@ -274,7 +290,7 @@ class Tools:
             "gaps": [_gap_data(g) for g in result.gaps],
         }
         note = None
-        if active.count == 0 and finished.count == 0:
+        if active.count == 0 and finished.count == 0 and not unknown:
             note = "Исполнительных производств в отчёте не найдено. " + NOT_FOUND_TEXT_NOTE
         paths = ["report.executionProceedings"] + [i.path for i in active.top()]
         if flag:
@@ -401,9 +417,7 @@ class Tools:
                         "zsk": zsk_ru(report.zsk_risk_level),
                     },
                     "verdict": signal_set.verdict.value,
-                    "verdict_ru": TERMINAL_RU
-                    if signal_set.terminal
-                    else VERDICT_RU[signal_set.verdict],
+                    "verdict_ru": recommendation_text(signal_set),
                     "terminal": signal_set.terminal,
                     "score": signal_set.score,
                     "signal_counts": {s.value: len(signal_set.by_severity(s)) for s in Severity},
@@ -450,7 +464,7 @@ class Tools:
 # --- вспомогательное ----------------------------------------------------------------
 
 
-def _fin_paths(base: str) -> dict[str, str | list[str]]:
+def _fin_paths(base: str, report, index: int) -> dict[str, str | list[str]]:
     """Адрес каждого показателя года — чтобы модель цитировала поле, а не угадывала имя.
     Производные показатели — списком адресов операндов; цитировать их можно адресом года."""
     p: dict[str, str | list[str]] = {
@@ -465,6 +479,9 @@ def _fin_paths(base: str) -> dict[str, str | list[str]]:
     p["current_liquidity"] = [p["current_assets"], p["short_term_liabilities"]]
     p["profitability_pct"] = [p["profit"], p["proceeds"]]
     p["sustainability"] = [p["capitals"], p["long_term_duties"], p["total_assets"]]
+    p = {key: nearest_path(report, val) for key, val in p.items() if isinstance(val, str)}
+    for key in ("current_liquidity", "profitability_pct", "sustainability"):
+        p[key] = f"computed.financials.years[{index}].{key}"
     return p
 
 
@@ -507,7 +524,7 @@ def _gap_data(g) -> dict[str, Any]:
 def _signal_set_data(ss: SignalSet) -> dict[str, Any]:
     return {
         "verdict": ss.verdict.value,
-        "verdict_ru": TERMINAL_RU if ss.terminal else VERDICT_RU[ss.verdict],
+        "verdict_ru": recommendation_text(ss),
         "terminal": ss.terminal,
         "score": ss.score,
         "signals": {s.value: [_signal_data(x) for x in ss.by_severity(s)] for s in Severity},
@@ -515,8 +532,18 @@ def _signal_set_data(ss: SignalSet) -> dict[str, Any]:
     }
 
 
-def _aggregate_data(agg: enforcement.Aggregate) -> dict[str, Any]:
+def _aggregate_data(agg: enforcement.Aggregate, group: str) -> dict[str, Any]:
     return {
+        "paths": {
+            key: f"computed.enforcement.{group}.{key}"
+            for key in (
+                "count",
+                "known_sum",
+                "unknown_amount_count",
+                "recent_12m_count",
+                "older_3y_count",
+            )
+        },
         "count": agg.count,
         "known_sum": agg.known_sum,
         "unknown_amount_count": agg.unknown_count,
@@ -541,7 +568,13 @@ def _item_data(item: enforcement.Item) -> dict[str, Any]:
 def _roles_data(roles: arbitration.Roles) -> dict[str, Any]:
     def bucket(b):
         return (
-            {"count": b.count, "amount": b.amount, "path": b.count_path}
+            {
+                "count": b.count,
+                "amount": b.amount,
+                "path": b.count_path,
+                "count_path": b.count_path,
+                "amount_path": b.amount_path,
+            }
             if b
             else {"count": 0, "amount": None}
         )

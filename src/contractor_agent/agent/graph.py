@@ -54,7 +54,8 @@ def build_graph(
     graph = StateGraph(AgentState)
     for name, fn in nodes.items():
         graph.add_node(name, fn)
-    graph.add_conditional_edges(START, route_input, {"guard": "guard", "agent": "agent"})
+    graph.add_edge(START, "prepare")
+    graph.add_conditional_edges("prepare", route_input, {"guard": "guard", "agent": "agent"})
     graph.add_edge("guard", END)
     graph.add_conditional_edges(
         "agent", route_after_agent, {"tools": "tools", "finalize": "finalize"}

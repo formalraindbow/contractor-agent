@@ -48,3 +48,19 @@ def test_unknown_code_is_moderate_and_absent_section_is_a_gap(snapshot: Snapshot
     res = flags.run(Report.model_validate(raw))
     assert res.signals == [] and res.gaps[0].reason is GapReason.SECTION_ABSENT
     assert res.gaps[0].criterion == "реестры ФНС"
+
+
+def test_negative_flags_survive_incomplete_raw_sections(snapshot):
+    raw = snapshot.get("1684017097").model_dump()
+    raw["reputationalRisks"]["negative"] = [
+        {"code": "profit", "name": "Убыток по признаку банка"},
+        {"code": "arbitrationDefendant", "name": "Иски к компании"},
+    ]
+    for row in raw["finReports"]:
+        if row.get("common"):
+            row["common"]["profit"] = None
+    raw["arbitrationByStatus"] = {"commonCount": 0}
+    raw["arbitrationCases"] = []
+    report = Report.model_validate(raw)
+    codes = {s.code for s in flags.run(report).signals}
+    assert {"flag_profit", "flag_arbitrationDefendant"} <= codes

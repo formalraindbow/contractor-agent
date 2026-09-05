@@ -112,16 +112,16 @@ def test_every_tool_on_every_company_is_json_and_paths_resolve(snapshot: Snapsho
 
 
 def test_financials_rows_carry_resolvable_metric_paths(snapshot):
-    from contractor_agent.data.paths import resolve
     from contractor_agent.mcp_server.tools import Tools
 
     resp = Tools(snapshot).get_financials("2311304742")
     row = resp.data["years"][0]
     assert row["paths"]["proceeds"] == "report.finReports[0].common.proceeds"
-    report = snapshot.get("2311304742")
     for value in row["paths"].values():
         for path in value if isinstance(value, list) else [value]:
-            resolve(report, path)  # адрес существует
+            from contractor_agent.agent.evidence import resolve_evidence
+
+            resolve_evidence(snapshot, "2311304742", path)  # поле или воспроизводимый расчёт
     assert "citing" in resp.data
 
 
@@ -137,7 +137,7 @@ def test_compare_companies_carries_verdict_ru_and_paths(snapshot):
 
     resp = Tools(snapshot).compare_companies(["5032257375", "6165169320", "0000000000"])
     items = {i["inn"]: i for i in resp.data["items"]}
-    assert items["5032257375"]["verdict_ru"].startswith("работать только на условиях")
+    assert items["5032257375"]["verdict_ru"].startswith("нужна дополнительная проверка")
     assert all("source_path" in m for m in items["6165169320"]["moderate"])
     assert items["0000000000"]["available"] is False and "0000000000" in (resp.note or "")
     assert resp.data["total"] == 3 and resp.data["truncated"] is False

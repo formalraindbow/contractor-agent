@@ -20,14 +20,22 @@ from langgraph.graph import END
 from langgraph.prebuilt import ToolNode
 
 from contractor_agent.agent.citations import (
+    claim_measurements,
     extract_inline_citations,
     is_meta_path,
+    normalize_path,
     numbers_in,
     validate_citations,
 )
 from contractor_agent.agent.llm import LLM
-from contractor_agent.agent.prompt import FINALIZE_PROMPT, SYSTEM_PROMPT, citation_repair_prompt
+from contractor_agent.agent.prompt import (
+    FINALIZE_PROMPT,
+    FOLLOW_UP_HINT,
+    SYSTEM_PROMPT,
+    citation_repair_prompt,
+)
 from contractor_agent.agent.schema import Answer, Attention, Card, CardLabels, Citation, Draft
+from contractor_agent.agent.section_answer import render_sections
 from contractor_agent.agent.state import AgentState, ToolCallTrace
 from contractor_agent.data.loader import ReportSource
 from contractor_agent.mcp_server.tools import Tools
@@ -55,19 +63,40 @@ def make_nodes(llm: LLM, tools: list[Any], source: ReportSource) -> dict[str, No
     async def guard(state: AgentState) -> dict[str, Any]:
         """Короткий ответ без модели и инструментов: посторонний ввод не повод собирать карточку."""
         reply = offtopic_reply(str(state.get("question") or "")) or _CAPABILITIES
+        answer = Answer(kind="refusal", text_md=reply, citations=[], report_dates={})
         return {
-            "answer": Answer(
-                kind="refusal",
-                text_md=reply,
-                citations=[],
-                report_dates=dict(state.get("report_dates") or {}),
-            )
+            "answer": answer,
+            "messages": [AIMessage(content=reply, additional_kwargs={"visible": True})],
+        }
+
+    async def prepare(state: AgentState) -> dict[str, Any]:
+        question = str(state.get("question") or "")
+        explicit = re.findall(r"\b\d{10}(?:\d{2})?\b", question)
+        selected = explicit or list(state.get("selected_inns") or [])
+        purpose = state.get("purpose")
+        for pattern, label in PURPOSES:
+            if pattern.search(question):
+                purpose = label
+                break
+        return {
+            "selected_inns": selected,
+            "purpose": purpose,
+            "pending_clarification": None if purpose else state.get("pending_clarification"),
+            "trace": [],
+            "turn_inns": [],
+            "report_dates": {},
         }
 
     async def agent(state: AgentState) -> dict[str, Any]:
         question = str(state.get("question") or "")
         history = visible_history(state["messages"], question)
-        messages = [SystemMessage(content=SYSTEM_PROMPT), *history]
+        context = "Выбранные ИНН: " + ", ".join(state.get("selected_inns") or [])
+        context += ". Цель: " + (state.get("purpose") or "пока не названа")
+        context += ". Ожидаемое уточнение: " + (state.get("pending_clarification") or "нет")
+        messages = [
+            SystemMessage(content=SYSTEM_PROMPT + "\n\nКонтекст разговора: " + context),
+            *history,
+        ]
         response = await tools_for(question).ainvoke(messages)
         return {"messages": [response]}
 
@@ -87,8 +116,13 @@ def make_nodes(llm: LLM, tools: list[Any], source: ReportSource) -> dict[str, No
             reason = payload.get("reason") if isinstance(payload, dict) else None
             if isinstance(payload, dict) and "error" in payload:
                 reason = "tool_error"  # инструмент отверг аргументы — компании в состояние не пишем
+            if name == "search_company" and isinstance(payload, dict):
+                items = (payload.get("data") or {}).get("items") or []
+                inns = [str(items[0]["inn"])] if len(items) == 1 else []
+                turn_inns = []
+                dates = {}
             item_dates = _item_dates(payload)  # compare_companies: дата у каждой компании своя
-            for inn in _inns_from_args(args) if reason != "tool_error" else []:
+            for inn in _inns_from_args(args) if reason not in ("tool_error", "not_found") else []:
                 if inn not in inns:
                     inns.append(inn)
                 if inn not in turn_inns:
@@ -110,7 +144,7 @@ def make_nodes(llm: LLM, tools: list[Any], source: ReportSource) -> dict[str, No
             "selected_inns": inns,
             "turn_inns": turn_inns,
             "report_dates": dates,
-            "trace": trace,
+            "trace": [*(state.get("trace") or []), *trace],
         }
 
     async def finalize(state: AgentState) -> dict[str, Any]:
@@ -121,21 +155,37 @@ def make_nodes(llm: LLM, tools: list[Any], source: ReportSource) -> dict[str, No
             hint = ((hint + " ") if hint else "") + FOLLOW_UP_HINT
         history = visible_history(state["messages"], str(state.get("question") or ""))
         messages = [
-            SystemMessage(content=SYSTEM_PROMPT),
+            SystemMessage(
+                content=SYSTEM_PROMPT + "\nЦель проверки: " + (state.get("purpose") or "не названа")
+            ),
             *history,
             HumanMessage(content=f"{FINALIZE_PROMPT}\n\n{hint}" if hint else FINALIZE_PROMPT),
         ]
+        searches = [m for m in history if isinstance(m, ToolMessage) and m.name == "search_company"]
+        search_payload = _parse(searches[-1].content) if searches else None
+        not_found = (
+            isinstance(search_payload, dict)
+            and search_payload.get("available")
+            and not (search_payload.get("data") or {}).get("items")
+            and not state.get("turn_inns")
+        )
         try:
-            draft = await structured.ainvoke(messages)
+            draft = (
+                Draft(
+                    kind="refusal",
+                    lines=[
+                        "Компания по этому запросу в базе не найдена. Уточните название или ИНН."
+                    ],
+                )
+                if not_found
+                else await structured.ainvoke(messages)
+            )
             if not isinstance(draft, Draft):
                 draft = Draft.model_validate(draft)
-        except Exception as e:  # модель не смогла выдать структуру — честный отказ, не падение
-            last = next(
-                (m.content for m in reversed(state["messages"]) if isinstance(m, AIMessage)), ""
-            )
+        except Exception:  # модель не смогла выдать структуру — честный отказ, не падение
             draft = Draft(
                 kind="refusal",
-                text_md=str(last) or f"Не удалось собрать ответ: {type(e).__name__}.",
+                lines=["Не удалось подготовить подтверждённый ответ. Повторите запрос."],
                 citations=[],
             )
         citations = list(draft.citations)
@@ -171,52 +221,135 @@ def make_nodes(llm: LLM, tools: list[Any], source: ReportSource) -> dict[str, No
     async def validate(state: AgentState) -> dict[str, Any]:
         answer = state["answer"]
         assert answer is not None
+        inns = list(state.get("turn_inns") or state.get("selected_inns") or [])
         real = [c for c in answer.citations if not is_meta_path(c.source_path)]
-        checks = validate_citations(
-            source, list(state.get("turn_inns") or state.get("selected_inns") or []), real
+        checks = validate_citations(source, inns, real)
+        invalid = [c.citation for c in checks if not c.ok]
+        # Citation.claim must be the phrase the person actually sees, not a parallel story.
+        invalid.extend(
+            c
+            for c in real
+            if normalized_claim(c.claim) not in normalized_claim(answer.text_md)
+            and c not in invalid
         )
-        invalid = [c for c in checks if not c.ok]
-        verdict_problem = (
-            refusal_problem(answer, state.get("trace") or [])
+        uncovered = uncovered_numeric_lines(answer.text_md, real)
+        completeness = (
+            details_problem(answer, str(state.get("question") or ""))
+            if answer.kind == "answer"
+            else None
+        )
+        problem = (
+            completeness
             or empty_problem(answer)
-            or verdict_mismatch(answer)
+            or (verdict_mismatch(answer) if not answer.cards else None)
             or forbidden_problem(answer.text_md)
-            or format_problem(answer, str(state.get("question") or ""))
-            or details_problem(answer, str(state.get("question") or ""))
             or absence_problem(answer.text_md)
         )
+        if uncovered:
+            problem = "Числовые факты без точной цитаты: " + " | ".join(uncovered)
         retry = state.get("citation_retry") or 0
-        if (invalid or verdict_problem) and retry < MAX_CITATION_RETRIES:
+        if (invalid or problem) and retry < MAX_CITATION_RETRIES:
             repair = citation_repair_prompt(
-                [(c.citation.claim, c.citation.source_path, c.why or "") for c in invalid],
-                verdict_problem,
+                [
+                    (
+                        c.claim,
+                        c.source_path,
+                        next((x.why for x in checks if x.citation == c and not x.ok), None)
+                        or "claim должен буквально повторять фразу из lines",
+                    )
+                    for c in invalid
+                ],
+                problem,
             )
             return {
                 "messages": [HumanMessage(content=repair, additional_kwargs={"repair": True})],
                 "citation_retry": retry + 1,
                 "answer": None,
             }
-        base = drop_invalid_lines(tidy_text(answer.text_md), [c.citation for c in invalid])
-        if answer.card:
-            text = enforce_verdict(
-                scrub_forbidden(replace_verdict_codes(base), VERDICT_RU[answer.card.verdict]),
-                answer.card.verdict,
+        # Remove before any cosmetic changes; literal claims also work without inline markers.
+        base = drop_invalid_lines(answer.text_md, invalid)
+        base = "\n".join(line for line in base.splitlines() if line not in uncovered)
+        base = tidy_text(base)
+        valid = [
+            c.citation.model_copy(
+                update={"inn": c.inn, "source_path": normalize_path(c.citation.source_path)}
             )
-        elif answer.cards:
-            text = enforce_comparison(scrub_forbidden(base, None), answer.cards)
-        else:
-            text = scrub_forbidden(base, None)
-        text = tidy_text(text)  # ещё раз: подстановки кода тоже приводим к общему виду
+            for c in checks
+            if c.ok
+            and c.citation not in invalid
+            and normalized_claim(c.citation.claim) in normalized_claim(base)
+        ]
+        # Comparison recommendations and critical facts are rendered from per-INN cards.
+        if answer.cards:
+            base, valid = render_comparison(answer.cards, tools_layer)
+        elif answer.card:
+            if invalid or problem:
+                base, valid = render_card(answer.card, tools_layer)
+            else:
+                base = enforce_verdict(base, answer.card.verdict)
+                # Critical circumstances may not disappear during concise formatting.
+                for item in answer.card.attention:
+                    if item.severity == Severity.CRITICAL and normalized_claim(
+                        item.claim
+                    ) not in normalized_claim(base):
+                        base += "\n\n" + item.claim
+                        valid.append(signal_citation(answer.card, item.claim, tools_layer))
+        if (
+            not answer.card
+            and not answer.cards
+            and len(inns) == 1
+            and (invalid or uncovered or completeness)
+        ):
+            fallback, facts = render_sections(
+                tools_layer,
+                inns[0],
+                str(state.get("question") or ""),
+                {t.name for t in state.get("trace") or []},
+            )
+            if fallback:
+                base, valid = fallback, facts
+        if not base.strip():
+            base = "Не удалось подтвердить запрошенные факты по отчёту. Уточните вопрос или повторите проверку."
+        asked = list(state.get("purpose_asked_inns") or [])
+        pending = state.get("pending_clarification")
+        if answer.card and not state.get("purpose") and answer.card.inn not in asked:
+            if not re.search(r"для чего|зачем|цель провер", base, re.I):
+                base += "\n\nДля чего нужна проверка?"
+            asked.append(answer.card.inn)
+            pending = "purpose"
+        dates = {inn: source.get(inn).report_date.isoformat() for inn in inns if source.get(inn)}
+        for inn, report_date in dates.items():
+            formatted = ".".join(reversed(report_date.split("-")))
+            if formatted not in base and report_date not in base:
+                base += (
+                    f"\n\nОтчёт {'по ИНН ' + inn + ' ' if len(dates) > 1 else ''}от {formatted}."
+                )
         checked = answer.model_copy(
             update={
-                "text_md": text,
-                "citations": [c.citation for c in checks if c.ok],
-                "invalid_citations": [c.citation for c in invalid],
+                "text_md": base.strip(),
+                "citations": valid,
+                "invalid_citations": invalid,
+                "report_dates": dates,
+                "active_inns": inns,
+                "purpose": state.get("purpose"),
+                "next_actions": next_actions(answer),
+                "verification": {
+                    "checked_citations": len(checks),
+                    "rejected_citations": len(invalid),
+                    "removed_lines": len(uncovered),
+                    "scope": "sources_and_numbers",
+                },
             }
         )
-        return {"answer": checked}
+        return {
+            "answer": checked,
+            "purpose_asked_inns": asked,
+            "pending_clarification": pending,
+            "messages": [AIMessage(content=checked.text_md, additional_kwargs={"visible": True})],
+        }
 
     return {
+        "prepare": prepare,
         "guard": guard,
         "agent": agent,
         "tools": tools_,
@@ -255,19 +388,20 @@ def verdict_mismatch(answer: Answer) -> str | None:
             )
         return f"В тексте нет рекомендации. Добавь буквально: «{expected}»."
     if answer.cards:
-        missing = [
-            c for c in answer.cards if VERDICT_RU[c.verdict] not in answer.text_md.casefold()
-        ]
-        if missing:
-            wanted = "; ".join(
-                f"{c.name} (ИНН {c.inn}) — «{VERDICT_RU[c.verdict]}»" for c in missing
-            )
-            return f"Для каждой компании вывод должен быть буквально по verdict_ru: {wanted}."
+        for card in answer.cards:
+            lines = [
+                line
+                for line in answer.text_md.splitlines()
+                if card.inn in line or card.name in line
+            ]
+            if not any(VERDICT_RU[card.verdict] in line.casefold() for line in lines):
+                return f"Привяжи рекомендацию к компании {card.inn}: {VERDICT_RU[card.verdict]}."
     return None
 
 
 _SECTION_HINTS = (  # слова вопроса → раздел отчёта: подсказка виду ответа, чтобы слабая модель не давала сводку
-    ("долги у приставов", re.compile(r"пристав|исполнительн|долг", re.I)),
+    ("долги у приставов", re.compile(r"пристав|исполнительн", re.I)),
+    ("налоги", re.compile(r"налог|блокиров|реестр", re.I)),
     ("суды", re.compile(r"\bсуд|\bиск|арбитраж", re.I)),
     ("финансы", re.compile(r"выручк|прибыл|убыт|актив|капитал|ликвидн|отчётност|оборот", re.I)),
     ("лицензии", re.compile(r"лиценз", re.I)),
@@ -293,6 +427,7 @@ _SECTION_TOOLS = {
     "долги у приставов": ["get_enforcement_summary"],
     "суды": ["get_arbitration_summary"],
     "финансы": ["get_financials"],
+    "налоги": ["get_risk_signals"],
     "лицензии": ["get_section"],
     "филиалы": ["get_section"],
     "проверки госорганов": ["get_section"],
@@ -306,13 +441,15 @@ def tool_subset(question: str) -> list[str] | None:
     """Имена инструментов под вид вопроса; None — все (карточка и неопределённые вопросы)."""
     kind, _ = question_kind_hint(question)
     if kind == "comparison":
-        return ["search_company", "compare_companies"]
+        return None  # comparison may also need finance, courts or another requested section
     if kind != "answer":
         return None
-    for name, rx in _SECTION_HINTS:
-        if rx.search(question):
-            return ["search_company", "get_report_summary", *_SECTION_TOOLS[name]]
-    return None
+    matched = [
+        tool for name, rx in _SECTION_HINTS if rx.search(question) for tool in _SECTION_TOOLS[name]
+    ]
+    return (
+        list(dict.fromkeys(["search_company", "get_report_summary", *matched])) if matched else None
+    )
 
 
 _ABUSE_RE = re.compile(
@@ -337,7 +474,7 @@ _TOPIC_RE = re.compile(
 )
 _CAPABILITIES = (
     "Я отвечаю по отчёту банка о контрагенте: оценки банка, суды, долги у приставов, финансы, "
-    "лицензии, проверки, виды деятельности — и говорю, на каких условиях с компанией работать. "
+    "лицензии, проверки, виды деятельности — и помогаю выбрать следующий шаг. "
     "Назовите компанию или ИНН."
 )
 _INJECTION_REPLY = (
@@ -356,8 +493,6 @@ def offtopic_reply(question: str) -> str | None:
         return _INJECTION_REPLY
     if _ABUSE_RE.search(text):
         return "Давайте по делу. " + _CAPABILITIES
-    if len(text) <= 60 and not _TOPIC_RE.search(text) and not re.search(r"\?$", text):
-        return _CAPABILITIES
     return None
 
 
@@ -432,7 +567,6 @@ def format_problem(answer: Answer, question: str) -> str | None:
 FORBIDDEN_RU = (  # характеристика вместо действия — CRITERIA §2, инвариант 5 (регулярные выражения)
     r"работать[^.\n]{0,40}?нельзя",
     r"нельзя[^.\n]{0,20}?работать",
-    r"не рекомендуем",
     r"не связывайтесь",
     r"ненадёжн\w*",
     r"сомнительн\w*",
@@ -465,14 +599,7 @@ def refusal_problem(answer: Answer, trace: list[ToolCallTrace]) -> str | None:
     """Отказ, когда инструмент вернул данные, — ошибка модели, а не пробел в отчёте."""
     if answer.kind != "refusal":
         return None
-    with_data = [t.name for t in trace if t.available and t.result_chars > 400]
-    if not with_data:
-        return None
-    return (
-        f"Данные получены ({', '.join(dict.fromkeys(with_data))}), отказываться нельзя. "
-        "Перепиши ответ по существу: назови числа из ответа инструмента и дату отчёта; "
-        "«нет сведений» пиши только про то, чего в отчёте действительно нет."
-    )
+    return None  # Размер сводки не доказывает наличие конкретного запрошенного факта.
 
 
 def empty_problem(answer: Answer) -> str | None:
@@ -556,7 +683,6 @@ _TIDY = (  # слабая модель протаскивает в текст и
     ),
     (re.compile(r"\b(svetofor|traffic light)\b", re.I), "светофор"),
     # подсказка «зачем проверяете» живёт кнопками в интерфейсе — в тексте это дубль
-    (re.compile(r"^.*Скажите, зачем проверяете.*$\n?", re.M | re.I), ""),
     # ниже — только после всех чисток, иначе схлопывать нечего
     (re.compile(r"[ \t]{2,}"), " "),  # двойные пробелы после удалённых кусков
     (re.compile(r"\s+([.,;:])"), r"\1"),  # пробел перед знаком
@@ -590,6 +716,7 @@ def tidy_text(text: str) -> str:
     out = text
     for rx, repl in _TIDY:
         out = rx.sub(repl, out)
+    out = re.sub(r"[`(\[]?(?:report|computed)\.[A-Za-z0-9_.\[\]]+[`)]?", "", out)
     return capitalize_lines(out.strip())
 
 
@@ -608,7 +735,8 @@ def drop_invalid_lines(text: str, invalid: list[Citation]) -> str:
             inline = f"[{c.source_path}]" in line
             by_number = bool(nums) and bool(nums & {str(n) for n in numbers_in(line)})
             if (
-                inline
+                normalized_claim(c.claim) in normalized_claim(line)
+                or inline
                 and (by_number or not nums)
                 or (by_number and c.source_path.split(".")[-1] in line)
             ):
@@ -620,10 +748,7 @@ def drop_invalid_lines(text: str, invalid: list[Citation]) -> str:
         keep.append(line)
     if dropped:
         keep.append("")
-        keep.append(
-            f"Убрано утверждений, которые не подтвердились отчётом: {dropped}. "
-            "Числа для них в отчёте другие или отсутствуют."
-        )
+        keep.append("Часть запрошенных сведений не удалось подтвердить по отчёту.")
     return "\n".join(keep)
 
 
@@ -641,7 +766,9 @@ def enforce_comparison(text: str, cards: list[Card]) -> str:
 _VERDICT_CORE = {  # ядро фразы: «работать с ООО … можно только на условиях» — тот же вывод
     Verdict.OK: re.compile(r"можно работать|работать можно", re.I),
     Verdict.CHECK: re.compile(r"стоит проверить", re.I),
-    Verdict.NOT_RECOMMENDED: re.compile(r"только на условиях:?\s*предоплата", re.I),
+    Verdict.NOT_RECOMMENDED: re.compile(
+        r"нужна дополнительная проверка перед взаимодействием", re.I
+    ),
 }
 
 
@@ -679,7 +806,16 @@ def build_card(tools: Tools, inn: str) -> Card | None:
         for severity in (Severity.CRITICAL, Severity.MODERATE, Severity.INFO)
         for s in data["signals"][severity.value]
     ]
-    asks = list(dict.fromkeys(g["ask"] for g in data["gaps"] if g.get("ask")))
+    asks = []
+    if data.get("terminal"):
+        asks.append("Уточните текущий статус компании по свежей выписке ЕГРЮЛ.")
+    if any(re.search(r"блокиров|приостанов", a.claim, re.I) for a in attention):
+        asks.append("Запросите подтверждение актуального статуса ограничений по счетам.")
+    if any(a.severity == Severity.CRITICAL for a in attention):
+        asks.append(
+            "Запросите пояснения по отмеченным обязательствам и документы об их текущем состоянии."
+        )
+    asks = list(dict.fromkeys([*asks, *(g["ask"] for g in data["gaps"] if g.get("ask"))]))
     return Card(
         inn=inn,
         name=info["short_name"],
@@ -707,11 +843,6 @@ _FULL_CHECK_RE = re.compile(
     r"карточк\w*\s+(?:целиком|заново)|повтори\s+проверк",
     re.I,
 )
-FOLLOW_UP_HINT = (
-    "Это продолжение разговора: пользователь уже видел проверку компании. Отвечай репликой на "
-    "заданный вопрос, а не бланком: карточку, список «на что обратить внимание», вывод и то, что "
-    "уже говорил, не повторяй. Если вопрос неоднозначный — переспроси одной строкой."
-)
 
 
 def is_follow_up(messages: list[BaseMessage]) -> bool:
@@ -738,8 +869,8 @@ def visible_history(messages: list[BaseMessage], question: str) -> list[BaseMess
     past = [
         m
         for m in messages[:start]
-        if isinstance(m, HumanMessage)
-        or (isinstance(m, AIMessage) and not m.tool_calls and m.content)
+        if (isinstance(m, HumanMessage) and not m.additional_kwargs.get("repair"))
+        or (isinstance(m, AIMessage) and m.additional_kwargs.get("visible"))
     ]
     return [*past, *messages[start:]]
 
@@ -765,3 +896,93 @@ def _inns_from_args(args: dict[str, Any]) -> list[str]:
     out = [str(inn)] if inn else []
     out.extend(str(i) for i in inns)
     return out
+
+
+PURPOSES = (
+    (re.compile(r"оплат|бухгалтер", re.I), "оплата"),
+    (re.compile(r"отсрочк|кредит", re.I), "отсрочка"),
+    (re.compile(r"постав|закупщик|закупок", re.I), "поставка"),
+    (re.compile(r"претензи|юрист|взыскан", re.I), "претензия"),
+)
+
+
+def normalized_claim(text: str) -> str:
+    return re.sub(r"[\s*`_]+", " ", text.casefold()).strip(" .;,:—-\n")
+
+
+def uncovered_numeric_lines(text: str, citations: list[Citation]) -> list[str]:
+    uncovered = []
+    for line in text.splitlines():
+        rest = normalized_claim(line)
+        rest = re.sub(r"(?:report|computed)\.[a-zA-Z0-9_.\[\]]+", "", rest)
+        for c in citations:
+            rest = rest.replace(normalized_claim(c.claim), "")
+        if claim_measurements(rest):
+            uncovered.append(line)
+    return uncovered
+
+
+def signal_citation(card: Card, claim: str, tools: Tools) -> Citation:
+    groups = tools.get_risk_signals(card.inn).data["signals"]
+    for group, items in groups.items():
+        for index, item in enumerate(items):
+            if item["explanation"] == claim:
+                return Citation(
+                    claim=claim,
+                    inn=card.inn,
+                    source_path=f"computed.risks.signals.{group}[{index}].explanation",
+                )
+    raise ValueError("Сигнал карточки не найден")
+
+
+def render_card(card: Card, tools: Tools) -> tuple[str, list[Citation]]:
+    lines = [
+        f"**{card.name} · ИНН {card.inn}**",
+        "",
+        VERDICT_RU[card.verdict].capitalize() + ".",
+        f"Светофор банка: {card.labels.riskLevel}. ЗСК: {card.labels.zskRiskLevel}.",
+        "",
+    ]
+    citations = []
+    extra = 0
+    ordered = sorted(
+        card.attention,
+        key=lambda item: (
+            item.severity.rank,
+            not bool(re.search(r"блокиров|приостанов", item.claim, re.I)),
+        ),
+    )
+    for item in ordered:
+        if item.severity != Severity.CRITICAL:
+            if extra >= 2:
+                continue
+            extra += 1
+        lines.append("- " + item.claim)
+        citations.append(signal_citation(card, item.claim, tools))
+    if card.ask_before:
+        lines.extend(["", "Следующий шаг: " + card.ask_before[0]])
+    if card.gaps:
+        lines.extend(["", "Пробелы данных: " + " ".join(card.gaps)])
+    lines.extend(["", "Отчёт от " + card.report_date.strftime("%d.%m.%Y") + "."])
+    return "\n".join(lines), citations
+
+
+def render_comparison(cards: list[Card], tools: Tools) -> tuple[str, list[Citation]]:
+    texts, citations = [], []
+    for card in cards:
+        text, sources = render_card(card, tools)
+        texts.append(text)
+        citations.extend(sources)
+    return "\n\n".join(texts), citations
+
+
+def next_actions(answer: Answer) -> list[str]:
+    if answer.card:
+        return [
+            "Подробнее о судах и долгах у приставов",
+            "Покажи финансовое положение",
+            "Какие документы запросить?",
+        ]
+    if answer.kind == "refusal":
+        return []
+    return ["Покажи основания", "Сделай общую проверку"]

@@ -42,23 +42,33 @@ def compute_metrics(records: list[RunRecord]) -> Metrics:
     ok = [r for r in records if r.error is None]
     m.errors = len(records) - len(ok)
 
-    substantive = [r for r in ok if r.type in ("answer", "infer", "card")]
+    substantive = [r for r in records if r.type in ("answer", "infer", "card")]
     grounded = [
         r
         for r in substantive
-        if r.checks_passed and (r.judge is None or r.judge.score >= JUDGE_PASS)
+        if not r.error and r.checks_passed and (r.judge is None or r.judge.score >= JUDGE_PASS)
     ]
     m.grounded_share = _share(len(grounded), len(substantive))
 
-    refuse = [r for r in ok if r.type == "refuse"]
-    m.refusal_share = _share(sum(1 for r in refuse if r.check_notes.get("refused")), len(refuse))
+    refuse = [r for r in records if r.type == "refuse"]
+    m.refusal_share = _share(
+        sum(
+            1
+            for r in refuse
+            if not r.error
+            and r.checks_passed
+            and r.check_notes.get("refused")
+            and (r.judge is None or r.judge.score >= JUDGE_PASS)
+        ),
+        len(refuse),
+    )
 
     invented = [  # выдуманный факт по мнению судьи, который видит данные инструментов
         r
         for r in ok
         if r.judge and ("invented_fact" in r.judge.failures or "false_alarm" in r.judge.deductions)
     ]
-    m.invented_share = _share(len(invented), len(ok))
+    m.invented_share = _share(len(invented), sum(r.judge is not None for r in ok))
     bad_cit = [r for r in ok if r.answer and r.answer.invalid_citations]  # ссылка не на то поле
     m.bad_citation_share = _share(len(bad_cit), len(ok))
 
@@ -73,7 +83,7 @@ def compute_metrics(records: list[RunRecord]) -> Metrics:
 
     scores = [r.judge.score for r in ok if r.judge]
     m.judge_mean = round(mean(scores), 2) if scores else None
-    durations = [r.duration_s for r in ok]
+    durations = [r.agent_duration_s for r in ok if r.agent_duration_s is not None]
     m.mean_duration_s = round(mean(durations), 1) if durations else None
 
     outcomes: dict[str, set[tuple]] = defaultdict(set)

@@ -9,6 +9,7 @@
 
 from __future__ import annotations
 
+import asyncio
 import uuid
 from collections.abc import AsyncIterator
 from datetime import UTC, datetime
@@ -20,6 +21,7 @@ from pydantic import BaseModel, Field
 from contractor_agent.agent.graph import initial_state
 from contractor_agent.agent.runtime import AgentRuntime
 from contractor_agent.agent.schema import Answer
+from contractor_agent.agent.telemetry import RunMetrics
 
 CONTRACT_VERSION = "1.0"
 EventType = Literal["token", "tool", "interrupt", "end", "error"]
@@ -51,37 +53,47 @@ async def stream_run(
         seq += 1
         return Envelope(type=type_, thread_id=thread_id, run_id=run_id, seq=seq, data=data)
 
+    metrics = RunMetrics()
     config = {
+        "callbacks": [metrics],
         "configurable": {"thread_id": thread_id},
         "recursion_limit": runtime.settings.recursion_limit,
     }
     answer: Answer | None = None
     try:
-        async for mode, chunk in runtime.graph.astream(
-            initial_state(question), config=config, stream_mode=["messages", "updates"]
-        ):
-            if mode == "messages":
-                message, meta = chunk
-                if meta.get("langgraph_node") != "agent":
-                    continue
-                text = _text(message)
-                if text and not getattr(message, "tool_calls", None):
-                    yield envelope("token", {"text": text})
-            else:
+        seen_tools = 0
+        async with asyncio.timeout(runtime.settings.run_timeout_s):
+            async for chunk in runtime.graph.astream(
+                initial_state(question), config=config, stream_mode="updates"
+            ):
                 for node, update in chunk.items():
                     if node == "tools":
-                        for call in update.get("trace") or []:
+                        trace = update.get("trace") or []
+                        for call in trace[seen_tools:]:
                             yield envelope("tool", call.model_dump())
+                        seen_tools = len(trace)
                     if node in ("validate", "guard") and update.get("answer") is not None:
                         answer = update["answer"]
         if answer is None:
             raise RuntimeError("граф завершился без ответа")
         state = await runtime.graph.aget_state(config)
-        usage = _usage(state.values.get("messages") or [])
+        answer.runtime = {
+            **metrics.result(),
+            "build": runtime.fingerprint,
+            "provider": runtime.settings.llm_base_url,
+        }
+        usage = answer.runtime["usage"]
         runtime.record_trace(thread_id, question, state.values, answer)
         yield envelope("end", {"output": answer.model_dump(mode="json"), "usage": usage})
     except Exception as e:  # ошибка — событие, а не разрыв потока
-        yield envelope("error", {"type": type(e).__name__, "message": str(e)})
+        yield envelope(
+            "error",
+            {
+                "type": type(e).__name__,
+                "message": "Не удалось завершить проверку. Повторите запрос.",
+                "runtime": metrics.result(),
+            },
+        )
 
 
 def _text(message: BaseMessage) -> str:

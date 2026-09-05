@@ -43,7 +43,7 @@ CARD_SCRIPT = [
         lines=[
             "Компания признана банкротом [report.status.reasonName].",
             "",
-            "Работать только на условиях: предоплата и подтверждающие документы. Отчёт от 31.07.2026.",
+            "Нужна дополнительная проверка перед взаимодействием. Отчёт от 31.07.2026.",
         ],
         citations=[],
     ),
@@ -70,9 +70,9 @@ def test_stream_contract_and_reference_endpoints(snapshot: Snapshot, tmp_path) -
             assert response.headers["content-type"].startswith("text/event-stream")
             frames = _sse(response.iter_lines())
         types = [t for t, _ in frames]
-        assert types == ["tool", "tool", "token", "end"]
+        assert types == ["tool", "tool", "end"]
         envelopes = [e for _, e in frames]
-        assert [e["seq"] for e in envelopes] == [1, 2, 3, 4]
+        assert [e["seq"] for e in envelopes] == [1, 2, 3]
         assert {e["run_id"] for e in envelopes} == {"r1"} and {
             e["thread_id"] for e in envelopes
         } == {"t1"}
@@ -81,8 +81,8 @@ def test_stream_contract_and_reference_endpoints(snapshot: Snapshot, tmp_path) -
             envelopes[0]["data"]["name"] == "get_report_summary"
             and envelopes[0]["data"]["available"] is True
         )
-        assert envelopes[2]["data"]["text"] == "Фактов достаточно."
-        end = envelopes[3]["data"]
+        assert all(t != "token" for t in types)
+        end = envelopes[2]["data"]
         assert (
             end["output"]["kind"] == "card"
             and end["output"]["card"]["verdict"] == "not_recommended"
@@ -98,14 +98,7 @@ def test_stream_contract_and_reference_endpoints(snapshot: Snapshot, tmp_path) -
         assert state["selected_inns"] == ["5032257375"] and state["report_dates"] == {
             "5032257375": "2026-07-31"
         }
-        assert [m["role"] for m in state["messages"]] == [
-            "user",
-            "assistant",
-            "tool",
-            "assistant",
-            "tool",
-            "assistant",
-        ]
+        assert [m["role"] for m in state["messages"]] == ["user", "assistant"]
         assert state["answer"]["card"]["inn"] == "5032257375"
 
         assert (
@@ -133,7 +126,7 @@ def test_inn_input_and_error_event(snapshot: Snapshot, tmp_path) -> None:
         with client.stream("POST", "/v1/runs/stream", json=body) as response:
             frames = _sse(response.iter_lines())
         assert [t for t, _ in frames] == ["error"]
-        assert "сценарий" in frames[0][1]["data"]["message"]
+        assert "Повторите запрос" in frames[0][1]["data"]["message"]
 
 
 def test_mcp_info_lists_tools_and_config(snapshot: Snapshot, tmp_path) -> None:

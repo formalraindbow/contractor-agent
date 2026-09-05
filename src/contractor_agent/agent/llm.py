@@ -42,8 +42,8 @@ class LLM:
     def structured(self, schema: type) -> Runnable:
         chains: list[Runnable] = []
         for m in self.models:
-            chains.append(m.with_structured_output(schema, method="json_schema"))
             chains.append(m.with_structured_output(schema, method="function_calling"))
+            chains.append(m.with_structured_output(schema, method="json_schema"))
         return chains[0].with_fallbacks(chains[1:])
 
 
@@ -71,7 +71,8 @@ def make_llm(
                 api_key=api_key or settings.llm_api_key or "missing",
                 temperature=0,
                 timeout=settings.llm_timeout,
-                max_retries=2,
+                max_retries=settings.llm_max_retries,
+                max_tokens=settings.llm_max_tokens,
                 default_headers=HEADERS,
                 **extra,
             )

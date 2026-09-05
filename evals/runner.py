@@ -10,9 +10,11 @@ from __future__ import annotations
 
 import asyncio
 import datetime
+import hashlib
 import json
 import re
 import time
+import uuid
 from collections.abc import Sequence
 from pathlib import Path
 from typing import Any
@@ -20,7 +22,6 @@ from typing import Any
 from langchain_core.messages import AIMessage, BaseMessage, HumanMessage, ToolMessage
 from pydantic import BaseModel, Field
 
-from contractor_agent.agent.citations import check_citation
 from contractor_agent.agent.llm import LLM
 from contractor_agent.agent.runtime import AgentRuntime
 from contractor_agent.agent.schema import Answer
@@ -48,6 +49,9 @@ class RunRecord(BaseModel):
     judge: JudgeVerdict | None = None
     duration_s: float = 0.0
     error: str | None = None
+    agent_duration_s: float | None = None
+    judge_duration_s: float | None = None
+    manifest: dict[str, Any] = Field(default_factory=dict)
 
 
 def model_slug(name: str) -> str:
@@ -69,7 +73,22 @@ class EvalRunner:
     ) -> None:
         self.gold = gold
         self.runtime = runtime
-        self.cache_dir = cache_dir / model_slug(model_name)
+        self.manifest = {
+            **runtime.fingerprint,
+            "model": model_name,
+            "judge": judge_llm.name if judge_llm else None,
+            "gold": hashlib.sha256(gold.model_dump_json().encode()).hexdigest(),
+            "evaluator": hashlib.sha256(
+                b"".join(p.read_bytes() for p in sorted(Path(__file__).parent.glob("*.py")))
+            ).hexdigest(),
+            "judge_prompt": hashlib.sha256(
+                Path(__file__).with_name("judge.py").read_bytes()
+            ).hexdigest(),
+        }
+        fingerprint = hashlib.sha256(
+            json.dumps(self.manifest, sort_keys=True).encode()
+        ).hexdigest()[:12]
+        self.cache_dir = cache_dir / model_slug(model_name) / fingerprint
         self.model_name = model_name
         self.judge_llm = judge_llm
         self.delay_s = delay_s
@@ -92,10 +111,7 @@ class EvalRunner:
                 if path.exists() and not refresh:
                     record = RunRecord.model_validate_json(path.read_text(encoding="utf-8"))
                     if record.answer is not None:  # ошибка без ответа — не кэш, гоняем заново
-                        changed = self._recheck(question, record)
-                        changed = await self._rejudge(question, record) or changed
-                        if changed:
-                            path.write_text(record.model_dump_json(indent=2), encoding="utf-8")
+                        # Existing outputs remain immutable; a changed build gets a new directory.
                         records.append(record)
                         continue
                 record = await self.run_one(question, repeat)
@@ -104,29 +120,6 @@ class EvalRunner:
                 if self.delay_s:
                     await asyncio.sleep(self.delay_s)
         return records
-
-    def _recheck(self, question: GoldQuestion, record: RunRecord) -> bool:
-        """Проверки кодом пересчитываются из кэша: правка проверки действует задним числом."""
-        assert record.answer is not None
-        self._revalidate_citations(record.answer)
-        result = check(question, record.answer, self.gold.card(question.inn).report_date)
-        before = (record.checks_passed, record.check_failures, record.check_notes)
-        record.checks_passed, record.check_failures, record.check_notes = (
-            result.passed,
-            result.failures,
-            result.notes,
-        )
-        return before != (record.checks_passed, record.check_failures, record.check_notes)
-
-    def _revalidate_citations(self, answer: Answer) -> None:
-        """Цитаты проверяются заново текущим валидатором: его правки действуют задним числом."""
-        inns = list(answer.report_dates)
-        if not inns:
-            return
-        valid, invalid = [], []
-        for c in [*answer.citations, *answer.invalid_citations]:
-            (valid if check_citation(self.runtime.source, inns, c).ok else invalid).append(c)
-        answer.citations, answer.invalid_citations = valid, invalid
 
     async def _judge(
         self, question: GoldQuestion, answer: Answer, tool_outputs: str
@@ -143,18 +136,6 @@ class EvalRunner:
                     raise
         raise AssertionError("unreachable")
 
-    async def _rejudge(self, question: GoldQuestion, record: RunRecord) -> bool:
-        """Ответ агента есть, а вердикта судьи нет (судья упал) — судим заново, агента не гоняем."""
-        if self.judge_llm is None or record.judge is not None or record.answer is None:
-            return False
-        try:
-            record.judge = await self._judge(question, record.answer, record.tool_outputs)
-        except Exception as e:
-            record.error = f"{type(e).__name__}: {e}"
-            return False
-        record.error = None
-        return True
-
     async def run_one(self, question: GoldQuestion, repeat: int) -> RunRecord:
         record = RunRecord(
             question_id=question.id,
@@ -164,8 +145,9 @@ class EvalRunner:
             model=self.model_name,
             repeat=repeat,
             question=question.question,
+            manifest=self.manifest,
         )
-        thread_id = f"eval-{question.id}-{repeat}"
+        thread_id = f"eval-{question.id}-{repeat}-{uuid.uuid4().hex}"
         started = time.perf_counter()
         try:
             history = follow_up_history(self.gold.card(question.inn)) if question.follow_up else ()
@@ -173,6 +155,7 @@ class EvalRunner:
                 self.runtime.ask(question.question, thread_id=thread_id, history=history),
                 self.agent_timeout_s,
             )
+            record.agent_duration_s = round(time.perf_counter() - started, 3)
             state = await self.runtime.graph.aget_state({"configurable": {"thread_id": thread_id}})
             values = state.values or {}
             record.answer = answer
@@ -183,7 +166,9 @@ class EvalRunner:
             record.check_failures = result.failures
             record.check_notes = result.notes
             if self.judge_llm is not None:
+                judge_started = time.perf_counter()
                 record.judge = await self._judge(question, answer, record.tool_outputs)
+                record.judge_duration_s = round(time.perf_counter() - judge_started, 3)
         except Exception as e:  # ошибка прогона — запись, а не остановка эталона
             record.error = f"{type(e).__name__}: {e}"  # проверки, если успели, остаются как есть
         record.duration_s = round(time.perf_counter() - started, 1)

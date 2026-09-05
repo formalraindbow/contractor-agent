@@ -15,18 +15,21 @@ from datetime import date
 from decimal import Decimal
 from typing import Any
 
+from contractor_agent.agent.evidence import resolve_evidence
 from contractor_agent.agent.schema import Citation
 from contractor_agent.data.loader import ReportSource
-from contractor_agent.data.paths import PathNotFoundError, resolve
+from contractor_agent.data.paths import PathNotFoundError
 
-_NUMBER = re.compile(r"(?<![\w.])(-?\d[\d\s ]*(?:[.,]\d+)?)\s*(тыс\.?|млн|млрд|%)?", re.IGNORECASE)
+_NUMBER = re.compile(
+    r"(?<![\w.])([−-]?\d[\d \u00a0\u202f]*(?:[.,]\d+)?)\s*(тыс\.?|млн|млрд|%)?", re.IGNORECASE
+)
 _SCALE = {
     "тыс": Decimal(1_000),
     "тыс.": Decimal(1_000),
     "млн": Decimal(1_000_000),
     "млрд": Decimal(1_000_000_000),
 }
-RELATIVE_TOLERANCE = Decimal("0.05")
+RELATIVE_TOLERANCE = Decimal("0.002")
 
 
 @dataclass(frozen=True)
@@ -39,7 +42,7 @@ class CitationCheck:
 
 
 _ABSENCE = re.compile(r"\bнет\b|\bне\s|отсутству|пуст", re.I)  # утверждение об отсутствии
-_PATH = re.compile(r"report\.[A-Za-z_]\w*(?:\[\d+\])?(?:\.[A-Za-z_]\w*(?:\[\d+\])?)*")
+_PATH = re.compile(r"(?:report|computed)\.[A-Za-z_]\w*(?:\[\d+\])?(?:\.[A-Za-z_]\w*(?:\[\d+\])?)*")
 _CLAIM_TAIL = re.compile(
     r"[\s\[(«\"'`:;,\-—•*]*(?:source_path|адрес|путь)?[\s\[(«\"'`:;,\-—•*]*$", re.IGNORECASE
 )
@@ -78,7 +81,7 @@ def normalize_path(path: str) -> str:
     while path.endswith("]") and not re.search(r"\[\d+\]$", path):
         path = path[:-1]
     path = path.rstrip("«»\"'` ")
-    if not path.startswith("report."):
+    if not path.startswith(("report.", "computed.")):
         path = f"report.{path}"
     return path
 
@@ -87,7 +90,9 @@ def numbers_in(text: str) -> list[Decimal]:
     """Числа из текста с учётом «26,2 млн», «180 809,59», «1,1 %» (проценты → доля)."""
     found: list[Decimal] = []
     for raw, unit in _NUMBER.findall(text):
-        cleaned = re.sub(r"\s", "", raw).replace(",", ".")  # любые пробелы, включая U+202F
+        cleaned = (
+            re.sub(r"\s", "", raw).replace("−", "-").replace(",", ".")
+        )  # любые пробелы, включая U+202F
         try:
             value = Decimal(cleaned)
         except Exception:
@@ -102,10 +107,10 @@ def numbers_in(text: str) -> list[Decimal]:
 
 
 def number_matches(claimed: Decimal, actual: Decimal) -> bool:
-    """Совпадение с допуском на округление; знак не учитываем («убыток 26,2 млн» ↔ −26 249 000)."""
+    """Совпадение знака и числа; точность отображения проверяется отдельно в _check_value."""
     if actual == 0:
         return claimed == 0
-    return abs(abs(claimed) - abs(actual)) / abs(actual) <= RELATIVE_TOLERANCE
+    return abs(claimed - actual) / abs(actual) <= RELATIVE_TOLERANCE
 
 
 def check_citation(source: ReportSource, inns: list[str], citation: Citation) -> CitationCheck:
@@ -121,13 +126,17 @@ def check_citation(source: ReportSource, inns: list[str], citation: Citation) ->
         return bad or CitationCheck(citation, True, None, checks[0].value, checks[0].inn)
     path = normalize_path(citation.source_path)
     last_error = "адреса нет в отчёте"
-    scope = [citation.inn] if citation.inn and citation.inn in inns else list(reversed(inns))
+    if citation.inn and citation.inn not in inns:
+        return CitationCheck(citation, False, "ИНН цитаты не относится к текущему ответу")
+    if not citation.inn and len(inns) != 1:
+        return CitationCheck(citation, False, "При нескольких компаниях укажи ИНН цитаты")
+    scope = [citation.inn] if citation.inn else inns
     for inn in scope:  # своя компания, иначе последняя выбранная — первой
         report = source.get(inn)
         if report is None:
             continue
         try:
-            value = resolve(report, path)
+            value = resolve_evidence(source, inn, path)
         except PathNotFoundError as e:
             last_error = str(e)
             continue
@@ -157,34 +166,95 @@ def _is_year(n: Decimal) -> bool:
     return n == n.to_integral_value() and 1990 <= n <= 2035
 
 
+def claim_measurements(text: str) -> list[tuple[Decimal, Decimal, str]]:
+    """Значение, допуск по последнему отображённому разряду, единица.
+
+    Годы убираем только в явном контексте периода. Счётчики всегда точные.
+    """
+    text = re.sub(r"\bИНН\s*[:№]?\s*\d{10,12}\b", "", text, flags=re.I)
+    text = re.sub(r"\b\d{2}\.\d{2}\.\d{4}\b|\b\d{4}-\d{2}-\d{2}\b", "", text)
+    text = re.sub(r"(?<!\d)(?:19|20)\d{2}\s*[–—-]\s*(?:19|20)\d{2}", "", text)
+    text = re.sub(r"\b(?:за|на конец|в|от)\s+(?:19|20)\d{2}\b", "", text, flags=re.I)
+    text = re.sub(r"\b(?:19|20)\d{2}(?=\s*г(?:од|\.))", "", text, flags=re.I)
+    found = []
+    for raw, unit in _NUMBER.findall(text):
+        raw = re.sub(r"\s", "", raw).replace("−", "-").replace(",", ".")
+        unit = unit.lower()
+        number = Decimal(raw)
+        factor = _SCALE.get(unit, Decimal(1))
+        precision = len(raw.split(".")[1]) if "." in raw else 0
+        tolerance = (
+            factor * Decimal(10) ** -precision / 2 if unit in _SCALE or precision else Decimal(0)
+        )
+        found.append((number * factor, tolerance, unit))
+    return found
+
+
 def _check_value(citation: Citation, path: str, value: Any, inn: str) -> CitationCheck:
-    claimed = numbers_in(citation.claim)
-    if claimed and all(_is_year(n) for n in claimed):
-        claimed = []  # «выручка за 2024–2025» — годы в утверждении не значения поля
-    if _ABSENCE_STRICT.search(citation.claim) and (
-        path.startswith("report.arbitration") or path.lower().endswith("count")
+    def result(ok: bool, why: str | None = None) -> CitationCheck:
+        return CitationCheck(citation, ok, why, value, inn)
+
+    claim = citation.claim
+    measures = claim_measurements(claim)
+    if value is None:
+        return result(
+            bool(_ABSENCE.search(claim)), "поле пустое; можно сообщить только отсутствие данных"
+        )
+    # A generated explanation is accepted only verbatim: its calculations ran in Python.
+    if path.startswith("computed.risks.") and isinstance(value, str):
+        return result(
+            claim.strip().casefold().rstrip(".") == value.strip().casefold().rstrip("."),
+            "Фраза не совпадает с рассчитанным основанием",
+        )
+    if isinstance(value, bool):
+        return result(not measures, "Логическое поле не подтверждает число")
+    if isinstance(value, int | float | Decimal):
+        if _ABSENCE_STRICT.search(claim) and value != 0:
+            return result(False, "утверждение об отсутствии, а поле заполнено")
+        if not measures:
+            return result(True)
+        actual = Decimal(str(value))
+        count = bool(re.search(r"count|staff|yearsFromRegistration", path, re.I))
+        for number, tolerance, unit in measures:
+            if re.search(r"убыт|отрицательн", claim, re.I) and number > 0:
+                number = -number
+            if unit == "%" and not path.endswith(("profitability", "profitability_pct")):
+                number, tolerance = number / 100, tolerance / 100
+            if count and unit:
+                return result(False, "Количество нельзя округлять или выражать денежной единицей")
+            if abs(number - actual) > (Decimal(0) if count else tolerance):
+                return result(False, f"число не совпадает: в отчёте {value}")
+        return result(True)
+    if isinstance(value, date):
+        return result(
+            value.isoformat() in claim or value.strftime("%d.%m.%Y") in claim, "Дата не совпадает"
+        )
+    if isinstance(value, str):
+        if measures:
+            # INN/OKVED and other literal numeric strings are checked as strings.
+            if value not in claim:
+                return result(False, "Текстовое поле не подтверждает указанное число")
+            stripped = claim.replace(value, "")
+            if claim_measurements(stripped):
+                return result(False, "В утверждении есть число, которого нет в поле")
+        if (
+            path.endswith("reasonName")
+            and re.search(r"банкрот", value, re.I)
+            and re.search(r"не\s+(?:является\s+)?банкрот|банкротств[ао]\s+нет", claim, re.I)
+        ):
+            return result(False, "Утверждение отрицает указанный в отчёте статус")
+        return result(True)
+    if measures:
+        return result(
+            False, "Объект или список не подтверждает число; укажи точное поле или computed.*"
+        )
+    if (
+        _ABSENCE_STRICT.search(claim)
+        and path.startswith("report.arbitration")
+        and _positive_counts(value)
     ):
-        # «сведений о судах нет» со ссылкой на сводку, где счётчики > 0, — выдуманное отсутствие
-        filled = (
-            isinstance(value, int | float | Decimal) and not isinstance(value, bool) and value > 0
-        ) or (not isinstance(value, list | str) and _positive_counts(value))
-        if filled:
-            return CitationCheck(
-                citation, False, "утверждение об отсутствии, а поле заполнено", value, inn
-            )
-    if isinstance(value, bool) or not isinstance(value, int | float | Decimal):
-        if value is None and claimed and not _ABSENCE.search(citation.claim):
-            # «нет сведений о прибыли за 2024–2025» с пустым полем — верная цитата: годы не значения
-            return CitationCheck(
-                citation, False, "поле пустое, а утверждение содержит число", value, inn
-            )
-        return CitationCheck(citation, True, None, value, inn)  # не число: достаточно адреса
-    if not claimed:
-        return CitationCheck(citation, True, None, value, inn)
-    actual = Decimal(str(value))
-    if any(number_matches(c, actual) for c in claimed):
-        return CitationCheck(citation, True, None, value, inn)
-    return CitationCheck(citation, False, f"число не совпадает: в отчёте {value}", value, inn)
+        return result(False, "утверждение об отсутствии, а поле заполнено")
+    return result(True)
 
 
 def validate_citations(

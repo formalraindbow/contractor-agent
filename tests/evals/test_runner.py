@@ -43,7 +43,7 @@ async def test_runner_caches_and_metrics(snapshot: Snapshot, tmp_path) -> None:
                 kind="card",
                 lines=[
                     "Компания признана банкротом [report.status.reasonName].",
-                    "Работать только на условиях: предоплата и подтверждающие документы. Отчёт от 31.07.2026.",
+                    "Нужна дополнительная проверка перед взаимодействием. Отчёт от 31.07.2026.",
                 ],
                 citations=[],
             ),
@@ -79,7 +79,7 @@ async def test_runner_caches_and_metrics(snapshot: Snapshot, tmp_path) -> None:
         assert [r.question_id for r in cached] == [r.question_id for r in records]
     metrics = compute_metrics(records)
     assert metrics.grounded_share == 1.0 and metrics.refusal_share == 1.0
-    assert metrics.invented_share == 0.0 and metrics.missed_critical_share == 0.0
+    assert metrics.invented_share is None and metrics.missed_critical_share == 0.0
     text = render([metrics], {"scripted/test": records})
     assert "Подтверждаемых ответов" in text and "100 %" in text
 

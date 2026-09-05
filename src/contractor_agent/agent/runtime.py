@@ -8,6 +8,7 @@
 
 from __future__ import annotations
 
+import asyncio
 import json
 from collections.abc import Sequence
 from datetime import UTC, datetime
@@ -21,6 +22,7 @@ from mcp.client.stdio import StdioServerParameters
 from contractor_agent.agent.graph import build_graph, initial_state
 from contractor_agent.agent.llm import LLM, make_llm
 from contractor_agent.agent.schema import Answer
+from contractor_agent.agent.telemetry import RunMetrics, build_fingerprint
 from contractor_agent.agent.tools import load_tools
 from contractor_agent.data.loader import ReportSource
 from contractor_agent.mcp_server.server import build_server
@@ -45,6 +47,7 @@ class AgentRuntime:
         self.client: Client | None = None
         self.graph = None
         self.tools: list[Any] = []
+        self.fingerprint = build_fingerprint()
 
     async def __aenter__(self) -> AgentRuntime:
         if self.mcp_stdio:
@@ -68,12 +71,20 @@ class AgentRuntime:
         self, question: str, thread_id: str = "cli", *, history: Sequence[BaseMessage] = ()
     ) -> Answer:
         assert self.graph is not None, "используй `async with AgentRuntime(...)`"
+        metrics = RunMetrics()
         config = {
+            "callbacks": [metrics],
             "configurable": {"thread_id": thread_id},
             "recursion_limit": self.settings.recursion_limit,
         }
-        result = await self.graph.ainvoke(initial_state(question, history), config=config)
+        async with asyncio.timeout(self.settings.run_timeout_s):
+            result = await self.graph.ainvoke(initial_state(question, history), config=config)
         answer: Answer = result["answer"]
+        answer.runtime = {
+            **metrics.result(),
+            "build": self.fingerprint,
+            "provider": self.settings.llm_base_url,
+        }
         self.record_trace(thread_id, question, result, answer)
         return answer
 
@@ -88,6 +99,7 @@ class AgentRuntime:
                 "ts": datetime.now(UTC).isoformat(timespec="seconds"),
                 "thread_id": thread_id,
                 "model": self.llm.name,
+                "runtime": answer.runtime,
                 "question": question,
                 "kind": answer.kind,
                 "verdict": answer.card.verdict.value if answer.card else None,

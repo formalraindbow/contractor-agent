@@ -101,3 +101,9 @@ class Answer(BaseModel):
         default_factory=list, description="цитаты, не прошедшие проверку — не факты"
     )
     report_dates: dict[str, str] = Field(default_factory=dict, description="ИНН → дата отчёта ISO")
+
+    active_inns: list[str] = Field(default_factory=list)
+    purpose: str | None = None
+    next_actions: list[str] = Field(default_factory=list)
+    verification: dict[str, Any] = Field(default_factory=dict)
+    runtime: dict[str, Any] = Field(default_factory=dict)

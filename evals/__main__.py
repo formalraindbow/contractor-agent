@@ -80,7 +80,7 @@ def _report(args: argparse.Namespace) -> int:
         folder = CACHE / model_slug(slug)
         records = [
             RunRecord.model_validate_json(p.read_text(encoding="utf-8"))
-            for p in sorted(folder.glob("*.json"))
+            for p in sorted(folder.rglob("*.json"))
         ]
         if not records:
             continue

@@ -84,3 +84,16 @@ def _walk(node: Any, prefix: str) -> Iterator[tuple[str, Any]]:
             yield from _walk(value, f"{prefix}[{i}]")
     else:
         yield prefix, node
+
+
+def nearest_path(report: Report, path: str) -> str:
+    """Адрес существующего узла для отсутствующего поля; не создаёт значения."""
+    import re
+
+    while path != ROOT:
+        try:
+            resolve(report, path)
+            return path
+        except PathNotFoundError:
+            path = re.sub(r"(?:\.[^.\[]+|\[\d+\])$", "", path)
+    return ROOT

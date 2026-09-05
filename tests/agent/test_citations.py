@@ -61,7 +61,7 @@ def test_check_citation_against_report(snapshot: Snapshot) -> None:
     container = check_citation(
         snapshot, inns, Citation(claim="2 открытых дела", source_path="report.arbitrationByStatus")
     )
-    assert container.ok  # контейнер: достаточно адреса
+    assert not container.ok  # контейнер не подтверждает количество
     nowhere = check_citation(
         snapshot, inns, Citation(claim="x", source_path="report.baseInfo.headcount")
     )
@@ -168,7 +168,7 @@ def test_meta_paths_and_year_only_claims(snapshot):
     c = Citation(
         claim="выручка за 2024–2025 г.", source_path="report.finReports[0].common.proceeds"
     )
-    assert check_citation(snapshot, ["9705152496"], c).ok
+    assert not check_citation(snapshot, ["9705152496"], c).ok  # пустое поле не подтверждает факт
     c2 = Citation(
         claim="нет данных о текущей ликвидности", source_path="report.finReports[0].assets"
     )

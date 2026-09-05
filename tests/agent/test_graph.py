@@ -21,15 +21,21 @@ async def test_card_flow_with_one_citation_repair(snapshot: Snapshot, tmp_path) 
             Draft(
                 kind="card",
                 lines=[
-                    "Компания банкрот [report.status.reasonName], 54 производства [report.executionProceedings], штат 100 человек.",
+                    "Компания банкрот [report.status.reasonName].",
+                    "54 действующих производства [computed.enforcement.active.count].",
+                    "штат 100 человек [report.baseInfo.staff].",
                     "",
-                    "Стоит проверить до договора.",
+                    "Стоит проверить дополнительно.",
                 ],
                 citations=[
-                    Citation(claim="признана банкротом", source_path="report.status.reasonName"),
+                    Citation(
+                        claim="Компания банкрот",
+                        source_path="report.status.reasonName",
+                        inn="5032257375",
+                    ),
                     Citation(
                         claim="54 действующих производства",
-                        source_path="report.executionProceedings",
+                        source_path="computed.enforcement.active.count",
                     ),
                     Citation(claim="штат 100 человек", source_path="report.baseInfo.staff"),
                 ],
@@ -38,15 +44,20 @@ async def test_card_flow_with_one_citation_repair(snapshot: Snapshot, tmp_path) 
             Draft(
                 kind="card",
                 lines=[
-                    "Компания банкрот [report.status.reasonName], 54 производства [report.executionProceedings].",
+                    "Компания банкрот [report.status.reasonName].",
+                    "54 действующих производства [computed.enforcement.active.count].",
                     "",
-                    "Работать только на условиях: предоплата и подтверждающие документы. Отчёт от 31.07.2026.",
+                    "Нужна дополнительная проверка перед взаимодействием. Отчёт от 31.07.2026.",
                 ],
                 citations=[
-                    Citation(claim="признана банкротом", source_path="report.status.reasonName"),
+                    Citation(
+                        claim="Компания банкрот",
+                        source_path="report.status.reasonName",
+                        inn="5032257375",
+                    ),
                     Citation(
                         claim="54 действующих производства",
-                        source_path="report.executionProceedings",
+                        source_path="computed.enforcement.active.count",
                     ),
                 ],
             ),
@@ -63,10 +74,13 @@ async def test_card_flow_with_one_citation_repair(snapshot: Snapshot, tmp_path) 
         and answer.card.attention[0].severity.value == "critical"
     )
     assert answer.report_dates == {"5032257375": "2026-07-31"}
-    assert [c.source_path for c in answer.citations] == [
-        "report.status.reasonName",
-        "report.executionProceedings",
-    ]
+    paths = [c.source_path for c in answer.citations]
+    assert "report.status.reasonName" in paths
+    assert "computed.enforcement.active.count" in paths
+    from contractor_agent.agent.citations import check_citation
+
+    assert all(check_citation(snapshot, ["5032257375"], c).ok for c in answer.citations)
+    assert "100 человек" not in answer.text_md
     assert answer.invalid_citations == []
     values = state.values
     assert values["citation_retry"] == 1 and values["selected_inns"] == ["5032257375"]
@@ -75,11 +89,11 @@ async def test_card_flow_with_one_citation_repair(snapshot: Snapshot, tmp_path) 
     repair = [
         m
         for m in values["messages"]
-        if isinstance(m, HumanMessage) and "Проверка цитат" in m.content
+        if isinstance(m, HumanMessage) and m.additional_kwargs.get("repair")
     ]
     assert len(repair) == 1 and "report.baseInfo.staff" in repair[0].content
     assert "не совпадает с рекомендацией" in repair[0].content  # «стоит проверить» против карточки
-    assert "только на условиях" in answer.text_md.casefold()
+    assert "дополнительная проверка" in answer.text_md.casefold()
     assert "\n\n" in answer.text_md  # строки склеены кодом
     tool_msgs = [m for m in values["messages"] if isinstance(m, ToolMessage)]
     assert len(tool_msgs) == 2 and '"available": true' in tool_msgs[0].content
@@ -107,7 +121,11 @@ async def test_invalid_citation_is_marked_after_one_retry(snapshot: Snapshot, tm
     async with AgentRuntime(_settings(tmp_path), source=snapshot, llm=llm) as rt:
         answer = await rt.ask("Какая выручка у ТЕХПРОФ 1684017097?")
     assert answer.kind == "answer" and answer.card is None
-    assert answer.citations == [] and len(answer.invalid_citations) == 1
+    assert len(answer.invalid_citations) == 1
+    assert "999" not in answer.text_md
+    from contractor_agent.agent.citations import check_citation
+
+    assert all(check_citation(snapshot, ["1684017097"], c).ok for c in answer.citations)
 
 
 async def test_refusal_when_company_not_found(snapshot: Snapshot, tmp_path) -> None:
@@ -139,7 +157,7 @@ async def test_memory_within_thread(snapshot: Snapshot, tmp_path) -> None:
         await rt.ask("Что за компания 2100006761?", thread_id="s")
         second = await rt.ask("Какой у неё ИНН?", thread_id="s")
         state = await rt.graph.aget_state({"configurable": {"thread_id": "s"}})
-    assert second.text_md.endswith("2100006761.")
+    assert "ИНН 2100006761." in second.text_md
     assert (
         sum(isinstance(m, HumanMessage) for m in state.values["messages"]) == 2
     )  # история сохранена
@@ -149,9 +167,9 @@ def test_enforce_verdict_replaces_and_appends() -> None:
     from contractor_agent.agent.nodes import enforce_verdict
     from contractor_agent.signals.model import Verdict
 
-    text = "Итог: Стоит проверить до договора. Отчёт от 01.08.2026."
+    text = "Итог: Стоит проверить дополнительно. Отчёт от 01.08.2026."
     fixed = enforce_verdict(text, Verdict.NOT_RECOMMENDED)
-    assert "только на условиях" in fixed and "проверить до договора." not in fixed
+    assert "дополнительная проверка" in fixed and "проверить до договора." not in fixed
     assert enforce_verdict("Без вывода.", Verdict.OK).endswith("**Рекомендация:** можно работать.")
 
 
@@ -173,10 +191,14 @@ async def test_comparison_flow_builds_cards_for_each_company(snapshot: Snapshot,
                     "МАКСМАРКЕТ: признана банкротом [report.status.reasonName].",
                     "ГДК: блокировка счетов на дату отчёта.",
                     "",
-                    "Итог: МАКСМАРКЕТ — работать только на условиях: предоплата и подтверждающие документы; ГДК — работать только на условиях: предоплата и подтверждающие документы.",
+                    "Итог: МАКСМАРКЕТ — нужна дополнительная проверка перед взаимодействием; ГДК — нужна дополнительная проверка перед взаимодействием.",
                 ],
                 citations=[
-                    Citation(claim="признана банкротом", source_path="report.status.reasonName")
+                    Citation(
+                        claim="признана банкротом",
+                        source_path="report.status.reasonName",
+                        inn="5032257375",
+                    )
                 ],
             ),
         ]
@@ -211,8 +233,8 @@ async def test_comparison_verdict_is_enforced_by_code(snapshot: Snapshot, tmp_pa
     async with AgentRuntime(_settings(tmp_path), source=snapshot, llm=llm) as rt:
         answer = await rt.ask("Сравни 5032257375 и 6165169320", thread_id="cmp2")
     assert answer.kind == "comparison" and len(answer.cards) == 2
-    assert "По данным отчётов" in answer.text_md
-    assert answer.text_md.count("работать только на условиях") == 2
+    assert all(c.inn in answer.text_md for c in answer.cards)
+    assert answer.text_md.casefold().count("нужна дополнительная проверка") == 2
 
 
 def test_inns_from_args_accepts_string_list() -> None:
@@ -227,11 +249,9 @@ def test_forbidden_phrase_is_flagged_and_scrubbed() -> None:
 
     text = "**МАКСМАРКЕТ — работать нельзя, компания в банкротстве.**\nФакты…"
     assert "работать нельзя" in (forbidden_problem(text) or "")
-    scrubbed = scrub_forbidden(
-        text, "работать только на условиях: предоплата и подтверждающие документы"
-    )
-    assert "нельзя" not in scrubbed and "работать только на условиях" in scrubbed
-    assert forbidden_problem("Стоит проверить до договора.") is None
+    scrubbed = scrub_forbidden(text, "нужна дополнительная проверка перед взаимодействием")
+    assert "нельзя" not in scrubbed and "нужна дополнительная проверка" in scrubbed
+    assert forbidden_problem("Стоит проверить дополнительно.") is None
 
 
 def test_question_kind_hint() -> None:
@@ -268,7 +288,7 @@ def test_verdict_codes_are_replaced_with_phrases() -> None:
         "Итог: ГДК – not_recommended, ТЕХПРОФ – ok. Поле check_id не трогаем."
     )
     assert "not_recommended" not in out and " ok" not in out
-    assert "работать только на условиях" in out and "можно работать" in out
+    assert "нужна дополнительная проверка" in out and "можно работать" in out
     assert "check_id" in out
 
 
@@ -284,7 +304,9 @@ def test_visible_history_drops_old_tool_traffic_but_keeps_current_turn() -> None
         HumanMessage(content="Проверь X"),
         old_call,
         ToolMessage(content="{}", tool_call_id="a", name="get_report_summary"),
-        AIMessage(content="Карточка X: … Дата отчёта 31.07.2026."),
+        AIMessage(
+            content="Карточка X: … Дата отчёта 31.07.2026.", additional_kwargs={"visible": True}
+        ),
         HumanMessage(content="А суды?"),
         AIMessage(
             content="",
@@ -311,7 +333,7 @@ def test_tool_subset_by_question() -> None:
         "get_report_summary",
         "get_enforcement_summary",
     ]
-    assert tool_subset("Сравни 5032257375 и 6165169320") == ["search_company", "compare_companies"]
+    assert tool_subset("Сравни 5032257375 и 6165169320") is None
     assert tool_subset("Проверь ООО «МАКСМАРКЕТ»: можно ли с ней работать?") is None
 
 
@@ -321,7 +343,7 @@ def test_forbidden_phrase_with_words_between() -> None:
     text = "**Работать с ООО «МАКСМАРКЕТ» нельзя — компания в процедуре банкротства.**"
     assert forbidden_problem(text)
     assert "нельзя" not in scrub_forbidden(
-        text, "работать только на условиях: предоплата и подтверждающие документы"
+        text, "нужна дополнительная проверка перед взаимодействием"
     )
 
 
@@ -355,7 +377,7 @@ async def test_comparison_after_card_uses_only_this_turn_companies(
             Draft(
                 kind="card",
                 lines=[
-                    "МАКСМАРКЕТ: работать только на условиях: предоплата и подтверждающие документы. Отчёт от 31.07.2026."
+                    "МАКСМАРКЕТ: нужна дополнительная проверка перед взаимодействием. Отчёт от 31.07.2026."
                 ],
                 citations=[],
             ),
@@ -373,7 +395,7 @@ async def test_comparison_after_card_uses_only_this_turn_companies(
         )
     assert answer.kind == "comparison"
     assert [c.inn for c in answer.cards] == ["6165169320", "1684017097"]
-    assert "По данным отчётов" in answer.text_md
+    assert all(c.inn in answer.text_md for c in answer.cards)
 
 
 def test_tidy_text_removes_field_names_and_repeats() -> None:
@@ -406,7 +428,7 @@ def test_drop_invalid_lines_removes_unverified_numbers() -> None:
     )
     out = drop_invalid_lines(text, [bad])
     assert "7 152 200" not in out and "258 завершённых" in out and "Дата отчёта" in out
-    assert "Убрано утверждений" in out
+    assert "не удалось подтвердить" in out
 
 
 def test_tidy_text_strips_field_paths_and_inn() -> None:
@@ -430,7 +452,7 @@ def test_refusal_with_data_triggers_repair() -> None:
         )
     ]
     refusal = Answer(kind="refusal", text_md="В отчёте нет данных для оценки.")
-    assert refusal_problem(refusal, trace)
+    assert refusal_problem(refusal, trace) is None
     assert refusal_problem(refusal, []) is None
     assert refusal_problem(Answer(kind="answer", text_md="Выручка 748 млн ₽."), trace) is None
 
@@ -525,7 +547,7 @@ def test_card_question_keeps_card_kind(snapshot) -> None:
                 kind="refusal",
                 lines=[
                     "Компания признана банкротом [report.status.reasonName].",
-                    "Работать только на условиях: предоплата и подтверждающие документы.",
+                    "Нужна дополнительная проверка перед взаимодействием.",
                     "Отчёт от 31.07.2026.",
                 ],
                 citations=[],
@@ -558,4 +580,4 @@ def test_scrubbed_verdict_is_not_doubled() -> None:
     out = tidy_text(
         enforce_verdict(scrub_forbidden(replace_verdict_codes(tidy_text(draft)), VERDICT_RU[v]), v)
     )
-    assert out.lower().count("только на условиях: предоплата") == 1, out
+    assert out.lower().count("нужна дополнительная проверка") == 1, out

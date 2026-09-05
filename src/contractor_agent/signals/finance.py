@@ -426,7 +426,7 @@ def _field_gap(rows: list[Row], criterion: str, subpath: str, what: str) -> Gap:
     return Gap(
         criterion=criterion,
         reason=GapReason.FIELD_ABSENT,
-        source_path=f"{rows[0].path}.{subpath}",
+        source_path=rows[0].path,
         text_ru=f"В отчётности за {years} нет {what} — оценить по этому критерию нельзя.",
     )
 

@@ -119,13 +119,14 @@ RAW_FALLBACK: dict[str, FlagRule] = {
     "arbitrationDefendant": FlagRule(
         Severity.MODERATE,
         "Иски к компании (признак банка)",
-        "По признаку банка есть арбитражные дела, где компания — ответчик; сводки по делам "
-        "в отчёте нет.",
+        "По признаку банка есть арбитражные дела, где компания — ответчик; сырые данные "
+        "отчёта не подтверждают этот признак полностью.",
     ),
     "profit": FlagRule(
         Severity.MODERATE,
         "Убыток (признак банка)",
-        "По признаку банка последний год закрыт с убытком; самой отчётности в отчёте нет.",
+        "По признаку банка последний год закрыт с убытком; "
+        "сырые финансовые данные не подтверждают этот признак полностью.",
     ),
 }
 """Коды с сырой опорой: их считают свои модули, флаг — сверка. Берём флаг, только если
@@ -136,9 +137,17 @@ def _raw_present(report: Report, code: str) -> bool:
     if code == "executionProceedings":
         return report.section_state("executionProceedings") != "absent"
     if code == "arbitrationDefendant":
-        return report.arbitration_by_status is not None or bool(report.arbitration_cases)
+        from contractor_agent.signals.arbitration import defendant_roles
+
+        return bool(defendant_roles(report.arbitration_by_status).total) or any(
+            (c.defendant_count or 0) > 0 for c in report.arbitration_cases or []
+        )
     if code == "profit":
-        return bool(real_rows(report))
+        rows = real_rows(report)
+        return any(
+            r.data.common and r.data.common.profit is not None and r.data.common.profit < 0
+            for r in rows[:2]
+        )
     if code == "inspectionWithViolation":
         return any(i.inspection_status == VIOLATION_STATUS for i in report.inspections or [])
     if code == "liquidationStatus":

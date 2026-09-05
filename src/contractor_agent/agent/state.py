@@ -7,8 +7,7 @@
 
 from __future__ import annotations
 
-import operator
-from typing import Annotated, Any
+from typing import Any
 
 from langgraph.graph import MessagesState
 from pydantic import BaseModel
@@ -29,9 +28,13 @@ class ToolCallTrace(BaseModel):
 class AgentState(MessagesState):
     selected_inns: list[str]
     report_dates: dict[str, str]
-    trace: Annotated[list[ToolCallTrace], operator.add]
+    trace: list[ToolCallTrace]
     draft: Draft | None
     answer: Answer | None
     citation_retry: int
     question: str  # вопрос текущего хода — для подсказки вида ответа и проверки формы
     turn_inns: list[str]  # компании из вызовов инструментов текущего хода (для карточек и цитат)
+
+    purpose: str | None
+    pending_clarification: str | None
+    purpose_asked_inns: list[str]
