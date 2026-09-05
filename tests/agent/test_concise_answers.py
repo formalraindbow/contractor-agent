@@ -2,7 +2,7 @@ import pytest
 from langchain_core.messages import AIMessage
 
 from contractor_agent.agent.citations import check_citation
-from contractor_agent.agent.nodes import build_card, render_card
+from contractor_agent.agent.nodes import build_card, render_card, tool_subset
 from contractor_agent.agent.runtime import AgentRuntime
 from contractor_agent.agent.schema import Draft
 from contractor_agent.agent.section_answer import render_sections
@@ -54,6 +54,11 @@ def test_direct_questions_keep_the_relevant_limitation_without_extra_advice(snap
     finance, _ = render_sections(tools, "772377037026", "Какая выручка?", {"get_financials"})
     assert "нет бухгалтерской отчётности" in finance
     assert "численности" not in finance and "Запросите" not in finance
+    assert tool_subset("Покажи финансовое положение") == [
+        "search_company",
+        "get_report_summary",
+        "get_financials",
+    ]
 
 
 async def test_malformed_model_result_does_not_reintroduce_gap_boilerplate(snapshot, tmp_path):
