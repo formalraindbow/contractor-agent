@@ -24,12 +24,13 @@ def test_ip_overview_keeps_limitations_in_report_without_automatic_assignments(s
     assert "численности" not in text and "бухгалтерской" not in text
 
 
-def test_concise_overview_keeps_bankruptcy_and_a_justified_next_step(snapshot):
+def test_concise_overview_keeps_bankruptcy_without_assigning_a_next_step(snapshot):
     tools = Tools(snapshot)
     card = build_card(tools, "5032257375")
     text, citations = render_card(card, tools)
     assert "банкрот" in text
-    assert "Следующий шаг: Уточните текущий статус" in text
+    assert "Следующий шаг" not in text and "Уточните текущий статус" not in text
+    assert card.ask_before  # Available when actions are requested or the full report is opened.
     assert "численности" not in text and "Пробелы данных" not in text
     assert all(check_citation(snapshot, [card.inn], citation).ok for citation in citations)
 

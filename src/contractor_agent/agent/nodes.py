@@ -84,10 +84,15 @@ def make_nodes(llm: LLM, tools: list[Any], source: ReportSource) -> dict[str, No
             if pattern.search(question):
                 purpose = label
                 break
+        pending = state.get("pending_clarification")
+        # Older chats waited for a purpose after every first card. That automatic
+        # question is retired; keep the company and any purpose already provided.
+        if purpose or pending == "purpose":
+            pending = None
         return {
             "selected_inns": selected,
             "purpose": purpose,
-            "pending_clarification": None if purpose else state.get("pending_clarification"),
+            "pending_clarification": pending,
             "trace": [],
             "turn_inns": [],
             "report_dates": {},
@@ -283,7 +288,9 @@ def make_nodes(llm: LLM, tools: list[Any], source: ReportSource) -> dict[str, No
                 and any(t.name == "get_risk_signals" for t in state.get("trace") or [])
                 and kind_hint in (None, "card")
             ):
-                fallback, facts = render_card(cards[0], tools_layer)
+                fallback, facts = render_card(
+                    cards[0], tools_layer, include_actions=asks_for_actions(question)
+                )
                 fallback_kind = "card"
             else:
                 fallback_kind = "answer"
@@ -371,10 +378,18 @@ def make_nodes(llm: LLM, tools: list[Any], source: ReportSource) -> dict[str, No
         ]
         # Comparison recommendations and critical facts are rendered from per-INN cards.
         if answer.cards:
-            base, valid = render_comparison(answer.cards, tools_layer)
+            base, valid = render_comparison(
+                answer.cards,
+                tools_layer,
+                include_actions=asks_for_actions(str(state.get("question") or "")),
+            )
         elif answer.card:
             if invalid or problem:
-                base, valid = render_card(answer.card, tools_layer)
+                base, valid = render_card(
+                    answer.card,
+                    tools_layer,
+                    include_actions=asks_for_actions(str(state.get("question") or "")),
+                )
             else:
                 base = enforce_verdict(base, answer.card.verdict)
                 # Critical circumstances may not disappear during concise formatting.
@@ -400,13 +415,6 @@ def make_nodes(llm: LLM, tools: list[Any], source: ReportSource) -> dict[str, No
                 base, valid = fallback, facts
         if not base.strip():
             base = "Не удалось подтвердить запрошенные факты по отчёту. Уточните вопрос или повторите проверку."
-        asked = list(state.get("purpose_asked_inns") or [])
-        pending = state.get("pending_clarification")
-        if answer.card and not state.get("purpose") and answer.card.inn not in asked:
-            if not re.search(r"для чего|зачем|цель провер", base, re.I):
-                base += "\n\nДля чего нужна проверка?"
-            asked.append(answer.card.inn)
-            pending = "purpose"
         dates = {inn: source.get(inn).report_date.isoformat() for inn in inns if source.get(inn)}
         for inn, report_date in dates.items():
             formatted = ".".join(reversed(report_date.split("-")))
@@ -433,8 +441,6 @@ def make_nodes(llm: LLM, tools: list[Any], source: ReportSource) -> dict[str, No
         )
         return {
             "answer": checked,
-            "purpose_asked_inns": asked,
-            "pending_clarification": pending,
             "messages": [AIMessage(content=checked.text_md, additional_kwargs={"visible": True})],
         }
 
@@ -1057,7 +1063,22 @@ def signal_citation(card: Card, claim: str, tools: Tools) -> Citation:
     raise ValueError("Сигнал карточки не найден")
 
 
-def render_card(card: Card, tools: Tools) -> tuple[str, list[Citation]]:
+def asks_for_actions(question: str) -> bool:
+    """An informational company check does not ask for a document collection plan."""
+    return bool(
+        re.search(
+            r"что (?:мне |нам |теперь |дальше )?(?:делать|предпринять)|как (?:мне |нам )?поступ"
+            r"|каки\w* (?:документ|действи|шаг)|что (?:запросить|уточнить|спросить|проверить)"
+            r"|следующ\w* шаг|план (?:действий|проверки)",
+            question,
+            re.I,
+        )
+    )
+
+
+def render_card(
+    card: Card, tools: Tools, *, include_actions: bool = False
+) -> tuple[str, list[Citation]]:
     lines = [
         f"**{card.name} · ИНН {card.inn}**",
         "",
@@ -1081,8 +1102,8 @@ def render_card(card: Card, tools: Tools) -> tuple[str, list[Citation]]:
             extra += 1
         lines.append("- " + item.claim)
         citations.append(signal_citation(card, item.claim, tools))
-    if card.ask_before:
-        lines.extend(["", "Следующий шаг: " + card.ask_before[0]])
+    if include_actions and card.ask_before:
+        lines.extend(["", "### Что уточнить", "", *("- " + ask for ask in card.ask_before)])
     # Full limitations remain in Card.gaps for the report drawer. In the chat
     # overview retain only the gaps needed to explain the recommendation.
     data = tools.get_risk_signals(card.inn).data
@@ -1096,10 +1117,12 @@ def render_card(card: Card, tools: Tools) -> tuple[str, list[Citation]]:
     return "\n".join(lines), citations
 
 
-def render_comparison(cards: list[Card], tools: Tools) -> tuple[str, list[Citation]]:
+def render_comparison(
+    cards: list[Card], tools: Tools, *, include_actions: bool = False
+) -> tuple[str, list[Citation]]:
     texts, citations = [], []
     for card in cards:
-        text, sources = render_card(card, tools)
+        text, sources = render_card(card, tools, include_actions=include_actions)
         texts.append(text)
         citations.extend(sources)
     return "\n\n".join(texts), citations
