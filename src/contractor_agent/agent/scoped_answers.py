@@ -59,7 +59,35 @@ def scoped_answer(tools: Tools, inns: list[str], question: str) -> Draft | None:
         citations.append(Citation(claim=claim, source_path=path, inn=inn))
 
     meanings = [entry for entry in FLAG_MEANINGS if entry[0].search(q)]
-    if (
+    head_identity = re.search(
+        r"(?:кто|фио|имя).{0,35}(?:руководител|директор|управляющ)"
+        r"|(?:руководител|директор).{0,20}(?:кто|зовут)",
+        q,
+        re.I,
+    )
+    head_date = re.search(r"когда.{0,20}назначен|дат[ауы].{0,15}назначен", q, re.I)
+    if (head_identity or head_date) and not re.search(
+        r"финанс|суд|адрес|телефон|возраст|сколько лет|почему|документ|учредител", q, re.I
+    ):
+        head = summary.get("head") or {}
+        lines = ["### Руководитель компании"]
+        fields = (
+            [("since", "Дата назначения")]
+            if head_date and not head_identity
+            else [("name", "ФИО"), ("position", "Должность"), ("since", "Дата назначения")]
+        )
+        for field, label in fields:
+            value = head.get(field)
+            if value and field == "since":
+                value = ".".join(reversed(str(value).split("-")))
+            elif value and field == "name":
+                value = value.title()
+            elif value:
+                value = value.capitalize()
+            claim = f"{label}: {value or 'в отчёте не указано'}."
+            lines.append("- " + claim)
+            cite(claim, summary["paths"]["head"])
+    elif (
         len(meanings) == 1
         and re.search(r"что\s+(?:это\s+)?(?:значит|означает)|понимать|поясни|объясни", q, re.I)
         and not re.search(r"суд|финанс|выруч|сколько|документ|оплат|можно|с кем|отсроч", q, re.I)

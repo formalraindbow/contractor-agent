@@ -35,9 +35,7 @@ def test_link_login_preserves_browser_origin_and_chat(snapshot, tmp_path, scheme
     with TestClient(app, base_url=f"{scheme}://stand.example") as client:
         assert client.get("/").status_code == 401
         assert client.get("/?k=wrong", follow_redirects=False).status_code == 401
-        response = client.get(
-            "/?k=test-stand-key&chat=existing-chat", follow_redirects=False
-        )
+        response = client.get("/?k=test-stand-key&chat=existing-chat", follow_redirects=False)
         assert response.status_code == 303
         assert response.headers["location"] == "/?chat=existing-chat"
         assert "HttpOnly" in response.headers["set-cookie"]
@@ -139,6 +137,9 @@ def test_stream_contract_and_reference_endpoints(snapshot: Snapshot, tmp_path) -
             "assistant",
         ]
         assert state["answer"]["card"]["inn"] == "5032257375"
+        assert [t["who"] for t in state["turns"]] == ["user", "agent"]
+        assert state["turns"][-1]["answer"] == state["answer"]
+        assert "Фактов достаточно" not in json.dumps(state["turns"], ensure_ascii=False)
 
         assert (
             client.get("/companies/search", params={"q": "монлид"}).json()["data"]["items"][0][
@@ -168,6 +169,28 @@ def test_inn_input_and_error_event(snapshot: Snapshot, tmp_path) -> None:
             frames = _sse(response.iter_lines())
         assert [t for t, _ in frames] == ["error"]
         assert "сценарий" in frames[0][1]["data"]["message"]
+
+
+def test_public_history_restores_after_restart_without_model_drafts(snapshot, tmp_path, monkeypatch):
+    monkeypatch.setenv("SESSION_STORE", "sqlite")
+    script = [
+        tool_call("get_report_summary", "head", inn="5032257375"),
+        AIMessage(content="Руководитель — Ирина Владимировна Москвина."),
+    ]
+    app = create_app(lambda: _runtime(snapshot, tmp_path, script), settings=_settings(tmp_path))
+    with TestClient(app) as client:
+        body = {"thread_id": "restored", "input": {"question": "Кто руководитель МАКСМАРКЕТ?"}}
+        frames = _sse(client.post("/v1/runs/stream", json=body).iter_lines())
+        assert frames[-1][0] == "end"
+
+    restarted = create_app(lambda: _runtime(snapshot, tmp_path, []), settings=_settings(tmp_path))
+    with TestClient(restarted) as client:
+        state = client.get("/v1/threads/restored/state").json()
+        assert [t["who"] for t in state["turns"]] == ["user", "agent"]
+        assert "Витальевна" in state["turns"][1]["text"]
+        assert "Владимировна" not in json.dumps(state["turns"], ensure_ascii=False)
+        assert state["selected_inns"] == ["5032257375"]
+        assert client.get("/v1/threads/missing/state").json()["turns"] == []
 
 
 def test_mcp_info_lists_tools_and_config(snapshot: Snapshot, tmp_path) -> None:
