@@ -208,10 +208,15 @@ def create_app(
         state = await runtime.graph.aget_state({"configurable": {"thread_id": thread_id}})
         values = state.values or {}
         messages = []
+        turns = []
         for m in values.get("messages") or []:
             if isinstance(m, HumanMessage):
                 messages.append({"role": "user", "content": m.content})
+                if not m.additional_kwargs.get("repair"):
+                    turns.append({"who": "user", "text": m.content})
             elif isinstance(m, AIMessage):
+                if m.additional_kwargs.get("final_answer"):
+                    turns.append({"who": "agent", "text": public_text(m.content)})
                 messages.append(
                     {
                         "role": "assistant",
@@ -222,16 +227,27 @@ def create_app(
             elif isinstance(m, ToolMessage):
                 messages.append({"role": "tool", "name": m.name, "chars": len(str(m.content))})
         answer = values.get("answer")
-        return {
-            "thread_id": thread_id,
-            "messages": messages,
-            "selected_inns": values.get("selected_inns") or [],
-            "report_dates": values.get("report_dates") or {},
-            "answer": answer.model_copy(update={"text_md": public_text(answer.text_md)}).model_dump(
+        public_answer = (
+            answer.model_copy(update={"text_md": public_text(answer.text_md)}).model_dump(
                 mode="json"
             )
             if answer
-            else None,
+            else None
+        )
+        if public_answer and turns:
+            if turns[-1]["who"] == "agent":
+                turns[-1]["answer"] = public_answer
+            else:
+                turns.append(
+                    {"who": "agent", "text": public_answer["text_md"], "answer": public_answer}
+                )
+        return {
+            "thread_id": thread_id,
+            "messages": messages,
+            "turns": turns,
+            "selected_inns": values.get("selected_inns") or [],
+            "report_dates": values.get("report_dates") or {},
+            "answer": public_answer,
         }
 
     @app.get("/v1/mcp/info")

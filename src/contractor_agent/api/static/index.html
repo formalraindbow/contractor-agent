@@ -316,7 +316,23 @@ function renderChats() {
 }
 async function openChat(id) {
   if (busy) return;
-  const chat = loadChats().find(c => c.id === id); if (!chat) return;
+  let chat = loadChats().find(c => c.id === id);
+  if (!chat) {
+    try {
+      const state = await fetchJson(`/v1/threads/${encodeURIComponent(id)}/state`);
+      if (!state.turns?.length) return;
+      const cards = await Promise.all((state.selected_inns || []).map(inn=>fetchJson(`/report/${inn}/card`)));
+      const many = cards.length > 1;
+      chat = {id, turns:state.turns, updated:Date.now(), mode:many ? 'many' : 'one',
+        name:cards.map(c=>c.name).join(', '), inn:many ? null : cards[0]?.inn,
+        chosen:many ? cards.map(card=>({inn:card.inn,name:card.name,date:card.report_date,card})) : []};
+      saveChats([chat,...loadChats().filter(c=>c.id!==id)]);
+    } catch {
+      $('#agent').hidden=false;
+      $('#thread').textContent='Не удалось восстановить диалог. Обновите страницу, чтобы повторить.';
+      return;
+    }
+  }
   clearComposers(); setNavigationOpen(false);
   thread = id; current = null; goal = chat.goal || null; sentGoal = false;
   chosen = chat.chosen || [];

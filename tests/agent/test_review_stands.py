@@ -519,6 +519,23 @@ def test_financial_overview_cites_real_rows_and_honors_requested_year(snapshot):
     assert scoped_answer(tools, ["6165169320"], "Почему ухудшились финансы?") is None
 
 
+def test_head_details_keep_exact_name_and_narrow_date_followup(snapshot):
+    from contractor_agent.agent.citations import validate_citations
+    from contractor_agent.agent.scoped_answers import scoped_answer
+
+    tools = Tools(snapshot)
+    answer = scoped_answer(tools, ["5032257375"], "Кто руководитель МАКСМАРКЕТ?")
+    assert "Москвина Ирина Витальевна" in answer.text_md
+    assert "Конкурсный управляющий" in answer.text_md and "09.02.2026" in answer.text_md
+    assert all(c.ok for c in validate_citations(snapshot, ["5032257375"], answer.citations))
+    followup = scoped_answer(tools, ["5032257375"], "Когда она назначена?")
+    assert "09.02.2026" in followup.text_md and "ФИО" not in followup.text_md
+    assert scoped_answer(tools, ["5032257375"], "Кто руководитель и что с финансами?") is None
+    assert (
+        scoped_answer(tools, ["5032257375"], "Кто руководитель и где его адрес проживания?") is None
+    )
+
+
 @pytest.mark.parametrize(
     "context",
     [
@@ -612,6 +629,7 @@ def test_legacy_wording_does_not_strengthen_registry_flag():
     assert "отмечен как недостоверный" in result
     assert "фиктивн" not in result and "модератн" not in result
     assert "Что важно по данным отчёта" in result
-    assert public_text(
-        'В отчёте отмечено: **«в отчёте есть факты, требующие особого внимания»**'
-    ) == "В отчёте есть факты, требующие особого внимания."
+    assert (
+        public_text("В отчёте отмечено: **«в отчёте есть факты, требующие особого внимания»**")
+        == "В отчёте есть факты, требующие особого внимания."
+    )
