@@ -44,7 +44,7 @@ const {chromium} = require('playwright');
     assert.match(request.input.messages[0].content,/Покажи финансы по годам/);
     const visible=await page.locator('#thread .answer .body').innerText();
     assert.match(visible,/Что важно в отчёте: В отчёте есть факты, требующие особого внимания/);
-    assert.equal(await page.evaluate(()=>cleanText('С компанией можно работать')),'Существенных факторов риска в отчёте не выявлено');
+    assert.equal(await page.evaluate(()=>cleanText('С компанией можно работать')),'Можно работать');
     assert.equal(await page.evaluate(()=>cleanText('В отчёте отмечено: **«в отчёте есть факты, требующие особого внимания»**')),'В отчёте есть факты, требующие особого внимания.');
     assert.doesNotMatch(visible,/Есть существенные риски|Рекомендация помощника|HIGH|moderate|finReports|\[,|о оборотных/);
     assert.match(visible,/год — 26,2/);

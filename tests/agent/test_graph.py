@@ -153,7 +153,7 @@ def test_enforce_verdict_replaces_and_appends() -> None:
     fixed = enforce_verdict(text, Verdict.NOT_RECOMMENDED)
     assert "факты, требующие особого внимания" in fixed and "проверить до договора." not in fixed
     assert enforce_verdict("Без вывода.", Verdict.OK).endswith(
-        "**По данным отчёта:** существенных факторов риска в отчёте не выявлено."
+        "**По данным отчёта:** можно работать."
     )
 
 
@@ -215,7 +215,7 @@ async def test_comparison_verdict_is_enforced_by_code(snapshot: Snapshot, tmp_pa
     assert answer.kind == "comparison" and len(answer.cards) == 2
     assert "По данным отчётов" in answer.text_md
     assert answer.text_md.count("в отчёте есть факты, требующие особого внимания") == 2
-    assert "существенных факторов риска в отчёте не выявлено" not in answer.text_md
+    assert "можно работать" not in answer.text_md
 
 
 def test_inns_from_args_accepts_string_list() -> None:
@@ -271,7 +271,7 @@ def test_verdict_codes_are_replaced_with_phrases() -> None:
     assert "not_recommended" not in out and " ok" not in out
     assert (
         "факты, требующие особого внимания" in out
-        and "существенных факторов риска в отчёте не выявлено" in out
+        and "можно работать" in out
     )
     assert "check_id" in out
 
