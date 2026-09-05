@@ -1,6 +1,7 @@
 import pytest
 from langchain_core.messages import AIMessage
 
+from contractor_agent.agent.citations import check_citation
 from contractor_agent.agent.nodes import asks_for_actions, build_card, render_card
 from contractor_agent.agent.runtime import AgentRuntime
 from contractor_agent.agent.schema import Draft
@@ -15,6 +16,8 @@ from tests.agent.fakes import scripted_llm, tool_call
         ("Привет расскажи мне про проблемы компании МАКСМАРКЕТ", False),
         ("Проверь компанию перед оплатой", False),
         ("Почему у компании зелёный светофор?", False),
+        ("Какие документы у компании есть?", False),
+        ("Расскажи про проблемы без следующих шагов", False),
         ("Какие документы запросить?", True),
         ("Что мне делать дальше?", True),
         ("Как поступить с этим контрагентом?", True),
@@ -90,7 +93,36 @@ async def test_explicit_document_request_keeps_relevant_actions_in_fallback(snap
     async with AgentRuntime(
         Settings(_env_file=None, runs_dir=tmp_path), source=snapshot, llm=llm
     ) as runtime:
-        answer = await runtime.ask("Проверь МАКСМАРКЕТ 5032257375: какие документы запросить?")
+        answer = await runtime.ask("МАКСМАРКЕТ 5032257375: какие документы запросить?")
+    assert answer.kind == "answer" and answer.card is None
     assert "### Что уточнить" in answer.text_md
     assert "свежей выписке ЕГРЮЛ" in answer.text_md
     assert "Для чего нужна проверка" not in answer.text_md
+    assert "54 действующих" not in answer.text_md
+
+
+async def test_bank_label_followup_does_not_invent_a_reason_or_repeat_the_card(snapshot, tmp_path):
+    llm = scripted_llm(
+        [
+            tool_call("get_report_summary", "summary", inn="5032257375"),
+            AIMessage(content="Сводка получена."),
+            Draft(
+                kind="answer",
+                lines=["Светофор LOW означает низкий риск. CURRENT, поле status_reason."],
+            ),
+        ]
+    )
+    async with AgentRuntime(
+        Settings(_env_file=None, runs_dir=tmp_path), source=snapshot, llm=llm
+    ) as runtime:
+        config = {"configurable": {"thread_id": "labels"}}
+        await runtime.graph.aupdate_state(config, {"selected_inns": ["5032257375"]})
+        answer = await runtime.ask("Почему у неё зелёный светофор?", thread_id="labels")
+    assert answer.kind == "answer" and answer.card is None
+    assert "Светофор банка — зелёный" in answer.text_md
+    assert "нельзя установить, почему банк" in answer.text_md
+    assert "банкрот" in answer.text_md and "31.07.2026" in answer.text_md
+    assert all(field not in answer.text_md for field in ("LOW", "CURRENT", "status_reason"))
+    assert "54 действующих" not in answer.text_md and "Для чего" not in answer.text_md
+    assert answer.invalid_citations == []
+    assert all(check_citation(snapshot, ["5032257375"], c).ok for c in answer.citations)

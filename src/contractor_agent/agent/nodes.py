@@ -38,6 +38,7 @@ from contractor_agent.agent.prompt import (
 )
 from contractor_agent.agent.schema import Answer, Attention, Card, CardLabels, Citation, Draft
 from contractor_agent.agent.section_answer import (
+    asks_bank_labels,
     asks_registration_status,
     needs_section_layout,
     render_sections,
@@ -274,9 +275,10 @@ def make_nodes(llm: LLM, tools: list[Any], source: ReportSource) -> dict[str, No
             or re.search(r"\bпол[ея]\s+[*`_]*[a-z_]\w*", draft.text_md, re.I)
             or (asks_registration_status(question) and re.search(r"\bCURRENT\b", draft.text_md))
             or needs_section_layout(draft.text_md, question)
+            or asks_bank_labels(question)
         )
         if (structured_failed or focused_fallback) and len(inns) == 1:
-            fallback, facts = render_sections(
+            fallback, facts = render_requested_answer(
                 tools_layer,
                 inns[0],
                 question,
@@ -405,7 +407,7 @@ def make_nodes(llm: LLM, tools: list[Any], source: ReportSource) -> dict[str, No
             and len(inns) == 1
             and (invalid or uncovered or completeness)
         ):
-            fallback, facts = render_sections(
+            fallback, facts = render_requested_answer(
                 tools_layer,
                 inns[0],
                 str(state.get("question") or ""),
@@ -546,7 +548,9 @@ def tool_subset(question: str) -> list[str] | None:
     matched = [
         tool for name, rx in _SECTION_HINTS if rx.search(question) for tool in _SECTION_TOOLS[name]
     ]
-    if matched or asks_registration_status(question):
+    if asks_for_actions(question):
+        matched.append("get_risk_signals")
+    if matched or asks_registration_status(question) or asks_bank_labels(question):
         return list(dict.fromkeys(["search_company", "get_report_summary", *matched]))
     return None
 
@@ -608,6 +612,8 @@ def question_kind_hint(question: str) -> tuple[str | None, str | None]:
             "kind «card» с выводом из verdict_ru; факты по разделу из вопроса — первыми."
         )
     sections = [name for name, rx in _SECTION_HINTS if rx.search(question)]
+    if asks_bank_labels(question):
+        sections.append("банковские метки")
     if sections:
         return "answer", (
             f"Подсказка: запрошены разделы ({', '.join(sections)}) — kind «answer». "
@@ -618,6 +624,12 @@ def question_kind_hint(question: str) -> tuple[str | None, str | None]:
         return "answer", (
             "Вопрос только о статусе контрагента: get_report_summary, kind «answer». "
             "Укажи статус и дату отчёта. Общую карточку, суды и пробелы других разделов не повторяй."
+        )
+    if asks_for_actions(question) and not _CARD_RE.search(question):
+        return "answer", (
+            "Запрошены действия или документы — get_risk_signals и kind «answer». "
+            "Дай короткий список по выявленным основаниям. Не повторяй общую карточку "
+            "и вопрос о цели. Не придумывай отсутствующие в отчёте обстоятельства."
         )
     if _CARD_RE.search(question):
         return "card", "Подсказка: просят оценить, можно ли работать с компанией — kind «card»."
@@ -1065,10 +1077,19 @@ def signal_citation(card: Card, claim: str, tools: Tools) -> Citation:
 
 def asks_for_actions(question: str) -> bool:
     """An informational company check does not ask for a document collection plan."""
+    if re.search(
+        r"без (?:советов|рекомендаций|(?:следующих )?шагов)"
+        r"|не (?:предлагай|добавляй) (?:советы|рекомендации|следующ\w* шаг)",
+        question,
+        re.I,
+    ):
+        return False
     return bool(
         re.search(
             r"что (?:мне |нам |теперь |дальше )?(?:делать|предпринять)|как (?:мне |нам )?поступ"
-            r"|каки\w* (?:документ|действи|шаг)|что (?:запросить|уточнить|спросить|проверить)"
+            r"|каки\w* (?:действи|шаг)"
+            r"|каки\w* документ[^?!.]{0,60}(?:запрос|попрос|собра|нужн|потреб|провер)"
+            r"|что (?:запросить|уточнить|спросить|проверить)"
             r"|следующ\w* шаг|план (?:действий|проверки)",
             question,
             re.I,
@@ -1115,6 +1136,22 @@ def render_card(
             )
     lines.extend(["", "Отчёт от " + card.report_date.strftime("%d.%m.%Y") + "."])
     return "\n".join(lines), citations
+
+
+def render_requested_answer(
+    tools: Tools, inn: str, question: str, called: set[str]
+) -> tuple[str, list[Citation]]:
+    text, citations = render_sections(tools, inn, question, called)
+    if asks_for_actions(question) and "get_risk_signals" in called:
+        card = build_card(tools, inn)
+        if card:
+            actions = (
+                "### Что уточнить\n\n" + "\n".join("- " + ask for ask in card.ask_before)
+                if card.ask_before
+                else "По сведениям отчёта не удалось составить предметный список дополнительных документов."
+            )
+            text = "\n\n".join(part for part in (text, actions) if part)
+    return text, citations
 
 
 def render_comparison(

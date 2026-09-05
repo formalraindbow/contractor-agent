@@ -12,6 +12,10 @@ from contractor_agent.mcp_server.tools import Tools
 from contractor_agent.signals.text import plural, rub
 
 
+def asks_bank_labels(question: str) -> bool:
+    return bool(re.search(r"светофор|\bзск\b|(?:метк|оценк)\w* банк", question, re.I))
+
+
 def asks_registration_status(question: str) -> bool:
     return bool(
         re.search(r"\bстатус|действует ли|закрыт[ао]? ли", question, re.I)
@@ -44,6 +48,27 @@ def render_sections(
     def add_section(title, rows):
         lines.append(f"### {title}\n\n" + "\n".join(rows))
 
+    if asks_bank_labels(question) and "get_report_summary" in called:
+        response = tools.get_report_summary(inn)
+        if response.available:
+            labels = response.data["labels"]
+            lines.append(
+                cite(f"Светофор банка — {labels['svetofor']}.", labels["svetofor_path"])
+                + " "
+                + cite(f"ЗСК — {labels['zsk']}.", labels["zsk_path"])
+            )
+            if re.search(r"почему|откуда|как|за что", question, re.I):
+                lines.append(
+                    "По доступным данным нельзя установить, почему банк присвоил именно эти метки."
+                )
+                reason = response.data["status_reason"]
+                if (
+                    reason
+                    and re.search(r"банкрот|несостоятельн|ликвид|исключ", reason, re.I)
+                    and not asks_registration_status(question)
+                ):
+                    fact(f"При этом статус в отчёте: «{reason}».", "report.status.reasonName")
+                    lines.append("Банковская метка не отменяет этих сведений о статусе.")
     if asks_registration_status(question) and "get_report_summary" in called:
         response = tools.get_report_summary(inn)
         if response.available:
