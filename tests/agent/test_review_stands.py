@@ -1,0 +1,219 @@
+from decimal import Decimal
+
+import pytest
+from langchain_core.messages import AIMessage
+
+from contractor_agent.agent.nodes import build_card, question_kind_hint, tool_subset
+from contractor_agent.agent.presentation import has_internal_text, public_text
+from contractor_agent.agent.runtime import AgentRuntime
+from contractor_agent.agent.schema import Draft
+from contractor_agent.api.evidence import evidence
+from contractor_agent.data.paths import PathNotFoundError
+from contractor_agent.mcp_server.tools import Tools
+from contractor_agent.settings import Settings
+from tests.agent.fakes import scripted_llm, tool_call
+
+
+@pytest.mark.parametrize(
+    "text",
+    [
+        "ЗСК — зелёный (поле labels.zsk, путь report.zskRiskLevel).",
+        "Капитал — 365 млн ₽ [report.finReports[0].liabilities.capitals].",
+        "Действующих — 54 [source_path: report.executionProceedings].",
+        "Можно работать (verdict_ru = «можно работать»).",
+        "Сотрудники не указаны (source_path = .",
+        "ЗСК — зелёный (значение берётся из поля ).",
+        "Статус — CURRENT; причина — банкротство.",
+    ],
+)
+def test_public_text_removes_whole_technical_annotations(text):
+    result = public_text(text)
+    assert not has_internal_text(result)
+    assert result.count("(") == result.count(")")
+    assert result.count("[") == result.count("]")
+    assert "из поля" not in result
+
+
+def test_public_text_preserves_economic_meaning():
+    text = 'Капитал и резервы (2023 год) — 365,1 млн ₽. ООО "МАКСМАРКЕТ".'
+    assert public_text(text) == text.replace('"МАКСМАРКЕТ"', "«МАКСМАРКЕТ»")
+
+
+def test_routing_all_parts_and_goal_context():
+    question = "Финансы. Речь о компании МАКСМАРКЕТ, ИНН 5032257375. Плачу по счёту."
+    assert question_kind_hint(question)[0] == "answer"
+    assert "get_financials" in tool_subset(question)
+    assert {"get_arbitration_summary", "get_enforcement_summary"} <= set(
+        tool_subset("Есть ли у них суды и долги у приставов?")
+    )
+    assert {"get_financials", "get_report_summary"} <= set(
+        tool_subset("Кто руководитель и что с финансами?")
+    )
+    assert "get_financials" in tool_subset("Какие документы запросить?")
+    assert question_kind_hint("Можно им платить?")[0] == "card"
+    assert question_kind_hint("Объясни рекомендацию")[0] == "answer"
+
+
+def test_cards_preserve_develop_verdicts_and_use_relevant_requests(snapshot):
+    tools = Tools(snapshot)
+    maxmarket = build_card(tools, "5032257375")
+    techprof = build_card(tools, "1684017097")
+    gdk = build_card(tools, "6165169320")
+    assert maxmarket.verdict == gdk.verdict == "not_recommended"
+    assert techprof.verdict == "ok"
+    assert any("финансовых результатах" in text for text in techprof.ask_before)
+    assert not any("штат" in text for text in techprof.ask_before)
+    assert any("управляющего" in text for text in maxmarket.ask_before)
+    for card in [maxmarket, techprof, gdk]:
+        for fact in card.attention:
+            result = evidence(tools, card.inn, fact.source_path, fact.code)
+            assert result["report_date"] == card.report_date.isoformat()
+            assert result["calculation"]["description"]
+            assert result["basis"]
+
+
+def test_evidence_keeps_missing_values_and_separate_enforcement_groups(snapshot):
+    tools = Tools(snapshot)
+    absent = evidence(tools, "5032257375", "report.baseInfo.staff")
+    assert absent["value"] is None
+    result = evidence(tools, "5032257375", "report.executionProceedings")
+    groups = result["calculation"]["values"]
+    assert groups["active"]["count"] == 54
+    assert groups["finished"]["count"] == 453
+    assert Decimal(str(groups["active"]["known_sum"])) == Decimal("3995486.53")
+    with pytest.raises(PathNotFoundError):
+        evidence(tools, "5032257375", "report.baseInfo.staff", "enforcement_active")
+    with pytest.raises(PathNotFoundError):
+        evidence(tools, "5032257375", "../../.env")
+
+
+async def test_conversation_survives_runtime_restart(snapshot, tmp_path):
+    settings = Settings(
+        session_store="sqlite",
+        session_db_path=tmp_path / "sessions.sqlite",
+        runs_dir=tmp_path / "runs",
+        llm_fallback_models="",
+    )
+    script = [
+        tool_call("get_report_summary", "s1", inn="5032257375"),
+        AIMessage(content="Данные получены."),
+        Draft(kind="answer", lines=["Сотрудники в отчёте не указаны. Отчёт от 31.07.2026."]),
+    ]
+    async with AgentRuntime(settings, source=snapshot, llm=scripted_llm(script)) as runtime:
+        await runtime.ask("Сколько сотрудников у МАКСМАРКЕТ 5032257375?", "persistent")
+    second = scripted_llm(
+        [
+            AIMessage(content="Продолжаю."),
+            Draft(kind="answer", lines=["В отчёте нет сведений о сотрудниках."]),
+        ]
+    )
+    async with AgentRuntime(settings, source=snapshot, llm=second) as runtime:
+        state = await runtime.graph.aget_state({"configurable": {"thread_id": "persistent"}})
+        assert state.values["selected_inns"] == ["5032257375"]
+        assert state.values["answer"].text_md
+        await runtime.ask("Сколько их?", "persistent")
+        assert any("МАКСМАРКЕТ" in str(m.content) for m in second.models[0].seen[0])
+
+
+def test_finalization_does_not_copy_old_answers_or_current_draft():
+    from langchain_core.messages import HumanMessage, ToolMessage
+
+    from contractor_agent.agent.nodes import finalization_history
+
+    question = HumanMessage(content="Кто руководит?")
+    call = tool_call("get_report_summary", "new", inn="5032257375")
+    evidence = ToolMessage(content="current fields", tool_call_id="new")
+    history = [
+        HumanMessage(content="Финансы?"),
+        AIMessage(content="OLD CARD"),
+        question,
+        call,
+        evidence,
+        AIMessage(content="UNVERIFIED DRAFT"),
+    ]
+    assert finalization_history(history, question.content) == [question, call, evidence]
+
+
+def test_label_payment_and_documents_are_grounded(snapshot):
+    from contractor_agent.agent.scoped_answers import scoped_answer
+
+    tools = Tools(snapshot)
+    answer = scoped_answer(
+        tools,
+        ["6165169320"],
+        "Почему метка банка зелёная, если счета заблокированы? Можно им платить?",
+    )
+    assert "не раскрывает" in answer.text_md
+    assert "подтвердить" in answer.text_md and "18,9 млн" in answer.text_md
+    assert "26,2 млн" in answer.text_md
+    assert "Вывод помощника" in answer.text_md
+    assert "не учитывает" not in answer.text_md
+    docs = scoped_answer(tools, ["5032257375"], "Какие документы запросить перед оплатой?")
+    assert "полномочий" in docs.text_md and "ограничений" in docs.text_md
+    assert "действующих обязательств" in docs.text_md
+    assert "2023" not in docs.text_md and "штат" not in docs.text_md
+    assert scoped_answer(tools, ["5032257375"], "Что с ЗСК и сколько сотрудников?") is None
+    assert "https://www.cbr.ru/" in public_text(answer.text_md)
+
+
+async def test_missing_structured_output_uses_schema_fallback():
+    llm = scripted_llm([None, Draft(kind="answer", lines=["Проверенный ответ"])])
+    answer = await llm.structured(Draft).ainvoke([])
+    assert answer.text_md == "Проверенный ответ"
+
+
+def test_empty_litigation_and_deferred_payment_have_relevant_limits(snapshot):
+    from contractor_agent.agent.scoped_answers import scoped_answer
+
+    tools = Tools(snapshot)
+    from contractor_agent.agent.section_answers import section_answer
+
+    empty = section_answer(tools, ["1684017097"], "Есть ли у них суды и долги у приставов?")
+    assert "не найдено" in empty.text_md and "не доказывает" in empty.text_md
+    assert "ответчик" in empty.text_md and "истец" in empty.text_md
+    assert "0 руб" not in empty.text_md and "производств нет" not in empty.text_md
+    deferred = scoped_answer(tools, ["1684017097"], "Можно давать им отсрочку на 60 дней?")
+    assert "Капитал и резервы" in deferred.text_md and "два последних года" in deferred.text_md
+    assert "2024" in deferred.text_md and "2025" in deferred.text_md
+    assert "штат" not in deferred.text_md and "сотрудник" not in deferred.text_md
+
+
+def test_date_cleanup_keeps_words_intact():
+    from contractor_agent.agent.nodes import tidy_text
+
+    assert tidy_text("Срок — 31 марта 2026 года.") == "Срок — 31.03.2026."
+
+
+def test_court_year_does_not_invent_status_or_missing_blocking(snapshot):
+    from contractor_agent.agent.section_answers import section_answer
+
+    tools = Tools(snapshot)
+    result = section_answer(
+        tools,
+        ["5032257375"],
+        "С кем они судились в 2025 году и за что? "
+        "Речь о компании МАКСМАРКЕТ, ИНН 5032257375. Плачу по счёту.",
+    )
+    assert "21 685 219" in result.text_md and "предметы" in result.text_md
+    assert "не указывает, завершены" in result.text_md
+    assert "блокиров" not in result.text_md
+    assert "0 ₽" not in result.text_md
+    total = section_answer(tools, ["5029069967"], "Сколько у них судебных дел?")
+    assert "1525" in total.text_md and "1488" in total.text_md and "37" in total.text_md
+    assert "69 605" in total.text_md or "69 6" in total.text_md
+
+
+@pytest.mark.parametrize("inn", ["5032257375", "1684017097", "5029069967", "6165169320"])
+@pytest.mark.parametrize(
+    "question", ["Что с судами?", "Что с долгами у приставов?", "С кем судились в 2025 году?"]
+)
+def test_section_citations_resolve_for_both_roles_and_known_amounts(snapshot, inn, question):
+    from contractor_agent.agent.citations import validate_citations
+    from contractor_agent.agent.section_answers import section_answer
+
+    result = section_answer(Tools(snapshot), [inn], question)
+    checks = validate_citations(snapshot, [inn], result.citations)
+    assert checks and all(c.ok for c in checks), [
+        (c.citation.claim, c.why) for c in checks if not c.ok
+    ]
+    assert "54 54" not in result.text_md and "1 1 дело" not in result.text_md

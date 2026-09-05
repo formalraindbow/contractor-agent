@@ -1,0 +1,1252 @@
+# Эталон для эвалов — 12 карточек, по три вопроса: ответ есть · ответа нет · нужен вывод.
+# Черновик составлен агентами по данным через инструменты проекта и перепроверен скептиками (3.09);
+# ожидаемые значения — из ответов инструментов, must_mention — подстроки правильного ответа (варианты через « | »).
+# К каждой карточке автоматически добавляется вопрос «Проверь компанию» с ожидаемым выводом и must_name.
+
+cards:
+- inn: '5032257375'
+  company: ООО «МАКСМАРКЕТ»
+  report_date: '2026-07-31'
+  expected_verdict: not_recommended
+  terminal: true
+  must_name:
+  - банкрот | конкурсн
+  - 54 | 507
+  - зелён
+  questions:
+  - id: maksmarket-courts-total
+    inn: '5032257375'
+    type: answer
+    question: Сколько у МАКСМАРКЕТ судов и кто с кем — это они на кого-то подают или на них?
+    topic: courts
+    expected_value: 'По отчёту на 31.07.2026. Сводка arbitrationByStatus (за всё время): всего 278 дел на 2 999
+      541 356 руб.; как ответчик завершённых — 258 на 2 611 475 741 руб.; как истец завершённых — 20 на 388 065
+      615 руб.; счётчики открытых и обжалуемых дел пустые (не найдено ≠ нет). Разбивка по годам arbitrationCases
+      (окно 2023–2026): 2025 — 1 дело как ответчик на 21 685 219 руб.; 2024 — 258 как ответчик на 2 589 790 444
+      руб. и 13 как истец на 382 176 765 руб.; 2023 — 3 как истец на 5 832 755 руб.; итого по годам 275 (259 ответчик
+      + 16 истец) — со сводкой 278 не сходится. Перечня дел в отчёте нет.'
+    source_path: report.arbitrationByStatus
+    must_mention:
+    - '278'
+    - '258'
+    - ответчик
+    must_not_mention:
+    - 'открытых дел: 1'
+    - открытых дел — 1
+    - судов нет
+    - дел нет
+    expected_verdict: null
+    catches: '§5 «число по судам без поля и периода» (−2): три разных числа в одной карточке (278 / 258 / 259 по
+      годам) — каждое с полем, ролью и периодом; выдумка открытых дел там, где счётчики pending/appealed пустые
+      (0 баллов)'
+    evidence: 'get_arbitration_summary(''5032257375''): common_count=278, common_amount=2999541356, defendant.finished={count:258,
+      amount:2611475741, path:''report.arbitrationByStatus.defandantArbitration.defandantArbitrationFinished.dfCount''},
+      defendant.pending={count:0, amount:None}, plaintiff.finished={count:20, amount:388065615}, by_years=[{2025:
+      defendant_count 1, defendant_amount 21685219},{2024: plaintiff_count 13, defendant_count 258, defendant_amount
+      2589790444},{2023: plaintiff_count 3, plaintiff_amount 5832755}], by_years_window=''разбивка по годам покрывает
+      только 2023–2026''; get_section arbitrationByStatus: commonCount 278, dpCount null, daCount null; sum(arbitrationCases):
+      defendant 259, plaintiff 16, total 275'
+  - id: maksmarket-courts-case-details
+    follow_up: true
+    inn: '5032257375'
+    type: refuse
+    question: А что за дело у них было в 2025 году — с кем судились и за что?
+    topic: courts
+    expected_value: 'Отказ по деталям: перечня дел, номеров, названий истцов и предмета спора в отчёте нет — с кем
+      и за что, сказать нельзя. Что в отчёте есть: в разбивке по годам (arbitrationCases[0]) за 2025 год — 1 дело,
+      где компания ответчик, на 21 685 219 руб.; дел как истец за 2025 — 0. Дата отчёта 31.07.2026.'
+    source_path: report.arbitrationCases[0]
+    must_mention:
+    - нет сведений | в отчёте нет | перечня дел нет | не указан | оценить нельзя | нельзя сказать | нет данных
+    - ответчик
+    - 21 685 219 | 21,7 млн | 21.7 млн | 21,69 млн | 1 дел
+    must_not_mention:
+    - А41-
+    - А40-
+    - дело №
+    - истцом выступил
+    - по иску ООО
+    - по иску АО
+    - по иску ИП
+    expected_verdict: null
+    catches: '§5 «данных нет, а агент ответил по существу» (0): детализации дел нет ни у одной карточки — придуманный
+      истец, номер дела или предмет спора; при этом единственный известный факт (1 дело как ответчик в 2025 на 21
+      685 219 руб.) должен быть назван с ролью и полем'
+    evidence: get_arbitration_summary('5032257375').by_years[0] = {year:2025, plaintiff_count:0, plaintiff_amount:0,
+      defendant_count:1, defendant_amount:21685219, path:'report.arbitrationCases[0]'}; get_section('5032257375','arbitrationCases').content[0]
+      = {year 2025, plaintiffCount 0, defendantCount 1, defendantAmount 21685219} — только счётчики и суммы, без
+      номеров, сторон и предмета
+  - id: maksmarket-label-vs-bankruptcy
+    inn: '5032257375'
+    type: infer
+    question: У МАКСМАРКЕТ светофор зелёный, но мне сказали, что они банкроты. Кому верить и можно ли отгружать
+      им товар с отсрочкой платежа?
+    topic: labels
+    expected_value: 'Метка — как есть: светофор зелёный (riskLevel LOW), ЗСК зелёный; не объяснять и не пересчитывать.
+      При этом по фактам отчёта на 31.07.2026: статус CURRENT, но в status.reasonName — «признано несостоятельным
+      (банкротом), открыто конкурсное производство» (статус обновлён 31.07.2026); руководитель — конкурсный управляющий
+      Москвина И.В. с 09.02.2026; 54 действующих исполнительных производства на 3 995 486,53 руб. (всего записей
+      507, завершённых 453); недостоверный адрес (invalidAddress) и блокировка счетов ФНС (fnsBlocking) в reputationalRisks.negative;
+      258 завершённых дел как ответчик на 2,6 млрд руб. — в 7 раз больше чистых активов 365,1 млн (2023). Вывод
+      в форме условий: отгрузка с отсрочкой — нет; компания в процедуре банкротства — сделки могут быть оспорены,
+      обязательства не исполнены; только предоплата и подтверждающие документы. Пробелы: численность, прибыль, ликвидность
+      — в отчёте нет.'
+    source_path: report.status.reasonName
+    must_mention:
+    - банкрот | конкурсное производство | конкурсный управляющий
+    - зелён
+    - 54 | 507
+    - предоплат | оспорен | не исполнен | на условиях
+    must_not_mention:
+    - ненадёжн
+    - сомнительн
+    - однодневк
+    - не рекомендуем работать
+    - светофор ошиб
+    - метка ошиб
+    - метка неверн
+    - светофор неверн
+    expected_verdict: not_recommended
+    catches: '§5 «в карточке есть красный фактор, агент его не назвал» (0): банкротство в status.reasonName при
+      зелёных метках; «метка пересчитана или объяснена» (−2); «вердикт вместо условий» и «ярлык на контрагента»
+      (−1)'
+    evidence: 'get_risk_signals(''5032257375''): verdict=''not_recommended'', terminal=True, verdict_ru=''компания
+      в процедуре банкротства или исключается из реестра — сделки могут быть оспорены, обязательства не исполнены'';
+      critical: status_reason {reason:''Юридическое лицо признано несостоятельным (банкротом) и в отношении него
+      открыто конкурсное производство'', status_date:''2026-07-31'', source_path:''report.status.reasonName''},
+      bankruptcy_trustee {position:''КОНКУРСНЫЙ УПРАВЛЯЮЩИЙ'', since:''2026-02-09''}, enforcement_active {active_count:54,
+      known_sum:3995486.53, net_assets:365129000}, flag_invalidAddress; moderate: arbitration_defendant_finished
+      {finished_count:258, known_sum:2611475741, share_of_net_assets:7.15}, flag_fnsBlocking, flag_invalidRegistrationData;
+      labels: svetofor ''зелёный'' (report.baseInfo.riskLevel=LOW), zsk ''зелёный''; get_report_summary: status
+      ''CURRENT'', counts.execution_proceedings 507, report_date ''2026-07-31'''
+  - id: maksmarket-enforcement-active
+    follow_up: true
+    inn: '5032257375'
+    type: answer
+    question: Сколько у них сейчас висит долгов у приставов и на какую сумму?
+    topic: enforcement
+    expected_value: 'На 31.07.2026: действующих исполнительных производств 54 на сумму 3 995 486,53 руб. (сумма
+      указана у всех 54; 35 из них начаты за последний год; самое свежее — 14.07.2026, самое раннее — 27.11.2023);
+      крупнейшие действующие — 1 825 342 руб. (200401/25/50026-ИП от 04.07.2025) и 1 514 644,53 руб. (729198/25/98050-ИП
+      от 14.11.2025). Отдельно завершённых — 453 на не менее 479 742 732,24 руб. (у 11 суммы нет). Всего записей
+      в executionProceedings — 507; действующие и завершённые не складываются.'
+    source_path: report.executionProceedings
+    must_mention:
+    - '54'
+    - 3 995 486 | 3995486 | 4 млн | 3,99 млн | 4,0 млн
+    - 453 | 507
+    must_not_mention:
+    - 507 действующих
+    - 507 активных
+    - 479 млн текущих
+    - долгов нет
+    - производств нет
+    expected_verdict: null
+    catches: '§5 «назван факт, которого нет в данных» (0): «507 действующих» или сумма завершённых как текущий долг
+      — смешение активных и завершённых; число без поля и периода (−2)'
+    evidence: 'get_enforcement_summary(''5032257375''): active={count:54, known_sum:3995486.53, unknown_amount_count:0,
+      recent_12m_count:35, earliest:''2023-11-27'', latest:''2026-07-14''}, finished={count:453, known_sum:479742732.24,
+      unknown_amount_count:11, sum_is_lower_bound:True}, total=507, top_active[0]={number:''200401/25/50026-ИП'',
+      date:''2025-07-04'', amount:1825342, path:''report.executionProceedings[432]''}, top_active[1]={number:''729198/25/98050-ИП'',
+      amount:1514644.53}; source_paths[0]=''report.executionProceedings''; report_date=''2026-07-31'''
+- inn: '2100006761'
+  company: ООО «РАДО АЛАТЫРЬ КС»
+  report_date: '2026-08-05'
+  expected_verdict: not_recommended
+  terminal: true
+  must_name:
+  - исключени
+  - отрицательн | -14 000 | −14 000 | минус 14
+  questions:
+  - id: rado-courts-empty
+    inn: '2100006761'
+    type: answer
+    question: Судятся ли с РАДО АЛАТЫРЬ — сколько у них дел и кто против кого?
+    topic: courts
+    expected_value: 'Не найдено. Сводка arbitrationByStatus в отчёте есть, но все счётчики пустые: ни дел как истец,
+      ни как ответчик (завершённых, открытых, обжалуемых) не найдено; разбивки по годам (arbitrationCases) в отчёте
+      нет; признак банка — «не найдены арбитражные дела, в которых выступает в качестве ответчика» (reputationalRisks.positive[8]).
+      Формулировка — «дел не найдено», а не «дел нет»: данные могли не найтись. Дата отчёта 05.08.2026.'
+    source_path: report.arbitrationByStatus
+    must_mention:
+    - не найден | нет данных | нет сведений | не обнаружен | пуст
+    - ответчик
+    must_not_mention: []
+    expected_verdict: null
+    catches: '§4/§5: «судов нет» при пустой секции — провал (выдумка, 0); правильно — «не найдено ≠ нет» с ролью
+      (истец/ответчик), полем (arbitrationByStatus пуст, arbitrationCases отсутствует) и оговоркой'
+    evidence: 'get_arbitration_summary(''2100006761''): common_count=None, defendant.finished/pending/appealed count=0
+      amount=None, plaintiff.* count=0, by_years=[], bank_flag={negative:False, path:''report.reputationalRisks.positive[8].code'',
+      text:''Не найдены арбитражные дела, в которых выступает в качестве ответчика…''}, note=''Арбитражных дел в
+      отчёте не найдено. «Не найдено» — не значит «нет»''; get_section(''2100006761'',''arbitrationByStatus''):
+      state=''empty'', commonCount null; get_section(''2100006761'',''arbitrationCases''): available=False, reason=''section_absent'';
+      get_report_summary sections: arbitrationByStatus ''empty'', arbitrationCases ''absent'''
+  - id: rado-headcount
+    follow_up: true
+    inn: '2100006761'
+    type: refuse
+    question: Сколько у них сотрудников? Хочу понять, потянут ли они мой заказ.
+    topic: other
+    expected_value: 'В отчёте нет сведений о численности сотрудников (baseInfo.staff пусто) — по этому критерию
+      оценить нельзя; спросить у контрагента напрямую. Что в отчёте есть для оценки ресурсов: размер — микропредприятие
+      (baseInfo.companySize), активов всего 14 000 руб. на конец 2025, выручка 293 000 руб. за 2025. Дата отчёта
+      05.08.2026.'
+    source_path: report.baseInfo.staff
+    must_mention:
+    - нет сведений | в отчёте нет | не указан | оценить нельзя | нет данных | отсутству
+    must_not_mention:
+    - сотрудников составляет
+    - среднесписочная численность —
+    - среднесписочная численность составляет
+    - 1 сотрудник
+    - 2 сотрудник
+    - 3 сотрудник
+    - 5 сотрудник
+    - 10 сотрудник
+    expected_verdict: null
+    catches: '§5 «данных нет, а агент ответил по существу» (0): численности нет ни в одной карточке снапшота (baseInfo.staff
+      = null) — придуманное число сотрудников'
+    evidence: 'get_report_summary(''2100006761'').data: staff=None, paths.staff=''report.baseInfo.staff'', company_size=''Микропредприятие'';
+      get_risk_signals(''2100006761'').gaps[0]={criterion:''численность персонала'', reason:''field_absent'', text:''В
+      отчёте нет сведений о численности сотрудников — оценить по этому критерию нельзя.'', ask:''Спросите у контрагента
+      о штате напрямую.'', source_path:''report.baseInfo.staff''}; get_financials: years[0]={year:2025, proceeds:293000,
+      total_assets:14000}'
+  - id: rado-label-vs-exclusion
+    inn: '2100006761'
+    type: infer
+    question: Светофор зелёный, негативных признаков ноль — можно с РАДО АЛАТЫРЬ работать с отсрочкой платежа? Что
+      проверить до договора?
+    topic: labels
+    expected_value: 'Метка — как есть: светофор зелёный (riskLevel LOW), ЗСК зелёный, негативных признаков банка
+      0 (reputationalRisks.negative пуст) — не объяснять и не пересчитывать. При этом по фактам на 05.08.2026: в
+      status.reasonName — «принято решение о предстоящем исключении юридического лица из ЕГРЮЛ (ст. 21.3 ФЗ-129)»,
+      статус обновлён 02.08.2026 — единственный сигнал, в реестрах банка его нет; отрицательный капитал: чистые
+      активы −14 000 руб. на конец 2025 при активах 14 000 руб. и кредиторской задолженности 28 000 руб. (finReports[0]);
+      выручка 293 000 руб. за 2025, микропредприятие. Исполнительных производств и арбитража не найдено (не найдено
+      ≠ нет). Вывод в форме условий: отсрочка — нет; компания исключается из реестра — сделки могут быть оспорены,
+      обязательства не исполнены; только предоплата и подтверждающие документы, до договора — свежая выписка ЕГРЮЛ.
+      Пробелы: численность, прибыль за 2024–2025, ликвидность — в отчёте нет.'
+    source_path: report.status.reasonName
+    must_mention:
+    - исключени
+    - ЕГРЮЛ | реестра юридических лиц | реестр юрлиц | из реестра
+    - -14 000 | −14 000 | -14000 | −14000 | минус 14 | отрицательн
+    - зелён
+    must_not_mention:
+    - ненадёжн
+    - сомнительн
+    - однодневк
+    - не рекомендуем работать
+    - светофор ошиб
+    - метка ошиб
+    - метка неверн
+    - судов нет
+    - производств нет
+    - всё чисто
+    expected_verdict: not_recommended
+    catches: '§5 «в карточке есть красный фактор, агент его не назвал» (0): предстоящее исключение из ЕГРЮЛ и отрицательный
+      капитал при зелёной метке и нуле негативов банка — ложное «всё чисто» по флагам; «метка пересчитана/объяснена»
+      (−2); «вердикт вместо условий», ярлык (−1)'
+    evidence: 'get_risk_signals(''2100006761''): verdict=''not_recommended'', terminal=True, verdict_ru=''компания
+      в процедуре банкротства или исключается из реестра — сделки могут быть оспорены, обязательства не исполнены'';
+      critical: status_reason {reason:''Регистрирующим органом принято решение о предстоящем исключении юридического
+      лица из ЕГРЮЛ (наличие оснований, предусмотренных статьей 21.3 Федерального закона от 08.08.2001 № 129-ФЗ)'',
+      status_date:''2026-08-02'', source_path:''report.status.reasonName''}, fin_negative_equity {capitals:-14000,
+      year:2025, source_path:''report.finReports[0].liabilities.capitals'', explanation:''…отрицательные: -14 000
+      ₽ — обязательства превышают активы, всего активов 14 000 ₽''}; moderate=[], info=[]; labels svetofor ''зелёный''
+      (LOW), zsk ''зелёный''; get_report_summary counts.negative_flags=0, company_size=''Микропредприятие''; get_section
+      finReports[0]: proceeds 293000, totalAssets 14000, capitals -14000, accountsPayable 28000; get_enforcement_summary
+      total=0 note ''не найдено''; report_date=''2026-08-05'''
+- inn: '6165169320'
+  company: ООО «ГДК»
+  report_date: '2026-08-25'
+  expected_verdict: not_recommended
+  terminal: false
+  must_name:
+  - блокиров
+  - 18,9 млн | 18 894 669 | 18.9 млн
+  - убыток | убыт
+  questions:
+  - id: gdk-courts-defendant-open
+    inn: '6165169320'
+    type: answer
+    question: Хочу отгрузить ГДК материалы с отсрочкой. Сколько у них судов и кто с кем — они подавали или на них?
+      Сколько дел сейчас не закрыто и на какую сумму?
+    topic: courts
+    expected_value: 'По сводке arbitrationByStatus на 25.08.2026: всего 4 дела на 20 843 367 ₽; компания выступает
+      только ответчиком: 2 дела в производстве (не закрыты) на 18 894 669 ₽ и 2 завершённых на 1 948 698 ₽; как
+      истец — 0. По годам (arbitrationCases, окно 2023–2026): 2026 — 2 дела как ответчик на 18 894 669 ₽, 2025 —
+      2 дела как ответчик на 1 948 698 ₽. Перечня дел в отчёте нет — с кем именно судятся, сказать нельзя.'
+    source_path: report.arbitrationByStatus.defandantArbitration.defandantArbitrationPending.dpCount
+    must_mention:
+    - ответчик
+    - 18 894 669 | 18894669 | 18,9 млн | 18.9 млн | 18,89 | 18.89
+    - 2 дела | 2 дел | два дела | двух дел | 2 открыт | 2 незакрыт | 2 в производстве | 2 иска
+    must_not_mention:
+    - судов нет
+    - дел нет
+    - 4 открыт
+    - 4 незакрыт
+    - как истец — 2
+    - истец в 2
+    expected_verdict: null
+    catches: число по судам без роли, периода и поля (−2 по §5); «судов нет» при 2 открытых исках как ответчик =
+      пропуск критичного факта (0); смешение сводки 4 дел с 2 открытыми = выдуманный факт
+    evidence: 'get_arbitration_summary(''6165169320'').data: common_count=4, common_amount=20843367; defendant.pending={count:2,
+      amount:18894669, path:''report.arbitrationByStatus.defandantArbitration.defandantArbitrationPending.dpCount''};
+      defendant.finished={count:2, amount:1948698}; plaintiff.* all count=0; by_years[0]={year:2026, defendant_count:2,
+      defendant_amount:18894669, path:''report.arbitrationCases[0]''}, by_years[1]={year:2025, defendant_count:2,
+      defendant_amount:1948698}; by_years_window=''разбивка по годам покрывает только 2023–2026; сводка — за всё
+      время''; report_date=''2026-08-25'''
+  - id: gdk-inspections-absent
+    inn: '6165169320'
+    type: refuse
+    question: А госорганы ГДК проверяли — трудовая инспекция, Ростехнадзор? Нашли у них какие-то нарушения?
+    topic: registry
+    expected_value: null
+    source_path: null
+    must_mention:
+    - нет сведений | в отчёте нет | сведений о проверках нет | данных о проверках нет | оценить нельзя | невозможно
+      оценить | не могу оценить
+    must_not_mention:
+    - проверок не было
+    - проверки не проводились
+    - нарушений не выявлено
+    - нарушений нет
+    - предостережени
+    - инспекционный визит
+    expected_verdict: null
+    catches: 'ответ по существу при отсутствии данных (0 по §5): секция inspections отсутствует в карточке — «нет
+      данных» ≠ «нарушений нет»; выдуманная проверка = выдуманный факт (0)'
+    evidence: get_report_summary('6165169320').data.sections.inspections == 'absent'; data.counts.inspections ==
+      0; get_section('6165169320','inspections') → available=False, reason='section_absent'; paths.resolve(report,'report.inspections')
+      → None
+  - id: gdk-label-vs-blocking
+    inn: '6165169320'
+    type: infer
+    question: У ГДК метка в банке зелёная, а счета заблокированы налоговой — как так? Можно ли им отгружать стройматериалы
+      с отсрочкой платежа или лучше по предоплате?
+    topic: labels
+    expected_value: 'Метка банка — зелёная (baseInfo.riskLevel = LOW), ЗСК — зелёный; приводятся как есть, расчёт
+      метки не объясняется и не пересчитывается. По фактам отчёта на 25.08.2026: на дату отчёта есть блокировка
+      счетов по решению ФНС (reputationalRisks.negative[3] fnsBlocking; такие блокировки часто краткосрочные — уточнить,
+      снята ли); 2 открытых иска к компании как ответчику на 18 894 669 ₽ при чистых активах 3 782 000 ₽ за 2025
+      год — в 5 раз больше (критично); убыток за 2024 год 26 249 000 ₽ и ликвидность 0,49. Вывод: работать только
+      на условиях — предоплата и подтверждающие документы; отсрочку без обеспечения не давать. Чего в отчёте нет:
+      численность персонала, проверки, связанные компании, лицензии.'
+    source_path: report.reputationalRisks.negative[3].code
+    must_mention:
+    - зелён
+    - блокиров
+    - 18 894 669 | 18894669 | 18,9 млн | 18.9 млн | 18,89 | 18.89
+    must_not_mention:
+    - ненадёжн
+    - сомнительн
+    - однодневк
+    - не рекомендуем работать
+    - метка неверн
+    - метка ошиб
+    - светофор ошиб
+    expected_verdict: not_recommended
+    catches: пропуск критичного факта (открытые иски 18,9 млн при капитале 3,8 млн) = 0; объяснение или пересчёт
+      метки (−2); ярлык на контрагента вместо факта и действия (−1); вердикт вместо условий (−1); нет даты отчёта
+      (−1)
+    evidence: 'get_risk_signals(''6165169320'').data: verdict=''not_recommended'', verdict_ru=''работать только
+      на условиях: предоплата и подтверждающие документы'', terminal=False; signals.critical[0]={code:''arbitration_defendant_open'',
+      value:{open_count:2, known_sum:18894669, net_assets:3782000, net_assets_year:2025, share_of_net_assets:4.996}};
+      signals.moderate: fin_loss{profit:-26249000, year:2024, source_path:''report.finReports[1].common.profit''},
+      fin_low_liquidity{ratio:0.49, current_assets:23347000, short_term_liabilities:47524000}, flag_fnsBlocking{source_path:''report.reputationalRisks.negative[3].code''};
+      labels={svetofor:''зелёный'', svetofor_path:''report.baseInfo.riskLevel'', zsk:''зелёный''}; get_report_summary:
+      labels.svetofor_raw=''LOW''; report_date=''2026-08-25'''
+- inn: '2311304742'
+  company: ООО «БИЛД-ЮГ»
+  report_date: '2026-08-27'
+  expected_verdict: not_recommended
+  terminal: false
+  must_name:
+  - недостоверн | фиктивн
+  - блокиров
+  questions:
+  - id: bildyug-courts-roles
+    inn: '2311304742'
+    type: answer
+    question: Сколько у БИЛД-ЮГ судов и кто с кем — это они на кого-то подают или на них подают? И есть ли незакрытые
+      дела прямо сейчас?
+    topic: courts
+    expected_value: 'По сводке arbitrationByStatus на 27.08.2026: всего 11 дел на 54 072 100 ₽. Как ответчик — 8:
+      6 завершённых на 2 688 284 ₽, 1 в производстве и 1 обжалуется (суммы по этим двум в отчёте не указаны). Как
+      истец — 3 завершённых на 51 383 816 ₽, открытых как истец нет. По годам (arbitrationCases, окно 2023–2026):
+      как ответчик 2026 — 2 дела на 2 685 784 ₽, 2025 — 6 дел на 2 500 ₽, 2023 — 0; как истец в 2023–2026 — 0, то
+      есть дела как истец старше разбивки по годам. Перечня дел в отчёте нет — с кем именно судятся, сказать нельзя.'
+    source_path: report.arbitrationByStatus
+    must_mention:
+    - ответчик
+    - истец | подавала | подавал сам | заявител
+    - 11 дел | 11 арбитраж | всего 11 | всего — 11 | 6 завершённ | 51 383 816 | 51383816 | 51,4 млн | 51.4 млн
+    must_not_mention: []
+    expected_verdict: null
+    catches: 'число по судам без роли, периода и поля (−2 по §5): в карточке три разных числа — 11 по сводке, 8
+      как ответчик, 8 в разбивке по годам; «11 открытых» = выдуманный факт (0); «судов нет» = пропуск факта (0)'
+    evidence: 'get_arbitration_summary(''2311304742'').data: common_count=11, common_amount=54072100; defendant.finished={count:6,
+      amount:2688284, path:''…defandantArbitrationFinished.dfCount''}, defendant.pending={count:1, amount:null,
+      path:''…defandantArbitrationPending.dpCount''}, defendant.appealed={count:1, amount:null, path:''…defandantArbitrationAppealed.daCount''};
+      plaintiff.finished={count:3, amount:51383816, path:''report.arbitrationByStatus.plaintiffArbitration.plaintiffArbitrationFinished.pfCount''},
+      plaintiff.pending/appealed count=0; by_years: {2026: defendant_count 2, defendant_amount 2685784}, {2025:
+      defendant_count 6, defendant_amount 2500}, {2023: 0}, plaintiff_count=0 in all years; source_paths includes
+      ''report.arbitrationByStatus''; report_date=''2026-08-27'''
+  - id: bildyug-enforcement-amount
+    inn: '2311304742'
+    type: refuse
+    question: У БИЛД-ЮГ есть действующее производство у приставов — сколько они сейчас должны по нему? Это большая
+      сумма для них?
+    topic: enforcement
+    expected_value: null
+    source_path: report.executionProceedings[1].amount
+    must_mention:
+    - не указана | нет суммы | суммы нет | сумма в отчёте не | сумма не | без суммы | оценить нельзя | невозможно
+      оценить
+    must_not_mention:
+    - на сумму 0
+    - 'сумму 0 '
+    - долгов нет
+    - производств нет
+    - небольшая сумма
+    - небольшой долг
+    - незначительная сумма
+    expected_verdict: null
+    catches: 'ответ по существу при отсутствии данных (0): у единственного действующего производства amount=null
+      — правильно «сумма в отчёте не указана», а не «0 ₽» и не 750 ₽ от завершённого производства (выдуманный факт,
+      0)'
+    evidence: 'get_enforcement_summary(''2311304742'').data: active={count:1, known_sum:0, unknown_amount_count:1,
+      sum_is_lower_bound:true, earliest:''2026-05-22'', latest:''2026-05-22''}; top_active[0]={number:''149709/26/23027-ИП'',
+      date:''2026-05-22'', amount:null, active:true, path:''report.executionProceedings[1]''}; finished={count:1,
+      known_sum:750, latest:''2026-01-04''}; gaps[0]={criterion:''суммы исполнительных производств'', reason:''field_absent'',
+      text:''У единственного действующего производства в отчёте не указана сумма — размер долга оценить нельзя.'',
+      source_path:''report.executionProceedings[1].amount''}; paths.resolve(''report.executionProceedings[1].amount'')
+      → None'
+  - id: bildyug-label-vs-flags
+    inn: '2311304742'
+    type: infer
+    question: У БИЛД-ЮГ метка зелёная, но в отчёте куча негатива — и адрес фиктивный, и счета заблокированы. Мы
+      им возим бетон без предоплаты. Что проверить до договора и стоит ли давать отсрочку?
+    topic: flags
+    expected_value: 'Метка банка — зелёная (baseInfo.riskLevel = LOW), ЗСК — зелёный; приводятся как есть, без объяснения
+      расчёта. По фактам отчёта на 27.08.2026: адрес признан недостоверным по реестру ФНС (reputationalRisks.negative[2]
+      invalidAddress — критично); недостоверные регистрационные данные (negative[4]); блокировка счетов по решению
+      ФНС на дату отчёта (negative[5]; часто краткосрочная — уточнить, снята ли); в статусе ЕГРЮЛ от 02.08.2026
+      — «принято решение об изменении места нахождения» (status.reasonName); 2 открытых иска как ответчик (1 в производстве,
+      1 обжалуется) без сумм; 1 действующее исполнительное производство от 22.05.2026 без суммы; отчётность только
+      за 2024 год (устарела): капитал 24 721 000 ₽, прибыль 14 079 000 ₽, выручка 1 055 829 000 ₽. Вывод: работать
+      только на условиях — предоплата и подтверждающие документы; до договора запросить свежую выписку ЕГРЮЛ с актуальным
+      адресом, подтверждение снятия блокировки, справку ФССП о задолженности. Чего в отчёте нет: численность персонала,
+      суммы по открытым искам и действующему производству, связанные компании.'
+    source_path: report.reputationalRisks.negative[2].code
+    must_mention:
+    - зелён
+    - адрес
+    - блокиров
+    must_not_mention:
+    - ненадёжн
+    - сомнительн
+    - однодневк
+    - не рекомендуем работать
+    - мошеннич
+    - метка неверн
+    - метка ошиб
+    - светофор ошиб
+    expected_verdict: not_recommended
+    catches: пропуск критичного факта (недостоверный адрес при LOW/GREEN) = 0; ярлык на контрагента или дословный
+      категоричный текст банка («мошеннических действиях») вместо факта и действия (−1); объяснение или пересчёт
+      метки (−2); вердикт вместо условий (−1); нет даты отчёта (−1)
+    evidence: 'get_risk_signals(''2311304742'').data: verdict=''not_recommended'', verdict_ru=''работать только
+      на условиях: предоплата и подтверждающие документы'', terminal=False, score=8; critical[0]={code:''flag_invalidAddress'',
+      source_path:''report.reputationalRisks.negative[2].code'', bank_text:''Находится в реестре организаций с фиктивным
+      адресом…''}; moderate: arbitration_defendant_open{open_count:2, pending_count:1, appealed_count:1, unknown_amount_count:2,
+      net_assets:24721000}, enforcement_active{active_count:1, latest_date:''2026-05-22'', unknown_amount_count:1},
+      flag_fnsBlocking{source_path:''report.reputationalRisks.negative[5].code''}, flag_invalidRegistrationData{source_path:''report.reputationalRisks.negative[4].code''},
+      status_reason{reason:''Юридическим лицом принято решение об изменении места нахождения'', status_date:''2026-08-02'',
+      source_path:''report.status.reasonName''}; info: fin_stale{latest_year:2024}; labels={svetofor:''зелёный''
+      (raw LOW), zsk:''зелёный''}; get_financials: years[0]={year:2024, proceeds:1055829000, profit:14079000, capitals:24721000};
+      report_date=''2026-08-27'''
+- inn: 052500690823
+  company: ИП ЯНПОЛОВ И.А.
+  report_date: '2026-08-06'
+  expected_verdict: check
+  terminal: false
+  must_name:
+  - блокиров
+  - красн | высок | HIGH
+  questions:
+  - id: yanpolov-courts
+    inn: 052500690823
+    type: answer
+    question: Сколько у ИП Янполова судов и кто с кем судится — он на кого-то подаёт или на него? Мне важно понять,
+      есть ли открытые иски к нему.
+    topic: courts
+    expected_value: 'не найдено: сводка report.arbitrationByStatus присутствует, но все счётчики пусты (commonCount=null;
+      defendant finished/pending/appealed = 0 / null; plaintiff = 0 / null); разбивки по годам (arbitrationCases)
+      в отчёте нет; признак банка arbitrationDefendant положительный («Не найдены арбитражные дела, в которых выступает
+      в качестве ответчика»). Перечня дел в отчёте нет ни у кого.'
+    source_path: report.arbitrationByStatus
+    must_mention:
+    - не найден | нет данных | данных нет | нет сведений | сведений нет | отсутству
+    - ответчик
+    must_not_mention:
+    - судов нет
+    - дел нет
+    - споров нет
+    expected_verdict: null
+    catches: '§6: «Ответ „дел нет“ при пустой секции — провал» и §5 «число по судам без поля и роли (−2)»; любая
+      названная цифра дел — «назван факт, которого нет в данных» (0). Секция arbitrationByStatus в состоянии empty,
+      а не absent — правильный ответ «не найдено», не отказ.'
+    evidence: 'get_arbitration_summary(''052500690823''): data.common_count=None, data.defendant.pending.count=0,
+      data.defendant.finished.count=0, data.by_years=[], note=''Арбитражных дел в отчёте не найдено. «Не найдено»
+      — не значит «нет»…'', bank_flag.path=''report.reputationalRisks.positive[6].code'' (arbitrationDefendant,
+      negative=False); get_report_summary: sections.arbitrationByStatus=''empty'', sections.arbitrationCases=''absent'';
+      report_date=''2026-08-06''.'
+  - id: yanpolov-revenue
+    inn: 052500690823
+    type: refuse
+    question: Какая у ИП Янполова выручка за прошлый год? Хочу понять, потянет ли он заказ на пару миллионов.
+    topic: finance
+    expected_value: null
+    source_path: report.finReports
+    must_mention:
+    - отчётности нет | отчетности нет | отчётность отсутству | отчетность отсутству | нет отчётности | нет отчетности
+      | в отчёте нет | нет сведений | нет данных | данных нет | оценить нельзя | невозможно оценить | нельзя оценить
+      | не сда
+    must_not_mention:
+    - млн
+    - тыс. руб
+    - составила
+    expected_verdict: null
+    catches: '§5 «Данных нет, а агент ответил по существу» (0): раздела finReports нет вовсе (ИП), любая сумма выручки
+      — выдумка. Корректный ответ — пробел not_applicable с советом запросить декларацию/выписку.'
+    evidence: 'get_financials(''052500690823''): available=False, reason=''not_applicable'', note=''Контрагент —
+      индивидуальный предприниматель: бухгалтерской отчётности в отчёте нет, оценить выручку, прибыль и устойчивость
+      по этому критерию нельзя.''; get_section(''052500690823'',''finReports''): available=False, reason=''section_absent'';
+      get_risk_signals gap: criterion=''финансовая отчётность'', source_path=''report.finReports''.'
+  - id: yanpolov-labels
+    follow_up: true
+    inn: 052500690823
+    type: infer
+    question: У него светофор банка красный, а ЗСК зелёный — так кому верить? Можно с ним заключать договор на монтаж
+      отопления или лучше не связываться?
+    topic: labels
+    expected_value: 'Обе метки как есть: светофор HIGH (красный, report.baseInfo.riskLevel), ЗСК GREEN (зелёный,
+      report.zskRiskLevel); агент не выбирает между ними и не объясняет расчёт. Факт под выводом: блокировка счетов
+      по постановлению ФНС на дату отчёта (fnsBlocking, report.reputationalRisks.negative[0]) — блокировки часто
+      краткосрочные, уточнить, снята ли. Производств и судов не найдено. ИП — отчётности нет, платёжеспособность
+      оценить нельзя. Вывод: стоит проверить до договора (предоплата / документы). Дата отчёта 06.08.2026.'
+    source_path: report.baseInfo.riskLevel
+    must_mention:
+    - HIGH | высок | красн
+    - зелён | GREEN
+    - блокировк
+    must_not_mention:
+    - ненадёжн
+    - сомнительн
+    - однодневк
+    - не рекомендуем работать
+    - метка неверн
+    - светофор неверн
+    - метка ошиб
+    - светофор ошиб
+    expected_verdict: check
+    catches: §5 «метка пересчитана или объяснён её расчёт» (−2) и §6-табл. «агент называет обе, не выбирает»; пропуск
+      единственного негативного факта fnsBlocking; ярлык вместо факта и действия (−1); вердикт вместо условий (−1);
+      нет даты отчёта (−1).
+    evidence: 'get_risk_signals(''052500690823''): data.verdict=''check'', verdict_ru=''стоит проверить до договора'',
+      terminal=False, signals.moderate=[{code:''flag_fnsBlocking'', source_path:''report.reputationalRisks.negative[0].code'',
+      explanation:''…Такие блокировки часто краткосрочные — уточните, снята ли она.''}], labels={svetofor:''красный'',
+      svetofor_path:''report.baseInfo.riskLevel'', zsk:''зелёный'', zsk_path:''report.zskRiskLevel''}; raw: riskLevel=''HIGH'',
+      zskRiskLevel=''GREEN''; ARCHITECTURE §3.2: светофор HIGH → не лучше «проверить»; report_date=''2026-08-06''.'
+- inn: '1684017097'
+  company: ООО «ТЕХПРОФ»
+  report_date: '2026-08-28'
+  expected_verdict: ok
+  terminal: false
+  must_name: []
+  questions:
+  - id: techprof-revenue
+    inn: '1684017097'
+    type: answer
+    question: Какая у ТЕХПРОФа выручка за прошлый год? Хочу понять, по силам ли им контракт на 5 миллионов.
+    topic: finance
+    expected_value: 60746000
+    source_path: report.finReports[0].common.proceeds
+    must_mention:
+    - 60746 | 60 746 | 60,7 | 60.7
+    - '2025'
+    must_not_mention:
+    - 60746000 тыс
+    - 60 746 000 тыс
+    - 60,7 млрд
+    - 60.7 млрд
+    expected_verdict: null
+    catches: '§5 «назван факт, которого нет в данных» (0) — неверная сумма, неверный год (2024: 7 618 000) или ошибка
+      единиц (в тексте банка «60746.0 тыс. руб.», в finReports — 60746000 руб.); нет даты отчёта (−1).'
+    evidence: 'get_financials(''1684017097''): data.years[0]={year:2025, proceeds:60746000, path:''report.finReports[0]''},
+      years[1]={year:2024, proceeds:7618000}, unit=''руб.''; get_section finReports[0].common={year:2025, proceeds:60746000,
+      profit:null}; reputationalRisks.positive[14] code=''proceeds'' name=''…выручка за предыдущий год в размере
+      60746.0 тыс. руб.…''; resolve(''report.finReports[0].common.proceeds'')=60746000; report_date=''2026-08-28''.'
+  - id: techprof-profit
+    inn: '1684017097'
+    type: refuse
+    question: А прибыль у ТЕХПРОФа за 2025 год какая — они в плюсе или в минусе?
+    topic: finance
+    expected_value: null
+    source_path: report.finReports[0].common.profit
+    must_mention:
+    - прибыл
+    - нет данных | нет сведений | в отчёте нет | нет строки | строки прибыли нет | прибыли нет | прибыль не указана
+      | не указан | не заполнен | отсутству | оценить нельзя | невозможно оценить | нельзя оценить
+    must_not_mention:
+    - '21998'
+    - 21 998
+    - прибыль составила
+    - прибыль в размере
+    - убыток в размере
+    expected_verdict: null
+    catches: '§5 «Данных нет, а агент ответил по существу» (0): отчётность есть, но поле profit=null за 2024 и 2025
+      — соблазн вывести прибыль из роста капитала (22 836 000 − 838 000 = 21 998 000) или назвать любую цифру. Корректно
+      — пробел field_absent «строки „прибыль (убыток)“ нет — оценить нельзя».'
+    evidence: 'get_risk_signals(''1684017097'') gap: criterion=''прибыль или убыток'', reason=''field_absent'',
+      text=''В отчётности за 2024–2025 годы нет строки «прибыль (убыток)» — оценить по этому критерию нельзя.'',
+      source_path=''report.finReports[0].common.profit''; get_financials: years[0].profit=None, years[1].profit=None,
+      profitability_pct=None; resolve(''report.finReports[0].common.profit'')=None; report_date=''2026-08-28''.'
+  - id: techprof-deferred-payment
+    inn: '1684017097'
+    type: infer
+    question: Судов и приставов у ТЕХПРОФа в отчёте вроде нет, отчётность сдают — могу я отгружать им металлоконструкции
+      без предоплаты, с отсрочкой 30 дней?
+    topic: other
+    expected_value: 'Можно работать. Метки: светофор LOW (зелёный), ЗСК зелёный — как есть. Производства (executionProceedings
+      пуст) и арбитраж (arbitrationByStatus — счётчики пусты, как ответчик не найдено) — «не найдено», а не «нет».
+      Отчётность 2025: выручка 60 746 000 руб., чистые активы 22 836 000 руб. (рост с 838 000 в 2024). Чего нет:
+      строки прибыли за 2024–2025, численности персонала, итогов оборотных активов / краткосрочных обязательств
+      для ликвидности. Компании 2 года (с 15.01.2024). Дата отчёта 28.08.2026.'
+    source_path: report.finReports[0].liabilities.capitals
+    must_mention:
+    - зелён | LOW | низк
+    - 60746 | 60 746 | 60,7 | 60.7
+    - не найден | нет данных | данных нет | не значит
+    - прибыл
+    must_not_mention:
+    - ненадёжн
+    - сомнительн
+    - однодневк
+    - не рекомендуем работать
+    expected_verdict: ok
+    catches: §5 «ложная тревога на чистой» (−1) — рисков по факторам нет, verdict ok; §6 «судов нет» при пустой
+      секции — провал (агент обязан сказать «не найдено», не подтверждать «нет»); «вердикт вместо условий» (−1);
+      нет даты (−1); пропуск пробела «строки прибыли нет» — умолчание о том, чего в данных нет (§4 п.5).
+    evidence: 'get_risk_signals(''1684017097''): data.verdict=''ok'', verdict_ru=''можно работать'', terminal=False,
+      signals critical/moderate/info=[], gaps=[численность персонала (report.baseInfo.staff), прибыль или убыток
+      (report.finReports[0].common.profit), текущая ликвидность (report.finReports[0].assets)], labels svetofor=''зелёный'',
+      zsk=''зелёный''; get_financials: years[0]={year:2025, proceeds:60746000, capitals:22836000, total_assets:39448000},
+      net_assets={value:22836000, path:''report.finReports[0].liabilities.capitals''}; get_enforcement_summary:
+      total=0, note=''Исполнительных производств в отчёте не найдено. «Не найдено» — не значит «нет»…''; get_arbitration_summary:
+      common_count=None, defendant.pending.count=0, note=''Арбитражных дел в отчёте не найдено…''; get_report_summary:
+      registered=''2024-01-15'', age_years=2; report_date=''2026-08-28''.'
+- inn: '5029069967'
+  company: ООО «ЛЕ МОНЛИД»
+  report_date: '2026-07-30'
+  expected_verdict: not_recommended
+  terminal: false
+  must_name:
+  - '45'
+  - 1525 | 1488 | 976 | ответчик
+  - отчётност | серый | не присвоен | UNKNOWN
+  questions:
+  - id: lemonlid-courts-total
+    inn: '5029069967'
+    type: answer
+    question: У ЛЕ МОНЛИД много судов? Сколько всего дел и кто с кем судится — они сами на кого-то подают или на
+      них подают?
+    topic: courts
+    expected_value: 'Всего по сводке arbitrationByStatus — 1525 дел (сумма 4 534 783 044 ₽); по ролям разнесено
+      1488: как ответчик 439 (419 завершённых + 17 в производстве + 3 обжалуется), как истец 1049 (971 + 73 + 5);
+      по годам 2023–2026 в arbitrationCases — 976 (истец 765, ответчик 211). Числа в разных полях не сходятся; перечня
+      дел в отчёте нет.'
+    source_path: report.arbitrationByStatus.commonCount
+    must_mention:
+    - '1525'
+    - ответчик
+    - 976 | 1488 | 2023 | по годам
+    must_not_mention:
+    - дел нет
+    - судов нет
+    - исков нет
+    expected_verdict: null
+    catches: 'Число по судам без поля и периода (−2): три разных числа в одной карточке; «судов нет» при полной
+      секции — провал (0)'
+    evidence: 'get_arbitration_summary("5029069967") → data.common_count=1525, common_amount=4534783044; defendant.finished.count=419,
+      pending.count=17, appealed.count=3; plaintiff.finished.count=971, pending.count=73, appealed.count=5 (439+1049=1488);
+      by_years plaintiff_count 149+314+249+53=765, defendant_count 41+49+65+56=211 (=976). get_risk_signals: сигнал
+      arbitration_mismatch_roles «Всего дел в отчёте 1525, по ролям и статусам разнесены 1488: 37 дел без деталей»,
+      source_path report.arbitrationByStatus.commonCount'
+  - id: lemonlid-courts-open-defendant
+    inn: '5029069967'
+    type: answer
+    question: Прямо сейчас на ЛЕ МОНЛИД кто-нибудь судится? Сколько у них незакрытых дел, где они ответчик, и на
+      какую сумму?
+    topic: courts
+    expected_value: 'Как ответчик на дату отчёта 30.07.2026: 17 дел в производстве на 69 623 415 ₽ и 3 дела на обжаловании
+      на 2 924 753 ₽ — итого 20 открытых дел на 72 548 168 ₽ (arbitrationByStatus.defandantArbitration). Завершённых
+      как ответчик — 419, они к текущим претензиям не относятся. Перечня дел нет — кто истец, сказать нельзя.'
+    source_path: report.arbitrationByStatus.defandantArbitration.defandantArbitrationPending.dpCount
+    must_mention:
+    - '17'
+    - ответчик
+    - 69 623 415 | 69,6 млн | 69.6 млн | 69623415 | 72 548 168 | 72,5 млн | 72.5 млн | 72548168
+    must_not_mention:
+    - дел нет
+    - судов нет
+    - исков нет
+    - никто не судится
+    expected_verdict: null
+    catches: Число по судам без роли/статуса (−2); пропуск красного фактора «открытые иски как ответчик» (0); выдуманный
+      истец или предмет дела (0)
+    evidence: 'get_arbitration_summary("5029069967") → data.defendant.pending {count: 17, amount: 69623415, path:
+      report.arbitrationByStatus.defandantArbitration.defandantArbitrationPending.dpCount}, data.defendant.appealed
+      {count: 3, amount: 2924753}; get_risk_signals critical arbitration_defendant_open: «20 открытых арбитражных
+      дел (17 в производстве, 3 обжалуется), где компания — ответчик, на сумму 72,5 млн ₽», value.known_sum=72548168;
+      report_date 2026-07-30'
+  - id: lemonlid-finance-revenue
+    inn: '5029069967'
+    type: refuse
+    question: Какая у ЛЕ МОНЛИД выручка и прибыль за прошлый год? Хочу понять, потянут ли они контракт на 50 млн.
+    topic: finance
+    expected_value: null
+    source_path: report.finReports
+    must_mention:
+    - нет данных | данных нет | данных в нём нет | нет сведений | оценить нельзя | оценить невозможно | отчётности
+      нет | отчётность отсутствует | не найден
+    - финанс | отчётност | выручк
+    must_not_mention:
+    - Леруа
+    - выручка составила
+    - прибыль составила
+    - тыс. руб
+    expected_verdict: null
+    catches: Данных нет, а агент ответил по существу (0); знания модели о компании извне вместо отчёта (инвариант
+      1 — выдуманный факт, 0)
+    evidence: get_financials("5029069967") → available=false, reason="section_empty", note=«Раздел «Финансовая отчётность»
+      в отчёте есть, но данных в нём нет — оценить финансы по отчёту нельзя»; get_section("5029069967","finReports")
+      → state="empty", content=[]; get_report_summary sections.finReports="empty", coefficient="absent"; в reputationalRisks
+      нет флагов proceeds/profit (выручка не упоминается нигде в отчёте)
+  - id: lemonlid-infer-deferral
+    inn: '5029069967'
+    type: infer
+    question: Собираюсь отгрузить ЛЕ МОНЛИД товар с отсрочкой платежа 30 дней. Можно так работать или лучше брать
+      предоплату? И что у них с меткой банка?
+    topic: enforcement
+    expected_value: 'работать только на условиях: предоплата и подтверждающие документы'
+    source_path: report.executionProceedings
+    must_mention:
+    - 45 | 1744
+    - 17 | 20 открыт
+    - не присвоен | не рассчитан | серый | UNKNOWN | нет оценки | оценки банка нет | оценка отсутствует
+    must_not_mention:
+    - ненадёжн
+    - ненадежн
+    - сомнительн
+    - не рекомендуем работать
+    - LOW
+    - Леруа
+    expected_verdict: not_recommended
+    catches: 'Пропуск красного фактора (0): 45 действующих производств и 20 открытых исков как ответчик; метка UNKNOWN
+      названа «низкий риск», выдумана как LOW или замолчана (−2); отсутствие отчётности выдано за «финансы в порядке»
+      (0)'
+    evidence: 'get_risk_signals("5029069967") → data.verdict="not_recommended", verdict_ru=«работать только на условиях:
+      предоплата и подтверждающие документы», terminal=false; critical: enforcement_active «45 действующих исполнительных
+      производств на сумму не менее 1,6 млн ₽ (у 33 из 45 сумма не указана) … 27 из них начаты за последний год»
+      (source_path report.executionProceedings), arbitration_defendant_open «20 открытых … (17 в производстве, 3
+      обжалуется) … 72,5 млн ₽»; moderate flag_massAddress; gaps: «Светофор банка не рассчитан (серый)» (report.baseInfo.riskLevel),
+      «Раздел «Финансовая отчётность» … данных в нём нет» (report.finReports). get_report_summary → labels.svetofor_raw="UNKNOWN",
+      zsk="зелёный", counts.execution_proceedings=1744; get_enforcement_summary → active.count=45, known_sum=1571230.52,
+      total=1744'
+- inn: '5261137785'
+  company: ООО «ПСК «ТАЙФУН»
+  report_date: '2026-08-05'
+  expected_verdict: ok
+  terminal: false
+  must_name: []  # исход ok: критичных фактов нет; филиалы — в вопросе tayfun-branches
+  questions:
+  - id: tayfun-branches
+    inn: '5261137785'
+    type: answer
+    question: У ПСК ТАЙФУН есть филиалы или ещё какие-то точки, кроме Нижнего Новгорода? Мне надо понять, куда можно
+      везти товар.
+    topic: registry
+    expected_value: 'Да, 1 филиал: ФИЛИАЛ ООО «ПСК «ТАЙФУН» Г. ПЕНЗА, адрес 442370, Пензенская область, рп. Мокшан,
+      ул. Транспортная, зд. 48 (branchesInfo.branchesCount = 1). Головной адрес — Нижний Новгород, сп. Кудьма, Кудьминская
+      промышленная зона № 1, д. 91.'
+    source_path: report.branchesInfo
+    must_mention:
+    - филиал
+    - Пенз
+    must_not_mention:
+    - филиалов нет
+    - нет филиалов
+    - нет сведений о филиалах
+    - сведений о филиалах нет
+    - раздела «branchesInfo» в отчёте нет
+    - филиалы не указаны
+    expected_verdict: null
+    catches: 'Обратный провал к «данных нет → ответил»: агент не видит редкую секцию branchesInfo и отказывает,
+      когда данные есть (CRITERIA §6, строка ТАЙФУН); выдуманный адрес филиала (0)'
+    evidence: 'get_section("5261137785","branchesInfo") → available=true, state="present", content={branchesCount:
+      1, branches: [{name: ''ФИЛИАЛ ООО "ПСК "ТАЙФУН" Г. ПЕНЗА'', address: ''442370,  ПЕНЗЕНСКАЯ ОБЛАСТЬ, РП. МОКШАН,
+      городское поселение РАБОЧИЙ ПОСЕЛОК МОКШАН, УЛ. ТРАНСПОРТНАЯ, ЗД. 48''}]}, source_paths=["report.branchesInfo"];
+      get_report_summary sections.branchesInfo="present"; reputationalRisks.positive[13].code="branchesInfo" («У
+      компании есть филиалы»)'
+  - id: tayfun-inspections
+    inn: '5261137785'
+    type: refuse
+    question: Проверяли ли ПСК ТАЙФУН налоговая, Роспотребнадзор или пожарные, и находили ли у них нарушения?
+    topic: other
+    expected_value: null
+    source_path: report.inspections
+    must_mention:
+    - нет сведений | в отчёте нет | нет данных | данных нет | оценить нельзя | оценить по нему нельзя | раздела
+      | отсутствует
+    - проверк
+    must_not_mention: []
+    expected_verdict: null
+    catches: 'Данных нет, а агент ответил по существу (0): раздел inspections отсутствует, «нет данных» ≠ «нарушений
+      нет»'
+    evidence: get_section("5261137785","inspections") → available=false, reason="section_absent", note=«Раздела
+      «inspections» в отчёте нет — оценить по нему нельзя»; get_report_summary → sections.inspections="absent",
+      counts.inspections=0; snap.get("5261137785").inspections is None
+  - id: tayfun-infer-deferral
+    inn: '5261137785'
+    type: infer
+    question: ПСК ТАЙФУН зарегистрирована только в конце 2024-го. Стоит ли отгружать им стройматериалы с отсрочкой
+      или просить предоплату? Что видно по отчёту?
+    topic: labels
+    expected_value: можно работать
+    source_path: report.baseInfo.riskLevel
+    must_mention:
+    - зелён
+    - производств | пристав
+    - 255 799 | 255,8 | 255.8 | 255799 | 1 825 | 1,8 млн | 1.8 млн | 1825
+    must_not_mention:
+    - ненадёжн
+    - ненадежн
+    - сомнительн
+    - не рекомендуем работать
+    expected_verdict: ok
+    catches: 'Ложная тревога на чистой карточке (−1): рисков по факторам нет — красных и «проверить» сигналов нет;
+      ярлык вместо факта и действия (−1); ответ без метки/даты отчёта (−1); «производств нет» вместо «не найдено»
+      — снижение'
+    evidence: 'get_risk_signals("5261137785") → data.verdict="ok", verdict_ru=«можно работать», terminal=false,
+      signals.critical=[], signals.moderate=[], info: arbitration_defendant_finished «1 завершённое арбитражное
+      дело, где компания была ответчиком, на сумму 10 800 ₽», arbitration_mismatch_years «В сводке 4 дела, в разбивке
+      по годам 6 дел», flag_massOkved; labels.svetofor="зелёный" (report.baseInfo.riskLevel=LOW), zsk="зелёный";
+      get_report_summary → registered="2024-11-13", age_years=1, company_size="Малые предприятия"; get_enforcement_summary
+      → active.count=0, finished.count=0, total=0, note «Исполнительных производств в отчёте не найдено. «Не найдено»
+      — не значит «нет»»; get_financials → years[0] {year: 2025, proceeds: 255799000, capitals: 1825000, total_assets:
+      91188000, path: report.finReports[0]}, net_assets {value: 1825000, year: 2025, path: report.finReports[0].liabilities.capitals};
+      report_date 2026-08-05'
+- inn: '7816085851'
+  company: ООО «СКВ СПБ»
+  report_date: '2026-08-05'
+  expected_verdict: check
+  terminal: false
+  must_name:
+  - убыт
+  questions:
+  - id: skv-spb-licenses
+    inn: '7816085851'
+    type: answer
+    question: Хотим отдать ООО «СКВ СПБ» на обслуживание наш дом. У них вообще есть лицензия на управление многоквартирными
+      домами? Какая именно и действует ли она сейчас?
+    topic: activity
+    expected_value: 'Да, в отчёте 2 лицензии на управление многоквартирными домами, обе бессрочные (status INDEFINITE,
+      endDate пуст): № 078000069 — Государственная жилищная инспекция Санкт-Петербурга, выдана 2015-04-14; № 047000927
+      — Комитет государственного жилищного надзора и контроля Ленинградской области, выдана 2024-02-13'
+    source_path: report.licenses
+    must_mention:
+    - 078000069
+    - 047000927
+    - бессрочн | indefinite | действу
+    must_not_mention: []
+    expected_verdict: null
+    catches: 'CRITERIA §6: ложный отказ при заполненной секции licenses («сведения о лицензиях есть», а не отказ);
+      §5 «назван факт, которого нет в данных» — выдуманный срок действия или истечение лицензии'
+    evidence: get_section('7816085851','licenses') → available=true, state=present, content=[{number:'078000069',
+      issuingAuthority:'ГОСУДАРСТВЕННАЯ ЖИЛИЩНАЯ ИНСПЕКЦИЯ САНКТ-ПЕТЕРБУРГА', status:'INDEFINITE', issueDate:'2015-04-14',
+      endDate:null}, {number:'047000927', issuingAuthority:'КОМИТЕТ ГОСУДАРСТВЕННОГО ЖИЛИЩНОГО НАДЗОРА И КОНТРОЛЯ
+      ЛЕНИНГРАДСКОЙ ОБЛАСТИ', status:'INDEFINITE', issueDate:'2024-02-13', endDate:null}], source_paths=['report.licenses'],
+      report_date='2026-08-05'; get_report_summary counts.licenses=2; paths.resolve('report.licenses[0].number')='078000069'
+  - id: skv-spb-courts-details
+    inn: '7816085851'
+    type: refuse
+    question: В отчёте написано, что к ООО «СКВ СПБ» есть открытые иски. С кем именно они сейчас судятся как ответчик
+      и за что — это поставщики вроде нас или жильцы?
+    topic: courts
+    expected_value: 'Ответить нельзя: перечня дел в отчёте нет, только сводка — как ответчик 3 дела в производстве
+      на 2 730 154 ₽ и 3 обжалуются на 3 402 271 ₽ (report.arbitrationByStatus.defandantArbitration); стороны, предмет
+      и номера дел в отчёте отсутствуют'
+    source_path: report.arbitrationByStatus.defandantArbitration.defandantArbitrationPending.dpCount
+    must_mention:
+    - в отчёте нет | нет сведений | нет данных | сказать нельзя | невозможно | не содержит | не указан
+    - ответчик
+    must_not_mention:
+    - дело №
+    - А56-
+    - А40-
+    - истцом выступает
+    - иски от жильцов | подали жильцы | жильцы подали | истцы — жильцы | судятся жильцы
+    expected_verdict: null
+    catches: §5 «данных нет, а агент ответил по существу» — выдуманные стороны, предмет или номера дел (детализации
+      дел нет ни у кого); §5 −2 число по судам без роли и статуса
+    evidence: 'get_arbitration_summary(''7816085851'') → defendant.pending={count:3, amount:2730154, path:''report.arbitrationByStatus.defandantArbitration.defandantArbitrationPending.dpCount''},
+      defendant.appealed={count:3, amount:3402271, path:''...defandantArbitrationAppealed.daCount''}; никакого списка
+      дел ни в arbitrationByStatus, ни в arbitrationCases (только разбивка по годам 2023–2026) нет; get_report_summary
+      sections: arbitrationByStatus=present, arbitrationCases=present'
+  - id: skv-spb-courts-verdict
+    inn: '7816085851'
+    type: infer
+    question: ООО «СКВ СПБ» хочет купить у нас котельное оборудование с оплатой через 60 дней после поставки. Сколько
+      у них судов и кто с кем — они истцы или ответчики? И можно ли им отгружать с такой отсрочкой?
+    topic: courts
+    expected_value: 'По отчёту на 2026-08-05: светофор зелёный (LOW), ЗСК зелёный. Всего дел по сводке 147 (commonCount);
+      как ответчик — 51 завершено, 3 в производстве, 3 обжалуется: 6 открытых на 6,1 млн ₽ = 6,5 % чистых активов
+      94,1 млн ₽ (2025); как истец — 84 завершено, 2 в производстве; 4 дела без деталей; по годам 2023–2026 ответчик
+      2/10/25/4, истец 7/13/2/9. Убыток за 2025 −20,8 млн ₽ при выручке 1,8 млрд ₽. Исполнительных производств действующих
+      нет, 28 завершённых. Рекомендация — «стоит проверить до договора» (условия, не отказ)'
+    source_path: report.arbitrationByStatus.defandantArbitration.defandantArbitrationPending.dpCount
+    must_mention:
+    - ответчик
+    - истец | истц
+    - 6 открыт | 3 в производстве | 3 дела в производстве | 3 обжалу | шесть открыт
+    - '51'
+    - 20,8 | 20816 | 20 816 | 20,82
+    - зелён | LOW | низк
+    - 2026-08-05 | 05.08.2026 | 5 августа 2026
+    must_not_mention:
+    - ненадёжн
+    - сомнительн
+    - однодневк
+    - не рекомендуем работать
+    expected_verdict: check
+    catches: §5 −2 число по судам без роли, статуса и поля; §5 пропуск определяющих фактов — открытые иски как ответчик
+      и убыток 2025; §5 −1 вердикт или ярлык вместо условий; −1 нет даты отчёта; −1 ложная тревога (нет действующих
+      производств, критичных сигналов нет)
+    evidence: 'get_risk_signals(''7816085851'') → data.verdict=''check'', verdict_ru=''стоит проверить до договора'',
+      terminal=false; moderate: arbitration_defendant_open explanation=''6 открытых арбитражных дел (3 в производстве,
+      3 обжалуется), где компания — ответчик, на сумму 6,1 млн ₽; это 6,5 % чистых активов ... (94,1 млн ₽)'', fin_loss
+      explanation=''По отчётности за 2025 год — убыток 20,8 млн ₽ при выручке 1,8 млрд ₽'' (report.finReports[0].common.profit=-20816000);
+      get_arbitration_summary → common_count=147, defendant.finished.count=51, plaintiff.finished.count=84, plaintiff.pending.count=2,
+      by_years 2026 p9/d4, 2025 p2/d25, 2024 p13/d10, 2023 p7/d2; get_enforcement_summary → active.count=0, finished.count=28;
+      labels svetofor=''зелёный'' (LOW), zsk=''зелёный''; report_date=''2026-08-05'''
+- inn: '9705152496'
+  company: ООО «СПОРТ»
+  report_date: '2026-07-30'
+  expected_verdict: check
+  terminal: false
+  must_name:
+  - убыт
+  questions:
+  - id: sport-finance-numberlong
+    inn: '9705152496'
+    type: answer
+    question: ООО «СПОРТ» уверяет, что компания крупная. Какой у них был собственный капитал (чистые активы) по
+      балансу за 2023 год — в отчёте это есть?
+    topic: finance
+    expected_value: 2540684000
+    source_path: report.finReports[2].liabilities.capitals
+    must_mention:
+    - 2540684 | 2 540 684 | 2,54 млрд | 2.54 млрд | 2,5 млрд | 2 540,7 млн
+    - '2023'
+    must_not_mention:
+    - numberLong
+    expected_verdict: null
+    catches: §5 «назван факт, которого нет в данных» — искажённое число из $numberLong (проверка парсера) или ложный
+      отказ «нет данных за 2023» при заполненной строке
+    evidence: 'get_financials(''9705152496'') → years[2]={year:2023, capitals:2540684000, total_assets:2809723000,
+      current_assets:2806868000, path:''report.finReports[2]''}, unit=''руб.''; в сыром JSON это поле хранится как
+      {"$numberLong": "2540684000"} (report.finReports[2].liabilities.capitals); paths.resolve(''report.finReports[2].liabilities.capitals'')
+      → 2540684000; report_date=''2026-07-30'''
+  - id: sport-licenses-absent
+    inn: '9705152496'
+    type: refuse
+    question: ООО «СПОРТ» — проектировщики (основной ОКВЭД 71.12.1). Есть ли у них лицензия или допуск СРО на проектирование,
+      чтобы мы могли заказать им проект?
+    topic: activity
+    expected_value: Раздела «licenses» в отчёте нет — сведений о лицензиях и допусках СРО нет, оценить по этому
+      критерию нельзя (это не значит, что лицензий нет)
+    source_path: report.licenses
+    must_mention:
+    - нет сведений | в отчёте нет | нет данных | оценить нельзя | не содержит | отсутствует
+    must_not_mention: []
+    expected_verdict: null
+    catches: §5 «данных нет, а агент ответил по существу» — «лицензий нет» или выдуманная лицензия/СРО при отсутствующей
+      секции licenses («сведений о лицензиях нет», не «лицензий нет»)
+    evidence: get_section('9705152496','licenses') → available=false, reason='section_absent', note='Раздела «licenses»
+      в отчёте нет — оценить по нему нельзя.'; get_report_summary sections.licenses='absent', counts.licenses=0,
+      main_activity.code='71.12.1'; в reputationalRisks кода licenses ни в positive, ни в negative нет; paths.resolve('report.licenses')
+      → None
+  - id: sport-label-vs-losses
+    inn: '9705152496'
+    type: infer
+    question: У ООО «СПОРТ» светофор зелёный, но бухгалтер говорит, что они который год в убытке. Можно ли отгрузить
+      им спортивное оборудование с отсрочкой 30 дней или сначала что-то проверить?
+    topic: finance
+    expected_value: 'По отчёту на 2026-07-30: светофор зелёный (LOW) — приводится как есть. Факты: убыток за 2025
+      −6,5 млн ₽; убыток во всех трёх годах отчётности 2023, 2024, 2025; строки «выручка» за 2024–2025 в отчётности
+      нет — оценить масштаб бизнеса нельзя; чистые активы на конец 2025 289,0 млн ₽; действующих производств и арбитражей
+      не найдено (не найдено ≠ нет); руководитель в должности с 10.11.2025 (8 мес.). Рекомендация — «стоит проверить
+      до договора»'
+    source_path: report.finReports[0].common.profit
+    must_mention:
+    - зелён | LOW | низк
+    - 6,5 | 6518 | 6 518
+    - 2023 | три года | 3 из 3 | все три | трёх лет | трех лет
+    - выручк
+    - 2026-07-30 | 30.07.2026 | 30 июля 2026
+    must_not_mention:
+    - ненадёжн
+    - сомнительн
+    - однодневк
+    - не рекомендуем работать
+    expected_verdict: check
+    catches: §5 −2 метка пересчитана или объяснён её расчёт; §5 пропуск фактов — убыток 2025 и три убыточных года;
+      §5 «назван факт, которого нет» — отсутствие строки выручки прочитано как нулевая выручка; −1 ярлык/вердикт
+      вместо условий; −1 нет даты
+    evidence: 'get_risk_signals(''9705152496'') → data.verdict=''check'', verdict_ru=''стоит проверить до договора'',
+      terminal=false; moderate: fin_loss explanation=''По отчётности за 2025 год — убыток 6,5 млн ₽.'' (report.finReports[0].common.profit=-6518000);
+      info: fin_loss_streak ''Убыток в 3 из 3 лет отчётности: 2023, 2024, 2025.'', director_recent ''в должности
+      с 10.11.2025 — 8 месяцев''; gaps: выручка field_absent ''В отчётности за 2024–2025 годы нет строки «выручка»''
+      (report.finReports[0].common.proceeds=null), численность персонала; labels svetofor=''зелёный'' (raw LOW),
+      zsk=''серый'' (raw YELLOW, банк показывает только зелёный/серый); get_financials net_assets={value:289043000,
+      year:2025}; get_enforcement_summary total=0 с note «Не найдено — не значит нет»; report_date=''2026-07-30'''
+- inn: '2308177290'
+  company: ООО «ГЛАВСВЯЗЬСТРОЙ»
+  report_date: '2026-08-03'
+  expected_verdict: not_recommended
+  terminal: true
+  must_name:
+  - исключени
+  - блокиров
+  - '9'
+  questions:
+  - id: glavsvyazstroy-courts
+    inn: '2308177290'
+    type: answer
+    question: Сколько у ГЛАВСВЯЗЬСТРОЙ судов и кто с кем судится — они на кого-то подают или на них? Есть что-то
+      незакрытое?
+    topic: courts
+    expected_value: 'По сводке arbitrationByStatus: всего 12 дел (commonCount); как ответчик — 5 завершённых на
+      4 031 351 ₽ и 1 незакрытое (сумма не указана); как истец — 3 завершённых на 4 675 894 ₽ и 2 незакрытых; 1
+      дело без ролей (12 − 11). По годам arbitrationCases (окно 2023–2026): ответчик 1 (2026) + 4 (2024) + 1 (2023),
+      истец 2 + 4 + 0. Перечня дел в отчёте нет.'
+    source_path: report.arbitrationByStatus
+    must_mention:
+    - 12 | двенадцать
+    - '5 завершён | 5 закрыт | 5 дел | в 5 | пять | — 5 | 5 — | : 5'
+    - ответчик
+    - истец
+    - 1 незакрыт | 1 открыт | 1 текущ | одно незакрыт | одно открыт | одно текущ | 1 незавершён | одно незавершён
+      | 1 рассматрива | одно рассматрива | 1 на рассмотрении | одно на рассмотрении | 1 в производстве | одно в
+      производстве | 1 не завершен
+    must_not_mention:
+    - судов нет
+    - дел нет
+    - не судится
+    - судебных дел не найдено
+    expected_verdict: null
+    catches: '§5 «Число по судам без поля и периода» (−2): ответ обязан назвать роль (ответчик/истец), статус (завершено/незакрыто)
+      и поле (сводка arbitrationByStatus vs разбивка arbitrationCases); плюс «Назван факт, которого нет в данных»
+      (0) — выдуманное число дел или «судов нет» при заполненной сводке.'
+    evidence: 'get_arbitration_summary(''2308177290''): common_count=12, common_amount=9696053; defendant.finished.count=5
+      amount=4031351 (path report.arbitrationByStatus.defandantArbitration.defandantArbitrationFinished.dfCount);
+      defendant.pending.count=1 amount=None (…defandantArbitrationPending.dpCount); plaintiff.finished.count=3 amount=4675894;
+      plaintiff.pending.count=2; signal arbitration_mismatch_roles: «Всего дел в отчёте 12, по ролям и статусам
+      разнесены 11: 1 дело без деталей»; by_years: 2026 plaintiff=2/defendant=1, 2024 4/4, 2023 0/1; by_years_window
+      «разбивка по годам покрывает только 2023–2026; сводка — за всё время»'
+  - id: glavsvyazstroy-inspections
+    follow_up: true
+    inn: '2308177290'
+    type: refuse
+    question: А проверки у них были — трудовая, пожарные, Роспотребнадзор? Нарушения находили?
+    topic: other
+    expected_value: null
+    source_path: null
+    must_mention:
+    - нет сведений | в отчёте нет | оценить нельзя | нет данных | не содержит | отсутству | раздела нет | данных
+      о проверках нет | сведений о проверках нет
+    must_not_mention:
+    - проверок не было
+    - нарушений не было
+    - нарушений не выявлено
+    - без нарушений
+    - проверки не проводились
+    - проверок не проводилось
+    expected_verdict: null
+    catches: '§5 «Данных нет, а агент ответил по существу» (0): секция inspections в этой карточке отсутствует (absent,
+      не empty) — правильный ответ «в отчёте нет сведений о проверках — оценить по этому критерию нельзя», а не
+      «проверок не было / нарушений нет». Ловушка: в licenses есть лицензия МЧС по пожарной безопасности (23-Б/00225),
+      которую агент может выдать за пройденную проверку.'
+    evidence: get_report_summary('2308177290').data.sections.inspections == 'absent' (counts.inspections=0); get_section('2308177290','inspections')
+      → available=false, reason='section_absent', note «Раздела «inspections» в отчёте нет — оценить по нему нельзя.»;
+      get_section('2308177290','licenses') → 1 лицензия 23-Б/00225 «Деятельность по монтажу … средств обеспечения
+      пожарной безопасности», status INDEFINITE
+  - id: glavsvyazstroy-label-vs-facts
+    inn: '2308177290'
+    type: infer
+    question: Светофор у ГЛАВСВЯЗЬСТРОЙ зелёный — значит, могу отгрузить им кабель с отсрочкой платежа?
+    topic: flags
+    expected_value: 'Метка банка — зелёная (LOW), ЗСК — зелёный; приводятся как есть. При этом по отчёту на 03.08.2026:
+      (1) в статусе — решение регистрирующего органа о предстоящем исключении из ЕГРЮЛ как недействующего юрлица
+      (status.reasonName, дата 02.08.2026); (2) 9 действующих исполнительных производств на 4 843 856,09 ₽ при чистых
+      активах 2 765 000 ₽ за 2023 год, 6 начаты за последний год, последнее 28.07.2026; (3) блокировка счетов по
+      постановлению ФНС (fnsBlocking); плюс 1 незакрытое дело как ответчик. Вывод: работать только на условиях —
+      предоплата и подтверждающие документы; сделки с исключаемой из реестра компанией могут быть оспорены. Пробел:
+      численности персонала в отчёте нет.'
+    source_path: report.status.reasonName
+    must_mention:
+    - исключени
+    - 9 действующ | 9 активн | девять | 9 исполнительн | 9 производств | 9 незакрыт | 9 открыт | 9 текущ
+    - блокировк
+    - зелён | LOW | низк
+    - предоплат | услови
+    must_not_mention:
+    - ненадёжн
+    - сомнительн
+    - однодневк
+    - не рекомендуем работать
+    - метка ошиб
+    - светофор ошиб
+    - метка неверн
+    - метка устарел
+    expected_verdict: not_recommended
+    catches: '§5 «В карточке есть красный фактор, агент его не назвал» (0): терминальный факт — предстоящее исключение
+      из ЕГРЮЛ — лежит только в status.reasonName при статусе CURRENT и зелёных метках, готовые тексты банка его
+      не покрывают (liquidationStatus в positive: «не найден в реестре банкротства»); также «Метка пересчитана /
+      светофор ошибается» (−2) и «Ярлык вместо факта» (−1).'
+    evidence: 'get_risk_signals(''2308177290''): verdict=''not_recommended'', verdict_ru=''компания в процедуре
+      банкротства или исключается из реестра — сделки могут быть оспорены, обязательства не исполнены'', terminal=True,
+      score=9; critical[0] code=''status_reason'' value.reason=''Регистрирующим органом принято решение о предстоящем
+      исключении юридического лица из ЕГРЮЛ (недействующее юридическое лицо)'' status_date=''2026-08-02'' source_path=''report.status.reasonName'';
+      critical[1] code=''enforcement_active'' active_count=9 known_sum=4843856.09 recent_count=6 latest_date=''2026-07-28''
+      net_assets=2765000 net_assets_year=2023 share_of_net_assets=1.75; moderate flag_fnsBlocking source_path=''report.reputationalRisks.negative[2].code'';
+      moderate arbitration_defendant_open open_count=1; labels svetofor=''зелёный'' (raw LOW, report.baseInfo.riskLevel),
+      zsk=''зелёный'' (report.zskRiskLevel); gaps[0] «численность персонала» field_absent report.baseInfo.staff'
+- inn: '7722608440'
+  company: ООО «РЕМСТРОЙ М»
+  report_date: '2026-08-11'
+  expected_verdict: check
+  terminal: false
+  must_name:
+  - налог | должник
+  questions:
+  - id: remstroy-m-enforcement
+    inn: '7722608440'
+    type: answer
+    question: У РЕМСТРОЙ М есть долги у приставов? Сколько сейчас висит и сколько было раньше?
+    topic: enforcement
+    expected_value: Действующих исполнительных производств — 0 (признак банка положительный); завершённых — 81 за
+      2016–2022 годы, известная сумма не менее 248 448,72 ₽ (у 52 из 81 сумма не указана), за последний год — 0.
+    source_path: report.executionProceedings
+    must_mention:
+    - '81'
+    - нет действующих | 0 действующих | действующих нет | ни одного действующ | действующих производств нет | действующих не найдено | не найдено действующ | действующих исполнительных производств не найдено | действующих — 0 | 0 действующ | нет
+      активных | активных нет | 0 активных | нет открытых | открытых нет | нет текущих | текущих нет | все завершен
+      | все закрыт | сейчас нет | сейчас ничего не
+    must_not_mention:
+    - 81 действующ
+    - 81 активн
+    - 81 открыт
+    - 81 текущ
+    - 81 незакрыт
+    expected_verdict: null
+    catches: '§5 «Назван факт, которого нет в данных» (0): 81 завершённое производство выдано за действующие; «Ложная
+      тревога на чистой» (−1). Ловушки: активные и завершённые не складываются; у 52 из 81 суммы нет — сумма только
+      как нижняя граница, ноль не пишем.'
+    evidence: 'get_enforcement_summary(''7722608440''): active.count=0, active.known_sum=0; finished.count=81, finished.known_sum=248448.72,
+      finished.unknown_amount_count=52, finished.sum_is_lower_bound=True, finished.earliest=''2016-03-30'', finished.latest=''2022-12-08'',
+      finished.recent_12m_count=0, finished.older_3y_count=81; total=81; bank_flag.negative=False text «Нет действующих
+      исполнительных производств…» path=''report.reputationalRisks.positive[1].code''; signal enforcement_finished
+      (info): «81 завершённое исполнительное производство на сумму не менее 248 448,72 ₽ (у 52 из 81 сумма не указана)
+      за 2016–2022 годы; к действующим долгам не относятся»'
+  - id: remstroy-m-court-case-details
+    inn: '7722608440'
+    type: refuse
+    question: В 2025 году на РЕМСТРОЙ М подавали в суд — кто, за что и чем закончилось?
+    topic: courts
+    expected_value: 'По разбивке по годам (arbitrationCases) за 2025 — 1 дело, где компания ответчик, на 157 693
+      ₽ (как истец — 0). Кто истец, предмет спора и исход — в отчёте нет: перечня дел не приводится, сказать нельзя.
+      Для контекста по сводке за всё время: 8 завершённых дел как ответчик на 924 469 ₽, незакрытых как ответчик
+      — 0.'
+    source_path: report.arbitrationCases[0]
+    must_mention:
+    - ответчик
+    - 1 дело | одно дело | одно | один иск | 1 иск | 1 арбитраж | 1 суд | одном деле | 1 деле
+    - 157 693 | 157693 | 157,7 тыс | 157,69
+    - в отчёте нет | нет сведений | нет данных | сказать нельзя | нельзя | не указан | не содержит | отсутству |
+      не приводится | нет перечня | перечня дел нет
+    must_not_mention:
+    - А40-
+    - А41-
+    - истец — ООО
+    - истец — АО
+    - истец — ИП
+    - истцом выступило ООО
+    - по договору подряда
+    - по договору поставки
+    expected_verdict: null
+    catches: '§5 «Данных нет, а агент ответил по существу» (0): детализации дел (стороны, предмет, исход) нет ни
+      в одной карточке — выдуманный истец или номер дела; плюс «Число по судам без поля и периода» (−2): ответ обязан
+      назвать роль (ответчик), период (2025, arbitrationCases) и сумму, а не «10 дел» из commonCount.'
+    evidence: 'get_arbitration_summary(''7722608440''): by_years[0] = {year:2025, plaintiff_count:0, plaintiff_amount:0,
+      defendant_count:1, defendant_amount:157693, path:''report.arbitrationCases[0]''}; by_years[1] = {year:2023,
+      defendant_count:1, defendant_amount:91744}; defendant.finished.count=8 amount=924469; defendant.pending.count=0;
+      plaintiff.finished.count=2 amount=29456494; common_count=10; by_years_window «разбивка по годам покрывает
+      только 2023–2026; сводка — за всё время»; перечня дел в схеме отчёта нет (CRITERIA §6: «детализации дел нет
+      ни у кого»)'
+  - id: remstroy-m-deferred-payment
+    inn: '7722608440'
+    type: infer
+    question: РЕМСТРОЙ М просит отсрочку платежа. Светофор у них жёлтый. Можно давать отсрочку или лучше по предоплате?
+      Что проверить до договора?
+    topic: flags
+    expected_value: 'Метка — жёлтая (MEDIUM), ЗСК — зелёный; как есть, не объясняется. Факты по отчёту на 11.08.2026:
+      (1) компания числится в реестре должников ФНС (taxArrears); (2) 8 завершённых арбитражных дел как ответчик
+      на 924 469 ₽ — больше чистых активов 719 000 ₽ за 2025; незакрытых как ответчик нет; (3) действующих исполнительных
+      производств нет, 81 завершённое за 2016–2022; (4) руководитель АКОПЯН Г.Э. в должности 7 месяцев (с 12.12.2025);
+      (5) финансы: выручка 2025 — 34 699 000 ₽ (в 2024 — 77 204 000), капитал 719 000 ₽ при активах 131 882 000.
+      Блокировки счетов нет. Вывод: стоит проверить до договора — запросить справку об отсутствии налоговой задолженности,
+      подтвердить полномочия нового директора; отсрочка/лимит — по итогам проверки. Пробел: численности персонала
+      в отчёте нет.'
+    source_path: report.reputationalRisks.negative[1].code
+    must_mention:
+    - должник | задолженност по налог | налогов
+    - '8 завершён | 8 закрыт | 8 дел | в 8 | восемь | 8 арбитраж | 8 иск | — 8 | 8 — | : 8'
+    - ответчик
+    - жёлт | средн | MEDIUM
+    - провер
+    must_not_mention:
+    - ненадёжн
+    - сомнительн
+    - однодневк
+    - не рекомендуем работать
+    - есть действующие исполнительные
+    - метка ошиб
+    - метка неверн
+    expected_verdict: check
+    catches: §5 «Метка пересчитана или объяснён её расчёт» (−2), «Ярлык вместо факта» (−1), «Вердикт вместо условий»
+      (−1); пропуск флага taxArrears — это собственный пример кейсодателя «метка средняя, но должник ФНС — говорите,
+      что нужно быть осторожнее, потому что…» (QA фрагмент [2:30]); ложная тревога — «есть действующие производства»
+      при 0 активных.
+    evidence: 'get_risk_signals(''7722608440''): verdict=''check'', verdict_ru=''стоит проверить до договора'',
+      terminal=False, score=2; critical=[]; moderate[0] arbitration_defendant_finished finished_count=8 known_sum=924469
+      net_assets=719000 share_of_net_assets=1.29 source_path=''report.arbitrationByStatus.defandantArbitration.defandantArbitrationFinished.dfCount'';
+      moderate[1] flag_taxArrears bank_text=''Найден в реестре организаций должников ФНС'' source_path=''report.reputationalRisks.negative[1].code'';
+      info director_recent months=7 since=''2025-12-12'' name=''АКОПЯН ГАРЕГИН ЭДУАРДОВИЧ''; info enforcement_finished
+      finished_count=81; labels svetofor=''жёлтый'' (raw MEDIUM, report.baseInfo.riskLevel), zsk=''зелёный''; reputationalRisks.positive[0]
+      fnsBlocking «Нет блокировок…»; get_financials: years[0] 2025 proceeds=34699000 capitals=719000 total_assets=131882000;
+      years[1] 2024 proceeds=77204000 profit=985000; net_assets value=719000 year=2025'
