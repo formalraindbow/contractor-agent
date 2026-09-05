@@ -84,4 +84,6 @@ uv run pytest -q
 
 Проверки интерфейса: `scripts/review_ui_smoke.cjs` и
 `scripts/review_goal_ui_smoke.cjs` (Playwright, локальный стенд 8084).
+`scripts/review_motion_smoke.cjs` проверяет плавное раскрытие ответа, прерывание
+анимаций, клавиатурное управление, мобильное меню и режим уменьшения движения.
 Протокол предыдущих проверок: [REVIEW_STANDS_IMPLEMENTATION.md](REVIEW_STANDS_IMPLEMENTATION.md).

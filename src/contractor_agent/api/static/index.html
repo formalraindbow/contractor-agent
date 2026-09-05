@@ -7,9 +7,13 @@
 <style>
 :root { color-scheme: light; --bg:#f3f5f7; --page:#fff; --surface:#edf1f4; --line:#dce1e7; --text:#172331; --muted:#647181; --accent:#ef3124; --accent-ink:#fff; --ink:#172331; --ink-text:#fff; --crit:#ad2e28; --crit-bg:#fff0ee; --mod:#8a570f; --mod-bg:#fff7e7; --ok:#287a54; --ok-bg:#eaf5ee; --info:#647181; --info-bg:#eef2f6; --gray:#647181; --gray-bg:#edf1f4; --chip:#fff; --user:#e8edf2; --user-ink:#172331; --focus:#225ac7; }
 * { box-sizing:border-box; }
+:root { --motion-fast:160ms; --motion-base:300ms; --motion-drawer:360ms; --motion-ease:cubic-bezier(.22,1,.36,1); }
 body { margin:0; background:var(--bg); color:var(--text); font:15px/1.6 "Avenir Next",Arial,sans-serif; -webkit-font-smoothing:antialiased; }
 button,input,textarea { font:inherit; color:inherit; }
-button { cursor:pointer; } button:disabled { opacity:.5; cursor:wait; }
+button { cursor:pointer; transition:background-color var(--motion-fast) ease,color var(--motion-fast) ease,border-color var(--motion-fast) ease,box-shadow var(--motion-fast) ease,opacity var(--motion-fast) ease,scale var(--motion-fast) var(--motion-ease); } button:disabled { opacity:.5; cursor:wait; }
+button:active:not(:disabled) { scale:.98; }
+input,textarea { transition:border-color var(--motion-fast) ease,box-shadow var(--motion-fast) ease; }
+.motion-sizing { overflow:hidden; overflow-anchor:none; }
 a { color:inherit; } [hidden] { display:none!important; }
 button:focus-visible,a:focus-visible,input:focus-visible,textarea:focus-visible,summary:focus-visible { outline:3px solid var(--focus); outline-offset:3px; }
 .shell { display:grid; grid-template-columns:244px minmax(0,1fr); height:100dvh; overflow:hidden; }
@@ -107,8 +111,8 @@ button:focus-visible,a:focus-visible,input:focus-visible,textarea:focus-visible,
 .mcpintro { padding:20px 22px; max-width:82ch; font-size:14px; } .mcpcfg { padding:18px 22px; display:grid; gap:12px; justify-items:start; } .mcpcfg .lbl { color:var(--muted); font-size:13px; } pre { white-space:pre-wrap; overflow-wrap:anywhere; background:var(--surface); border:1px solid var(--line); border-radius:8px; padding:14px; font:12px/1.6 ui-monospace,monospace; max-width:100%; } .mcpok { color:var(--ok); }
 #qnote p { margin:6px 0; } #qualityMore { margin:0 22px 20px; } .quality-picker { padding:0 22px 12px; color:var(--muted); font-size:13px; } .quality-picker select { max-width:100%; padding:7px; border:1px solid var(--line); border-radius:6px; background:#fff; }
 .dialog-open { overflow:hidden; }
-.overlay { position:fixed; inset:0; z-index:20; background:#17233155; display:flex; justify-content:flex-end; opacity:0; transition:opacity 220ms ease; }
-.drawer { width:min(680px,100%); height:100dvh; overflow-y:auto; overscroll-behavior:contain; scrollbar-gutter:stable; background:#fff; padding:24px 28px; transform:translateX(40px); transition:transform 220ms cubic-bezier(.2,.7,.2,1); }
+.overlay { position:fixed; inset:0; z-index:20; background:#17233155; display:flex; justify-content:flex-end; opacity:0; transition:opacity var(--motion-drawer) ease; }
+.drawer { width:min(680px,100%); height:100dvh; overflow-y:auto; overscroll-behavior:contain; scrollbar-gutter:stable; background:#fff; padding:24px 28px; transform:translateX(24px); transition:transform var(--motion-drawer) var(--motion-ease); }
 .overlay.is-open { opacity:1; } .overlay.is-open .drawer { transform:translateX(0); }
 .drawer-header { display:flex; justify-content:space-between; align-items:center; gap:14px; position:sticky; top:-24px; padding:12px 0; background:#fff; z-index:1; border-bottom:1px solid var(--line); } .drawer h2 { margin:0; font-size:21px; } .drawer h3 { margin:22px 0 10px; font-size:16px; } .drawer .fact { border-bottom:1px solid var(--line); padding:15px 0; } .drawer .fact p { margin:0 0 8px; } .drawer .verdict { border-radius:8px; margin:18px 0; padding:14px; } .drawer .gaps { padding:14px 0; } .drawer .meta { margin:10px 0; }
 .source-block { margin:12px 0; font-size:13px; } .source-block summary { color:var(--text); } .error-message { color:var(--crit); font-size:14px; padding:8px 0; }
@@ -120,8 +124,8 @@ button:focus-visible,a:focus-visible,input:focus-visible,textarea:focus-visible,
   .answer { max-width:100%; padding:12px 13px; }
   .sidebar { position:sticky; top:0; z-index:5; display:block; overflow:visible; background:var(--page); }
   .nav-toggle { display:block; }
-  .sidebar-content { position:absolute; top:100%; left:0; right:0; display:none; max-height:calc(100dvh - 90px); overflow-y:auto; gap:12px; padding:0 16px 16px; background:var(--page); border-bottom:1px solid var(--line); box-shadow:0 8px 16px #17233112; }
-  .sidebar[data-open="true"] .sidebar-content { display:flex; padding-top:14px; }
+  .sidebar-content { position:absolute; top:100%; left:0; right:0; display:flex; max-height:calc(100dvh - 90px); overflow-y:auto; gap:12px; padding:14px 16px 16px; background:var(--page); border-bottom:1px solid var(--line); box-shadow:0 8px 16px #17233112; visibility:hidden; opacity:0; transform:translateY(-6px); pointer-events:none; transition:opacity var(--motion-base) ease,transform var(--motion-base) var(--motion-ease),visibility 0s var(--motion-base); }
+  .sidebar[data-open="true"] .sidebar-content { visibility:visible; opacity:1; transform:translateY(0); pointer-events:auto; transition-delay:0s; }
   #chats { max-height:none; overflow:visible; }
 }
 </style>
@@ -376,6 +380,7 @@ function clearComposers() {
 }
 function setNavigationOpen(open) {
   $('.sidebar').dataset.open=String(open);
+  $('#sidebarContent').inert=window.innerWidth<=720 && !open;
   $('#navToggle').setAttribute('aria-expanded',String(open));
   $('#navToggle').textContent=open?'Закрыть':'Меню';
 }
@@ -447,19 +452,70 @@ async function resolveCompany(q) {
   return { pick: items };
 }
 const pickerHtml = (items) => items.map((i) => `<button type="button" data-inn="${esc(i.inn)}"><b>${esc(i.name)}</b> <small>· ИНН ${esc(i.inn)} · ${esc(i.address || "")}</small></button>`).join("");
-function showMessage(el, text) { el.hidden = false; el.innerHTML = `<div class="empty">${esc(text)}</div>`; }
+function showMessage(el, text) { el.hidden = false; el.innerHTML = `<div class="empty">${esc(text)}</div>`; fadeIn(el); }
 function showPicker(el, items, onPick, hint) {
   el.hidden = false;
   el.innerHTML = `<div class="empty">${esc(hint)}</div>` + pickerHtml(items);
+  fadeIn(el);
   el.querySelectorAll("button[data-inn]").forEach((b) => b.addEventListener("click", () => onPick(b.dataset.inn)));
 }
 
 
 // Evidence and report views use the same snapshot as the agent, never a live registry.
 const reducedMotion=window.matchMedia('(prefers-reduced-motion: reduce)');
+const motionEase='cubic-bezier(.22,1,.36,1)';
+const sizeMotions=new WeakMap(), fadeMotions=new WeakMap();
+function fadeIn(el, delay=0) {
+  fadeMotions.get(el)?.cancel();
+  if(reducedMotion.matches || !el.getClientRects().length) return;
+  const animation=el.animate([{opacity:0},{opacity:1}],{duration:300,delay,easing:'ease-out',fill:'backwards'});
+  fadeMotions.set(el,animation);
+}
+function animateHeight(el, before, after, finish=()=>{}) {
+  sizeMotions.get(el)?.cancel();
+  sizeMotions.delete(el);
+  if(reducedMotion.matches || Math.abs(after-before)<1 || !el.getClientRects().length) {
+    el.classList.remove('motion-sizing'); finish(); return;
+  }
+  el.classList.add('motion-sizing');
+  const animation=el.animate([{height:before+'px'},{height:after+'px'}],{duration:340,easing:motionEase});
+  sizeMotions.set(el,animation);
+  animation.finished.then(()=>{
+    if(sizeMotions.get(el)!==animation) return;
+    sizeMotions.delete(el); el.classList.remove('motion-sizing'); finish();
+  }).catch(()=>{});
+}
+function replaceSmoothly(el, update) {
+  const before=el.getBoundingClientRect().height;
+  sizeMotions.get(el)?.cancel();
+  update();
+  animateHeight(el,before,el.getBoundingClientRect().height);
+  fadeIn(el);
+}
+// Keep native details semantics, including keyboard activation, while animating both directions.
+const disclosureTargets=new WeakMap();
+document.addEventListener('click',event=>{
+  const summary=event.target.closest('.more-facts > summary');
+  if(!summary) return;
+  event.preventDefault();
+  const details=summary.parentElement, open=!(disclosureTargets.get(details) ?? details.open);
+  disclosureTargets.set(details,open);
+  const before=details.getBoundingClientRect().height;
+  sizeMotions.get(details)?.cancel();
+  details.open=open;
+  const after=details.getBoundingClientRect().height;
+  details.open=true;
+  const content=details.querySelector('.disclosure-content');
+  content.inert=!open; summary.setAttribute('aria-expanded',String(open));
+  animateHeight(details,before,after,()=>{details.open=open;disclosureTargets.delete(details);});
+  if(open) fadeIn(content);
+});
+reducedMotion.addEventListener('change',()=>{
+  if(reducedMotion.matches) document.getAnimations().forEach(animation=>{try {animation.finish();} catch {animation.cancel();}});
+});
 let drawerFocus=null, drawerVersion=0, drawerClosing=false;
 function revealDrawerContent() {
-  if(!reducedMotion.matches) $('#drawerContent').animate([{opacity:0},{opacity:1}],{duration:160,easing:'ease-out'});
+  fadeIn($('#drawerContent'));
 }
 function openDrawer(title, html) {
   const overlay=$('#overlay'), wasHidden=overlay.hidden;
@@ -483,7 +539,7 @@ function closeDrawer() {
   setTimeout(()=>{
     if(version!==drawerVersion) return;
     $('#overlay').hidden=true; $('#overlay').inert=false; $('#overlay').style.pointerEvents=''; drawerClosing=false;
-  },reducedMotion.matches ? 0 : 220);
+  },reducedMotion.matches ? 0 : 360);
 }
 $('#closeDrawer').onclick=closeDrawer;
 $('#overlay').onclick=e=>{if(e.target===$('#overlay')) closeDrawer();};
@@ -600,7 +656,7 @@ function renderCard(c) {
   const rest = facts.filter(a => !primary.includes(a));
   html += primary.length ? `<ul class="facts">${primary.map(li).join('')}</ul>` :
     '<p class="gaps">Сводка содержит сведения о компании. Для оценки финансов и обязательств учитывайте полноту доступных данных.</p>';
-  if (rest.length) html += `<details class="more-facts"><summary>Ещё факты из отчёта · ${rest.length}</summary><ul class="facts">${rest.map(li).join('')}</ul></details>`;
+  if (rest.length) html += `<details class="more-facts"><summary>Ещё факты из отчёта · ${rest.length}</summary><div class="disclosure-content"><ul class="facts">${rest.map(li).join('')}</ul></div></details>`;
   const gaps = [...(c.gaps || [])].sort((a,b)=>goal==='deal' ? Number(/прибыл|ликвид|финанс/.test(b))-Number(/прибыл|ликвид|финанс/.test(a)) : 0), asks = cardRequests(c);
   if (gaps.length || asks.length) html += '<div class="card-extra">' +
     (gaps.length ? `<div class="gaps"><b>Чего не хватает для оценки</b><ul>${gaps.map(g => `<li>${esc(cleanText(g))}</li>`).join('')}</ul></div>` : '') +
@@ -623,6 +679,7 @@ function showCompany(c) {
   $("#companyRatings").innerHTML = bankMarks(c.labels);
   $("#ahead").textContent = "";
   renderCard(c);
+  fadeIn($('#company')); fadeIn($('#agent'));
   $("#ask").focus({preventScroll:true});
 }
 
@@ -642,7 +699,7 @@ async function check(q) {
     if (!current || current.inn !== res.inn) { clearComposers(); thread=newThread(); $('#thread').innerHTML=''; goal=null; sentGoal=false; }
     $('#q').value='';
     showCompany(card); renderAsks(); $("#goals").querySelectorAll("[data-goal]").forEach(x=>x.classList.toggle("on",x.dataset.goal===goal));
-    $('#company').scrollIntoView({block:'start'});
+    $('#company').scrollIntoView({block:'start',behavior:reducedMotion.matches ? 'instant' : 'smooth'});
   } catch (e) { showMessage($('#picker'), failText(e,q.trim())); }
   finally { setBusy(false); }
 }
@@ -696,13 +753,14 @@ function compare() {
   $("#cmpPanel").hidden = false;
   $("#cmphead").textContent = `${chosen.length} компании`;
   renderComparison(chosen.map((c) => c.card));
+  fadeIn($('#cmpPanel'));
   chatPut({mode:"many", chosen, name:chosen.map(c => c.name).join(", "), turns:[]});
   $("#cmpPanel").scrollIntoView({ block: "start", behavior: reducedMotion.matches ? "instant" : "smooth" });
 }
 
 // ---------- поток ответа агента
 function scrollRoot() { return window.innerWidth <= 720 ? document.scrollingElement : $('#workspace'); }
-let followResponse=true, activeTurn=null, touchY=null, previousScrollTop=0;
+let followResponse=true, activeTurn=null, touchY=null, previousScrollTop=0, revealFrame=null;
 function nearBottom() { const el=scrollRoot(); return el.scrollHeight-el.scrollTop-el.clientHeight < 100; }
 function updateJump() {
   for(const button of document.querySelectorAll('.jump-latest')) {
@@ -715,10 +773,11 @@ function goBottom() {
   const el=scrollRoot(); el.scrollTo({top:el.scrollHeight,behavior:reducedMotion.matches ? 'instant' : 'smooth'});
 }
 function revealResponse(requestThread) {
-  requestAnimationFrame(()=>{
+  cancelAnimationFrame(revealFrame);
+  revealFrame=requestAnimationFrame(()=>{
     if(requestThread===thread && followResponse && activeTurn?.isConnected) {
       const el=scrollRoot(), isPage=el===document.scrollingElement;
-      const header=isPage ? 0 : $('.topbar').offsetHeight;
+      const header=isPage ? $('.sidebar').offsetHeight : $('.topbar').offsetHeight;
       const top=activeTurn.getBoundingClientRect().top+el.scrollTop-(isPage ? 0 : el.getBoundingClientRect().top)-header-16;
       el.scrollTo({top,behavior:reducedMotion.matches ? 'instant' : 'smooth'});
     }
@@ -757,20 +816,24 @@ async function stream(container, question, shown, onEnd, attempt) {
   const requestThread = thread;
   if (!attempt) {
     container.insertAdjacentHTML('beforeend', `<div class="turn user"><div class="who">Вы</div><div class="bubble">${esc(shown || question)}</div></div>`);
+    fadeIn(container.lastElementChild);
     chatTurn('user',shown || question);
   }
   const turn=document.createElement('div'); turn.className='turn';
   turn.innerHTML='<div class="who">Помощник</div><div class="answer"><div class="status" role="status">Готовлю ответ по отчёту…</div><div class="body"></div></div>';
   container.append(turn);
+  fadeIn(turn);
   const status=turn.querySelector('.status'), body=turn.querySelector('.body');
   let ended=false;
   activeTurn=[...container.querySelectorAll('.turn.user')].at(-1);
   followResponse=true; revealResponse(requestThread);
   const fail = () => {
+    const answer=turn.querySelector('.answer'), before=answer.getBoundingClientRect().height;
     status.hidden=true; body.innerHTML='<div class="error-message" role="alert">Не удалось получить ответ. Повторите запрос.</div>';
     const retry=document.createElement('button'); retry.className='quiet'; retry.textContent='Повторить запрос';
     retry.onclick=()=>{ if (busy || thread !== requestThread) return; turn.remove(); stream(container,question,shown,onEnd,true); };
     body.append(retry);
+    animateHeight(answer,before,answer.getBoundingClientRect().height,()=>revealResponse(requestThread)); fadeIn(body);
   };
   try {
     const res=await fetch('/v1/runs/stream',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({thread_id:requestThread,input:{messages:[{role:'user',content:question}]}})});
@@ -785,8 +848,12 @@ async function stream(container, question, shown, onEnd, attempt) {
         if(!raw) continue; let env; try {env=JSON.parse(raw);} catch {continue;}
         if(env.type==='end') {
           ended=true; const a=env.data.output;
+          const answer=turn.querySelector('.answer'), before=answer.getBoundingClientRect().height;
           status.hidden=true; body.innerHTML=md(answerText(a) || 'В отчёте недостаточно сведений для ответа.');
-          answerActions(turn.querySelector('.answer'),a);
+          answerActions(answer,a);
+          animateHeight(answer,before,answer.getBoundingClientRect().height,()=>revealResponse(requestThread));
+          [...body.children].forEach((block,i)=>fadeIn(block,Math.min(i*35,140)));
+          fadeIn(answer.querySelector('.actions'),120);
           chatTurn('agent',a.text_md,a);
           if(onEnd) await onEnd(a);
           revealResponse(requestThread);
@@ -847,8 +914,10 @@ function statedGoal(text) {
 function setGoal(next) {
   goal=next; sentGoal=false;
   $('#goals').querySelectorAll('[data-goal]').forEach(b=>b.classList.toggle('on',b.dataset.goal===goal));
-  renderAsks();
-  if(current) {renderCard(current.card);chatPut({goal});}
+  replaceSmoothly($('#card'),()=>{
+    renderAsks();
+    if(current) {renderCard(current.card);chatPut({goal});}
+  });
 }
 function applyStatedGoal(question) {
   const next=statedGoal(question);
@@ -959,12 +1028,14 @@ function switchMode(mode) {
     history.replaceState(null,'',location.pathname);renderChats();
   }
   const one = mode === "one", many = mode === "many", mcp = mode === "mcp", quality = mode === "quality";
+  const nextPanel=$(one ? '#modeOne' : many ? '#modeMany' : mcp ? '#modeMcp' : '#modeQuality'), changed=nextPanel.hidden;
   $("#modeOne").hidden = !one; $("#modeMany").hidden = !many; $("#modeMcp").hidden = !mcp; $("#modeQuality").hidden = !quality;
   $("#tabOne").classList.toggle("on", one); $("#tabMany").classList.toggle("on", many);
   $("#tabMcp").classList.toggle("on", mcp); $("#tabQuality").classList.toggle("on", quality);
   const titles={one:"Проверка контрагента",many:"Сравнение компаний",quality:"Качество ответов",mcp:"Подключение к агентам"};
   $("#pageTitle").textContent=titles[mode];
   document.querySelectorAll(".tabs button").forEach(b=>b.classList.contains("on") ? b.setAttribute("aria-current","page") : b.removeAttribute("aria-current"));
+  if(changed) fadeIn(nextPanel);
   if (mcp) loadMcp(); else if (quality) loadQuality(); else (many ? $("#addq") : current ? $("#ask") : $("#q")).focus({preventScroll:true});
 }
 $("#tabOne").addEventListener("click", () => switchMode("one"));
@@ -997,6 +1068,7 @@ $("#reset").addEventListener("click", () => {
   $("#company").hidden = true; $("#agent").hidden = true; $("#thread").innerHTML = ""; $("#q").value = ""; $("#picker").hidden = true;
   $("#cmpPanel").hidden = true; $("#cmpThread").innerHTML = ""; $("#addq").value = ""; $("#picker2").hidden = true; renderChosen();
   switchMode("one");
+  fadeIn($('#searchArea'));
 });
 $("#chats").addEventListener("click", (e) => {
   if(busy) return;
@@ -1014,6 +1086,7 @@ for(const input of [$('#ask'),$('#cmpAsk')]) {
   input.form.addEventListener('submit',()=>{if(!input.value) input.style.height='auto';});
 }
 $('#navToggle').addEventListener('click',()=>setNavigationOpen($('#navToggle').getAttribute('aria-expanded')!=='true'));
+window.addEventListener('resize',()=>{$('#sidebarContent').inert=window.innerWidth<=720 && $('#navToggle').getAttribute('aria-expanded')!=='true';});
 document.addEventListener('keydown',e=>{if(e.key==='Escape' && $('#navToggle').getAttribute('aria-expanded')==='true'){setNavigationOpen(false);$('#navToggle').focus();}});
 renderChosen();
 renderAsks();
