@@ -323,7 +323,16 @@ function md(text) {
   return out.join("");
 }
 
-async function fetchJson(url) { const r = await fetch(url); if (!r.ok) throw new Error(`HTTP ${r.status}`); return r.json(); }
+async function fetchJson(url) {
+  let r;
+  try { r = await fetch(url); } catch (e) { const err = new Error("сеть"); err.offline = true; throw err; }
+  if (!r.ok) { const err = new Error(`HTTP ${r.status}`); err.status = r.status; err.offline = r.status >= 500; throw err; }
+  return r.json();
+}
+// связь оборвалась — это не «отчёта нет»: у публичной ссылки такое бывает, надо звать повторить
+const failText = (e, inn) => e && e.offline
+  ? "Связь со стендом прервалась. Обновите страницу и попробуйте ещё раз."
+  : `Отчёта по ИНН ${inn} в базе нет.`;
 
 async function resolveCompany(q) {
   q = q.trim();
@@ -407,7 +416,7 @@ async function check(q) {
   if (!current || current.inn !== res.inn) { thread = newThread(); $("#thread").innerHTML = ""; }
   $("#agent").hidden = false; $("#card").innerHTML = '<div class="skeleton"></div><div class="skeleton" style="width:70%"></div>';
   try { showCompany(await fetchJson(`/report/${res.inn}/card`)); }
-  catch (e) { $("#card").innerHTML = `<div class="empty" style="padding:12px 20px">Отчёта по ИНН ${esc(res.inn)} в базе нет.</div>`; }
+  catch (e) { $("#card").innerHTML = `<div class="empty" style="padding:12px 20px">${esc(failText(e, res.inn))}</div>`; }
 }
 
 // ---------- сравнение
@@ -433,7 +442,7 @@ async function addCompany(q) {
   }
   if (chosen.some((c) => c.inn === res.inn)) { $("#addq").value = ""; return; }
   let card;
-  try { card = await fetchJson(`/report/${res.inn}/card`); } catch (e) { showMessage($("#picker2"), `Отчёта по ИНН ${res.inn} в базе нет.`); return; }
+  try { card = await fetchJson(`/report/${res.inn}/card`); } catch (e) { showMessage($("#picker2"), failText(e, res.inn)); return; }
   chosen.push({ inn: card.inn, name: card.name, date: card.report_date, card });
   $("#addq").value = ""; renderChosen();
 }
