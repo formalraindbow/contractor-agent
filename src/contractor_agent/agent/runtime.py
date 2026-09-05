@@ -11,15 +11,19 @@ from __future__ import annotations
 import asyncio
 import json
 from collections.abc import Sequence
+from contextlib import AsyncExitStack
 from datetime import UTC, datetime
 from typing import Any
 
+import aiosqlite
 from langchain_core.messages import BaseMessage
 from langgraph.checkpoint.base import BaseCheckpointSaver
+from langgraph.checkpoint.serde.jsonplus import JsonPlusSerializer
+from langgraph.checkpoint.sqlite.aio import AsyncSqliteSaver
 from mcp.client.client import Client
 from mcp.client.stdio import StdioServerParameters
 
-from contractor_agent.agent.graph import build_graph, initial_state
+from contractor_agent.agent.graph import ALLOWED_STATE_TYPES, build_graph, initial_state
 from contractor_agent.agent.llm import LLM, make_llm
 from contractor_agent.agent.schema import Answer
 from contractor_agent.agent.telemetry import RunMetrics, build_fingerprint
@@ -48,8 +52,29 @@ class AgentRuntime:
         self.graph = None
         self.tools: list[Any] = []
         self.fingerprint = build_fingerprint()
+        self._stack: AsyncExitStack | None = None
 
     async def __aenter__(self) -> AgentRuntime:
+        self._stack = AsyncExitStack()
+        try:
+            return await self._open()
+        except BaseException:
+            await self._stack.aclose()
+            raise
+
+    async def _open(self) -> AgentRuntime:
+        assert self._stack is not None
+        checkpointer = self.checkpointer
+        if checkpointer is None and self.settings.session_store == "sqlite":
+            path = self.settings.session_database
+            path.parent.mkdir(parents=True, exist_ok=True)
+            # Local durable storage; no pickle fallback for graph state.
+            path.touch(mode=0o600, exist_ok=True)
+            conn = await self._stack.enter_async_context(aiosqlite.connect(path))
+            checkpointer = AsyncSqliteSaver(
+                conn, serde=JsonPlusSerializer(allowed_msgpack_modules=ALLOWED_STATE_TYPES)
+            )
+            await checkpointer.setup()
         if self.mcp_stdio:
             params = StdioServerParameters(
                 command="uv",
@@ -58,14 +83,14 @@ class AgentRuntime:
             self.client = Client(params)
         else:
             self.client = Client(build_server(self.source))
-        await self.client.__aenter__()
+        await self._stack.enter_async_context(self.client)
         self.tools = await load_tools(self.client)
-        self.graph = build_graph(self.llm, self.tools, self.source, self.checkpointer)
+        self.graph = build_graph(self.llm, self.tools, self.source, checkpointer)
         return self
 
     async def __aexit__(self, *exc: Any) -> None:
-        if self.client is not None:
-            await self.client.__aexit__(*exc)
+        if self._stack is not None:
+            await self._stack.__aexit__(*exc)
 
     async def ask(
         self, question: str, thread_id: str = "cli", *, history: Sequence[BaseMessage] = ()

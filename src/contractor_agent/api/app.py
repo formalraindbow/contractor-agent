@@ -165,6 +165,8 @@ def create_app(runtime_factory: Callable[[], AgentRuntime] | None = None) -> Fas
             elif isinstance(m, AIMessage) and m.additional_kwargs.get("visible"):
                 messages.append({"role": "assistant", "content": m.content})
         answer = values.get("answer")
+        if answer and messages and messages[-1] == {"role": "assistant", "content": answer.text_md}:
+            messages[-1]["output"] = answer.model_dump(mode="json")
         return {
             "thread_id": thread_id,
             "messages": messages,

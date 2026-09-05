@@ -48,6 +48,12 @@ class Settings(BaseSettings):
     llm_api_key_override: str | None = None  # LLM_API_KEY_OVERRIDE: ключ для произвольного base_url
     recursion_limit: int = 32  # two companies, sequential tools and one repair; time stays bounded
     runs_dir: Path = Path("runs")
+    session_store: Literal["sqlite", "memory"] = "sqlite"
+    session_db_path: Path | None = None
+
+    @property
+    def session_database(self) -> Path:
+        return self.session_db_path or self.runs_dir / "sessions.sqlite3"
 
     @property
     def fallback_models(self) -> list[str]:

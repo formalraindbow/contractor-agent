@@ -9,6 +9,8 @@ node_modules/
 CLAUDE.local.md
 runs/
 *.sqlite
+*.sqlite3*
+*.sqlite-*
 *.db
 .pytest_cache/
 .ruff_cache/

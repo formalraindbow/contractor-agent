@@ -777,7 +777,7 @@
       <main class="main">
         <header class="topbar">
           <span class="topbar-title">Проверка контрагента</span
-          ><span class="snapshot">По данным отчётов</span
+          ><span class="snapshot" id="conversation-context">По данным отчётов</span
           ><button class="mobile-new" data-new>Новая проверка</button>
         </header>
         <div class="workspace">
@@ -891,7 +891,8 @@
         lastFocus = null,
         searchTimer = null,
         searchGeneration = 0,
-        lastQuestion = "";
+        lastQuestion = "",
+        restoring = false;
       const answers = [];
       const toolLabels = {
         search_company: "Ищу компанию в базе",
@@ -931,11 +932,59 @@
         }
         return html + (list ? "</ul>" : "");
       }
+      function rememberThread() {
+        const url = new URL(location.href);
+        url.searchParams.set("chat", thread);
+        window.history.replaceState(null, "", url);
+        try { sessionStorage.setItem("contractor-chat", thread); } catch {}
+      }
+      function showContext(inns) {
+        $("conversation-context").textContent = inns?.length
+          ? "В этом чате: ИНН " + inns.join(", ")
+          : "По данным отчётов";
+      }
+      async function restoreThread() {
+        const gen = ++generation;
+        restoring = true;
+        $("send").disabled = true;
+        const status = bubble("assistant", "");
+        busy(status, "Восстанавливаю разговор");
+        try {
+          const res = await fetch("/v1/threads/" + encodeURIComponent(thread) + "/state");
+          if (!res.ok) throw Error("restore");
+          const state = await res.json();
+          if (gen !== generation) return;
+          $("chat").replaceChildren();
+          answers.length = 0;
+          for (const message of state.messages || []) {
+            const el = bubble(message.role, message.content);
+            if (message.role === "assistant")
+              showAnswer(el, message.output || { text_md: message.content });
+            else lastQuestion = message.content;
+          }
+          $("welcome").hidden = !!state.messages?.length;
+          showContext(state.selected_inns);
+          if (state.messages?.at(-1)?.role === "user") {
+            const unfinished = bubble("assistant", "");
+            unfinished.querySelector(".answer-text").innerHTML =
+              '<p>Ответ на последний запрос не был завершён.</p><div class="answer-actions"><button data-retry>Повторить запрос</button></div>';
+          }
+          restoring = false;
+          $("send").disabled = false;
+        } catch {
+          if (gen !== generation) return;
+          status.querySelector(".answer-text").innerHTML =
+            '<div class="error">Сервер временно недоступен. Разговор можно восстановить после подключения.</div><div class="answer-actions"><button data-restore>Восстановить разговор</button></div>';
+        }
+      }
       function reset() {
         generation++;
         controller?.abort();
         controller = null;
         thread = crypto.randomUUID();
+        rememberThread();
+        restoring = false;
+        showContext([]);
         answers.length = 0;
         $("chat").replaceChildren();
         $("welcome").hidden = false;
@@ -963,10 +1012,11 @@
       }
       async function ask(text) {
         text = text.trim();
-        if (!text || controller) return;
+        if (!text || controller || restoring) return;
         const gen = ++generation;
         controller = new AbortController();
         const signal = controller.signal;
+        rememberThread();
         lastQuestion = text;
         $("welcome").hidden = true;
         $("question").value = "";
@@ -1021,6 +1071,7 @@
                 );
               if (event.type === "end") {
                 showAnswer(el, event.data.output);
+                showContext(event.data.output.active_inns);
                 done = true;
               }
               if (event.type === "error")
@@ -1036,7 +1087,9 @@
           if (error.name !== "AbortError" && gen === generation) {
             el.querySelector(".answer-text").innerHTML =
               '<div class="error">' +
-              esc(error.message) +
+              esc(error instanceof TypeError
+                ? "Не удалось связаться с сервером. Контекст разговора сохраняется; повторите запрос после подключения."
+                : error.message) +
               '</div><div class="answer-actions"><button data-retry>Повторить запрос</button></div>';
           }
         } finally {
@@ -1086,7 +1139,7 @@
         v.textContent = answer.verification?.rejected_citations
           ? "Часть утверждений не прошла проверку. Они исключены из ответа."
           : "Основания доступны по ссылкам на поля и расчёты.";
-        el.append(v);
+        if (answer.verification?.checked_citations || answer.verification?.rejected_citations) el.append(v);
         if (answer.next_actions?.length) {
           const n = document.createElement("div");
           n.className = "next-actions";
@@ -1355,7 +1408,14 @@
           $("question").value = b.dataset.fill;
           $("question").focus();
         }
-        if (b.hasAttribute("data-retry")) ask(lastQuestion);
+        if (b.hasAttribute("data-retry")) {
+          const previous = b.closest(".message")?.previousElementSibling;
+          ask(previous?.querySelector(".user-bubble")?.textContent || lastQuestion);
+        }
+        if (b.hasAttribute("data-restore")) {
+          b.closest(".message")?.remove();
+          restoreThread();
+        }
         if (b.classList.contains("source-button")) source(b);
       });
       $("close").onclick = closeDrawer;
@@ -1419,6 +1479,15 @@
           $("drawer-content").textContent = "Не удалось загрузить сведения.";
         }
       };
+      let savedThread = new URL(location.href).searchParams.get("chat");
+      if (!savedThread) {
+        try { savedThread = sessionStorage.getItem("contractor-chat"); } catch {}
+      }
+      if (savedThread && /^[a-zA-Z0-9_-]{1,128}$/.test(savedThread)) {
+        thread = savedThread;
+        rememberThread();
+        restoreThread();
+      }
     </script>
   </body>
 </html>

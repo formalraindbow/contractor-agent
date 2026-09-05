@@ -19,6 +19,7 @@ from langchain_core.messages import AIMessage, BaseMessage, HumanMessage, System
 from langgraph.graph import END
 from langgraph.prebuilt import ToolNode
 
+from contractor_agent.agent.capabilities import asks_live_registry, registry_answer
 from contractor_agent.agent.citations import (
     claim_measurements,
     extract_inline_citations,
@@ -183,6 +184,15 @@ def make_nodes(llm: LLM, tools: list[Any], source: ReportSource) -> dict[str, No
                     *[f"- {item['name']} — ИНН {item['inn']}" for item in choices],
                 ],
             )
+        if (
+            not not_found
+            and disambiguation is None
+            and asks_live_registry(str(state.get("question") or ""))
+        ):
+            return {
+                "answer": registry_answer(source, list(state.get("selected_inns") or [])),
+                "draft": None,
+            }
         structured_failed = False
         try:
             draft = (
