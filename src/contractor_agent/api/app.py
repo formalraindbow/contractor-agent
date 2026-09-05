@@ -10,6 +10,7 @@
 from __future__ import annotations
 
 import base64
+import json
 import secrets
 from collections.abc import Callable
 from contextlib import asynccontextmanager
@@ -26,6 +27,13 @@ from sse_starlette.sse import EventSourceResponse
 
 from contractor_agent import __version__
 from contractor_agent.agent.nodes import build_card
+from contractor_agent.agent.presentation import (
+    PUBLIC_ANNOTATIONS,
+    PUBLIC_LABELS,
+    PUBLIC_PHRASES,
+    PUBLIC_TERMS,
+    public_text,
+)
 from contractor_agent.agent.runtime import AgentRuntime
 from contractor_agent.agent.stream import CONTRACT_VERSION, new_run_id, stream_run
 from contractor_agent.api.evidence import evidence
@@ -115,7 +123,20 @@ def create_app(
     def index() -> HTMLResponse:
         # без кэша: страницу правим по ходу демо, у коллег не должно остаться старой версии
         return HTMLResponse(
-            (STATIC / "index.html").read_text(encoding="utf-8"),
+            (STATIC / "index.html")
+            .read_text(encoding="utf-8")
+            .replace(
+                "__PUBLIC_TEXT_RULES__",
+                json.dumps(
+                    {
+                        "terms": PUBLIC_TERMS,
+                        "labels": PUBLIC_LABELS,
+                        "phrases": PUBLIC_PHRASES,
+                        "annotations": PUBLIC_ANNOTATIONS,
+                    },
+                    ensure_ascii=False,
+                ),
+            ),
             headers={"Cache-Control": "no-store, must-revalidate"},
         )
 
@@ -193,7 +214,11 @@ def create_app(
             "messages": messages,
             "selected_inns": values.get("selected_inns") or [],
             "report_dates": values.get("report_dates") or {},
-            "answer": answer.model_dump(mode="json") if answer else None,
+            "answer": answer.model_copy(update={"text_md": public_text(answer.text_md)}).model_dump(
+                mode="json"
+            )
+            if answer
+            else None,
         }
 
     @app.get("/v1/mcp/info")

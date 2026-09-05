@@ -454,3 +454,110 @@ def test_flag_meaning_uses_confirmed_fact_without_other_risks(snapshot, question
     assert all(c.ok for c in validate_citations(snapshot, ["2311304742"], result.citations))
     assert scoped_answer(Tools(snapshot), ["1684017097"], question) is None
     assert scoped_answer(Tools(snapshot), ["2311304742"], question + " И что с судами?") is None
+
+
+@pytest.mark.parametrize(
+    "text",
+    [
+        "В отчёте нет финансовой отчётности (раздел **finReports** не представлен).",
+        "Ликвидность: 0.49 [report.finReports[0].assets, report.finReports[0].liabilities].",
+        "Ликвидность: 0.49 [, ].",
+        "Нет данных (currentAssets, shortTermLiabilities).",
+        "Отметка: `flag_fnsBlocking`.",
+        "**finReports** не представлены.",
+        "Нет данных — finReports[0].common.profit.",
+        "Светофор банка — красный (HIGH). Блокировка счетов (moderate).",
+    ],
+)
+def test_public_text_hides_schema_names_and_annotation_remnants(text):
+    cleaned = public_text(text)
+    assert not has_internal_text(cleaned)
+    assert "[," not in cleaned and "`" not in cleaned and "****" not in cleaned
+    assert public_text(cleaned) == cleaned
+
+
+def test_public_text_keeps_names_urls_and_financial_meaning():
+    text = (
+        "ООО «DataLine». Убыток за 2024 год ‑ 26,2 млн ₽. Нет данных о оборотных активах. "
+        "[Источник](https://example.com/report.finReports?source_path=assets)."
+    )
+    cleaned = public_text(text)
+    assert "DataLine" in cleaned and "год — 26,2 млн ₽" in cleaned
+    assert "об оборотных активах" in cleaned
+    assert "https://example.com/report.finReports?source_path=assets" in cleaned
+    assert not has_internal_text(cleaned)
+
+
+@pytest.mark.parametrize("inn", ["5029069967", "052500690823"])
+def test_missing_financials_explain_unavailable_metrics_without_schema(snapshot, inn):
+    from contractor_agent.agent.citations import validate_citations
+    from contractor_agent.agent.scoped_answers import scoped_answer
+
+    tools = Tools(snapshot)
+    answer = scoped_answer(tools, [inn], "Покажи финансы")
+    assert answer and answer.kind == "answer"
+    assert "выручк" in answer.text_md and "прибыл" in answer.text_md
+    assert "раздел" not in answer.text_md.lower() and "finReports" not in answer.text_md
+    assert all(c.ok for c in validate_citations(snapshot, [inn], answer.citations))
+    assert all("раздел" not in gap.lower() for gap in build_card(tools, inn).gaps)
+
+
+def test_financial_overview_cites_real_rows_and_honors_requested_year(snapshot):
+    from contractor_agent.agent.citations import validate_citations
+    from contractor_agent.agent.scoped_answers import scoped_answer
+
+    tools = Tools(snapshot)
+    answer = scoped_answer(tools, ["6165169320"], "Покажи финансы по годам")
+    assert all(c.ok for c in validate_citations(snapshot, ["6165169320"], answer.citations))
+    assert "0,49" in answer.text_md and "строка в отчёте отсутствует" in answer.text_md
+    assert any(
+        c.claim.endswith("0,491") and c.source_path == "report.finReports[1]"
+        for c in answer.citations
+    )
+    year = scoped_answer(tools, ["6165169320"], "Покажи финансы за 2024 год")
+    assert "### 2024 год" in year.text_md and "### 2025" not in year.text_md
+    assert scoped_answer(tools, ["6165169320"], "Почему ухудшились финансы?") is None
+
+
+@pytest.mark.parametrize(
+    "context",
+    [
+        "",
+        " Речь о компании ИП ЯНПОЛОВ, ИНН 052500690823. Готовлю претензию.",
+        " Контекст сравнения: ГДК 6165169320, ТЕХПРОФ 1684017097.",
+        " Компании: БИЛД-ЮГ 2311304742, ТЕХПРОФ 1684017097.",
+    ],
+)
+def test_weather_question_is_not_a_company_summary(context):
+    from contractor_agent.agent.nodes import offtopic_reply, route_input
+
+    question = "Какая погода в Москве?" + context
+    assert route_input({"question": question}) == "guard"
+    assert "На этот вопрос в отчёте ответа нет" in offtopic_reply(question)
+    for question in ["А почему?", "Объясни рекомендацию", "Покажи финансы", "А за 2025 год?"]:
+        # Existing contextual follow-ups must still reach the agent.
+        assert offtopic_reply(question + " Речь о компании ЯНПОЛОВ, ИНН 052500690823.") is None
+
+
+async def test_offtopic_turn_skips_model_and_keeps_company_context(snapshot, tmp_path):
+    llm = scripted_llm([])  # Any model call is an error in this scenario.
+    settings = Settings(
+        session_store="sqlite", session_db_path=tmp_path / "chat.sqlite", runs_dir=tmp_path / "runs"
+    )
+    async with AgentRuntime(settings, source=snapshot, llm=llm) as runtime:
+        config = {"configurable": {"thread_id": "offtopic"}}
+        await runtime.graph.aupdate_state(
+            config,
+            {
+                "selected_inns": ["052500690823"],
+                "report_dates": {"052500690823": "2026-08-06"},
+            },
+        )
+        answer = await runtime.ask(
+            "Какая погода в Москве? Речь о компании ЯНПОЛОВ, ИНН 052500690823.", "offtopic"
+        )
+        state = await runtime.graph.aget_state(config)
+    assert answer.kind == "refusal" and not answer.card and not answer.cards
+    assert not answer.citations and not answer.report_dates
+    assert "ЯНПОЛОВ" not in answer.text_md
+    assert state.values["selected_inns"] == ["052500690823"]

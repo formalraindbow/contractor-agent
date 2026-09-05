@@ -81,7 +81,7 @@ def make_nodes(llm: LLM, tools: list[Any], source: ReportSource) -> dict[str, No
                 kind="refusal",
                 text_md=reply,
                 citations=[],
-                report_dates=dict(state.get("report_dates") or {}),
+                report_dates={},
             )
         }
 
@@ -523,6 +523,14 @@ _TOPIC_RE = re.compile(
     r"чем\s+(?:ты\s+)?поможешь|привет|здравств|спасибо|помог",
     re.I,
 )
+_OFFTOPIC_RE = re.compile(
+    r"(?:какая|какую|скажи|расскажи|покажи|узнай|прогноз)[^.!?\n]{0,30}погод"
+    r"|\bпогод[ауы]\s+(?:в\s|на\s|сегодня|завтра)"
+    r"|(?:расскажи|придумай)\s+анекдот"
+    r"|(?:напиши|сочини)\s+(?:стих|песн|сказк)"
+    r"|(?:дай|подскажи|напиши)\s+рецепт",
+    re.I,
+)
 _CAPABILITIES = (
     "Я отвечаю по отчёту банка о контрагенте: оценки банка, суды, долги у приставов, финансы, "
     "лицензии, проверки, виды деятельности — и говорю, на каких условиях с компанией работать. "
@@ -531,6 +539,10 @@ _CAPABILITIES = (
 _INJECTION_REPLY = (
     "Правила проверки я не меняю и инструкции не показываю: отвечаю только фактами из отчёта "
     "банка. Спросите про компанию — суды, долги у приставов, финансы, оценки банка."
+)
+_OFFTOPIC_REPLY = (
+    "Я могу помочь с вопросами по банковскому отчёту о контрагенте: "
+    "финансами, судами, долгами и оценками банка. На этот вопрос в отчёте ответа нет."
 )
 
 
@@ -544,6 +556,10 @@ def offtopic_reply(question: str) -> str | None:
         return _INJECTION_REPLY
     if _ABUSE_RE.search(text):
         return "Давайте по делу. " + _CAPABILITIES
+    # Company identity appended by the UI does not turn an unrelated request into
+    # a report question. Keep the full text above for injection and abuse checks.
+    if _OFFTOPIC_RE.search(question_subject(text)):
+        return _OFFTOPIC_REPLY
     if len(text) <= 60 and not _TOPIC_RE.search(text) and not re.search(r"\?$", text):
         return _CAPABILITIES
     return None
