@@ -634,8 +634,8 @@ function renderComparison(cards) {
   let html = `<div class="cmpwrap"><table class="cmp"><thead><tr><th></th>${cards.map((c) => `<th>${esc(c.name)}<small>отчёт от ${dateRu(c.report_date)}</small></th>`).join("")}</tr></thead><tbody>`;
   html += row("Оценки банка", (c) => `<td>${bankMarks(c.labels,true)}</td>`);
   html += row("Рекомендация помощника", (c) => `<td><div class="comparison-verdict ${c.verdict}">${VERDICT_SHORT[c.verdict]}</div></td>`);
-  html += row("Главное", (c) => `<td>${(c.attention || []).length ? `<ul>${c.attention.slice(0, 3).map((a) => `<li>${esc(a.claim)}</li>`).join("")}</ul>` : `<span class="muted">сигналов не найдено</span>`}</td>`);
-  html += row("Чего нет в отчёте", (c) => `<td class="muted">${(c.gaps || []).length ? esc(c.gaps.join(" · ")) : "пробелов нет"}</td>`);
+  html += row("Главное", (c) => `<td>${(c.attention || []).length ? `<ul>${c.attention.slice(0, 3).map((a) => `<li>${esc(a.claim)}</li>`).join("")}</ul>` : `<span class="muted">Сигналов не найдено</span>`}</td>`);
+  html += row("Чего нет в отчёте", (c) => `<td class="muted">${(c.gaps || []).length ? esc(c.gaps.join(" · ")) : "Пробелов нет"}</td>`);
   html += `</tbody></table></div>`;
   html += `<div class="actions"><button type="button" class="quiet" id="cmpReports">Отчёты · ${cards.length}</button></div>`;
   $("#cmpBody").innerHTML = html;
