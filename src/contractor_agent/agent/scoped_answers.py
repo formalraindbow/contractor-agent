@@ -17,6 +17,22 @@ LABEL = re.compile(r"зск|светофор|метк[аиу]|оценк[аиу]
 DOCUMENTS = re.compile(r"что (?:запросить|уточнить)|какие документы|список документов", re.I)
 STAFF = re.compile(r"сотрудник|численност|сколько.{0,10}работает|сколько.{0,10}персонал", re.I)
 PAYMENT = re.compile(r"плат[её]ж|платить|оплат|переводить", re.I)
+FLAG_MEANINGS = (
+    (
+        re.compile(r"недостоверн.{0,20}адрес|адрес.{0,20}недостоверн", re.I),
+        "flag_invalidAddress",
+        "Недостоверный адрес",
+        "Отметка касается адресных сведений. Она сама по себе не подтверждает, "
+        "что компания не существует или прекратила деятельность.",
+    ),
+    (
+        re.compile(r"блокиров.{0,20}сч[её]т|сч[её]т.{0,20}блокиров", re.I),
+        "flag_fnsBlocking",
+        "Блокировка счетов",
+        "Это отметка об ограничениях по счетам. Какие именно операции ограничены "
+        "и действует ли блокировка сейчас, по этому отчёту определить нельзя.",
+    ),
+)
 ZSK_EXPLANATION = (
     "ЗСК отражает риск вовлечённости в подозрительные операции, "
     "а не способность компании исполнить договор. "
@@ -42,7 +58,31 @@ def scoped_answer(tools: Tools, inns: list[str], question: str) -> Draft | None:
     def cite(claim, path):
         citations.append(Citation(claim=claim, source_path=path, inn=inn))
 
+    meanings = [entry for entry in FLAG_MEANINGS if entry[0].search(q)]
     if (
+        len(meanings) == 1
+        and re.search(r"что\s+(?:это\s+)?(?:значит|означает)|понимать|поясни|объясни", q, re.I)
+        and not re.search(r"суд|финанс|выруч|сколько|документ|оплат|можно|с кем|отсроч", q, re.I)
+    ):
+        risk_response = tools.get_risk_signals(inn)
+        if not risk_response.available:
+            return None
+        _, code, title, meaning = meanings[0]
+        fact = next(
+            (
+                f
+                for group in risk_response.data["signals"].values()
+                for f in group
+                if f["code"] == code
+            ),
+            None,
+        )
+        if fact is None:
+            return None
+        claim = fact["explanation"].split("Такие блокировки", 1)[0].strip()
+        lines = [f"### {title} у {summary['short_name']}", claim, "", meaning]
+        cite(claim, fact["source_path"])
+    elif (
         re.search(r"почему|что значит|что означает", q, re.I)
         and re.search(r"(?:не найден|не выявлен|нет).{0,25}(?:сигнал|риск)", q, re.I)
         and not re.search(r"покажи|сколько|документ|что запросить|оплат|отсроч", q, re.I)
