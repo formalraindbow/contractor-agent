@@ -110,9 +110,11 @@ NO_MATCH = 4
 
 
 def query_stems(query_norm: str) -> list[str]:
-    """Основы слов запроса без орг. формы: «ип янполова» → ["янпол"] — чтобы падеж не мешал."""
-    words = [w for w in strip_legal_form(query_norm).split(" ") if len(w) >= 4]
-    return [w[:-2] if len(w) >= 6 else w[:-1] for w in words]
+    """Основы слов запроса без орг. формы: «ип янполова» → ["янпол"] — чтобы падеж не мешал.
+    Короткие слова («гдк», «псг») участвуют целиком: выкинуть их — значит искать «ГДК материалы»
+    по одному слову «материал» и найти чужую компанию."""
+    words = [w for w in strip_legal_form(query_norm).split(" ") if w]
+    return [w[:-2] if len(w) >= 6 else (w[:-1] if len(w) >= 4 else w) for w in words]
 
 
 def rank(name_norm: str, query_norm: str) -> int:
@@ -130,6 +132,10 @@ def rank(name_norm: str, query_norm: str) -> int:
     if best == NO_MATCH:
         stems, words = query_stems(query_norm), name_norm.split(" ")
         if stems and all(any(w.startswith(stem) for w in words) for stem in stems):
+            best = 3
+        elif stems and strip_legal_form(name_norm) in stems:
+            # «ГДК материалы»: модель склеила название с товаром — точное короткое название
+            # среди слов запроса ценнее, чем пустая выдача (ранг ниже частичных совпадений)
             best = 3
     return best
 

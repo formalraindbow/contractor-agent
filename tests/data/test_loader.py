@@ -94,3 +94,10 @@ def test_report_source_protocol_is_structural() -> None:
 def test_search_tolerates_declension(snapshot):
     hits = snapshot.search("ИП Янполова")
     assert hits and hits[0].inn == "052500690823"
+
+
+def test_search_does_not_swap_company_on_short_name_with_extra_word(snapshot) -> None:
+    """«ГДК материалы» раньше находило МАТЕРИАЛКОНЦЕПТ: короткое «гдк» выпадало из основ."""
+    hits = snapshot.search("ГДК материалы")
+    assert [h.inn for h in hits] == ["6165169320"]
+    assert [h.inn for h in snapshot.search("материалы")] == ["7720901442"]
