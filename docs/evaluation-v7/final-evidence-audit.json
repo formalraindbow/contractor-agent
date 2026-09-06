@@ -1,0 +1,31 @@
+[
+  {
+    "case": "holdout-restore-compared-group",
+    "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-20b/latest",
+    "repeat": 0,
+    "judge": {
+      "score": 0,
+      "failures": [
+        "invented_fact"
+      ],
+      "deductions": [],
+      "invented_facts": [
+        "«Адрес компании признан недостоверным по данным реестров ФНС — по этому адресу её может не быть» – такого факта нет в предоставленных инструментах для ООО «БИЛД‑ЮГ»"
+      ],
+      "comment": "Ответ содержит вымышленный факт о недостоверности адреса компании БИЛД‑ЮГ, которого нет в данных. Это приводит к провалу — оценка 0."
+    },
+    "citation": {
+      "claim": "Адрес компании признан недостоверным по данным реестров ФНС — по этому адресу её может не быть.",
+      "source_path": "report.reputationalRisks.negative[2].code",
+      "inn": "2311304742"
+    },
+    "source_fragment": {
+      "code": "invalidAddress",
+      "name": "Находится в реестре организаций с фиктивным адресом, что может свидетельствовать о мошеннических действиях. Не рекомендуется сотрудничать с компаниями, использующими фиктивный адрес.",
+      "chapter": "reestrs"
+    },
+    "field_in_judge_tool_context": false,
+    "analysis": "The source contains this fact; the judge input lacks the related report signal. Trace/evaluator-context limitation, not established factual invention.",
+    "candidate": "Q"
+  }
+]

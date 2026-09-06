@@ -1,0 +1,104 @@
+{
+  "planned_scenarios": 528,
+  "completed_scenarios": 528,
+  "models": {
+    "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-120b/latest": {
+      "scenarios": 264,
+      "agent_errors": 1,
+      "code_passes": 245,
+      "by_type": {
+        "answer": {
+          "n": 147,
+          "passed": 142
+        },
+        "comparison": {
+          "n": 3,
+          "passed": 0
+        },
+        "dialog": {
+          "n": 51,
+          "passed": 43
+        },
+        "guard": {
+          "n": 27,
+          "passed": 27
+        },
+        "refuse": {
+          "n": 36,
+          "passed": 33
+        }
+      },
+      "case_duration_p50_s": 6.4,
+      "case_duration_p95_s": 15.9,
+      "successful_turn_duration_p50_s": 2.352,
+      "successful_turn_duration_p95_s": 8.057,
+      "repeat_groups": 88,
+      "planned_case_groups": 88,
+      "groups_all_repeats_pass": 80,
+      "observed_llm_completions": 718,
+      "completions_with_usage": 718,
+      "input_tokens": 2428535,
+      "output_tokens": 132471,
+      "failed_llm_callbacks": 1,
+      "judge_coverage": 263,
+      "judge_passes": 252,
+      "semantic_correctness": null
+    },
+    "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-20b/latest": {
+      "scenarios": 264,
+      "agent_errors": 0,
+      "code_passes": 245,
+      "by_type": {
+        "answer": {
+          "n": 147,
+          "passed": 140
+        },
+        "comparison": {
+          "n": 3,
+          "passed": 0
+        },
+        "dialog": {
+          "n": 51,
+          "passed": 45
+        },
+        "guard": {
+          "n": 27,
+          "passed": 27
+        },
+        "refuse": {
+          "n": 36,
+          "passed": 33
+        }
+      },
+      "case_duration_p50_s": 5.3,
+      "case_duration_p95_s": 10.5,
+      "successful_turn_duration_p50_s": 1.439,
+      "successful_turn_duration_p95_s": 4.385,
+      "repeat_groups": 88,
+      "planned_case_groups": 88,
+      "groups_all_repeats_pass": 81,
+      "observed_llm_completions": 723,
+      "completions_with_usage": 723,
+      "input_tokens": 2447557,
+      "output_tokens": 92653,
+      "failed_llm_callbacks": 0,
+      "judge_coverage": 264,
+      "judge_passes": 259,
+      "semantic_correctness": null
+    }
+  },
+  "paired_code_checks": {
+    "matched_pairs": 264,
+    "both_pass": 243,
+    "only_first_pass": 2,
+    "only_second_pass": 2,
+    "both_fail": 17
+  },
+  "limitations": [
+    "Diagnostic selection of known cases; not a random sample or unseen holdout.",
+    "Code passes are not semantic correctness; no hallucination rate measured.",
+    "Dialogue turns are saved in full, but legacy checks assess only the last turn.",
+    "SDK retries and failed-request tokens may be unobservable; sums are reported usage.",
+    "Successful-turn latency excludes failed turns; see errors and scenario durations."
+  ]
+}

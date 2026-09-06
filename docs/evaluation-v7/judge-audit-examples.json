@@ -1,0 +1,154 @@
+{
+  "notice": "Диагностический разбор помощником по исходному снимку; не независимая экспертная приёмка. Исторические баллы не изменены.",
+  "examples": [
+    {
+      "candidate": "I",
+      "record": "gpt_b1gir8dkimq5j60i6ajf_gpt-oss-20b_latest--comparison-samza-agrofrut-same-verdict-deferral--0.json",
+      "question": "Кому из двух можно дать отсрочку платежа: ООО ЛПК «САМЗА» (ИНН 8622002583) или ООО «АГРОФРУТ» (ИНН 7724398540)?",
+      "judge": {
+        "score": 0,
+        "failures": [
+          "invented_fact"
+        ],
+        "deductions": [],
+        "invented_facts": [
+          "Выручка: 4,3 млрд ₽",
+          "Прибыль / убыток: 97 млн ₽",
+          "Выручка: 4,7 млрд ₽",
+          "Прибыль / убыток: 45,6 млн ₽",
+          "Выручка: 5,5 млрд ₽",
+          "Прибыль / убыток: 97,3 млн ₽"
+        ],
+        "comment": "В ответе указаны финансовые показатели для ООО «АГРОФРУТ», которых нет в предоставленных данных инструментов. Это считается вымышленным фактом, что приводит к провалу и оценке 0 баллов."
+      },
+      "source_inn": "7724398540",
+      "source_evidence": [
+        {
+          "year": 2025,
+          "proceeds": 4309870000,
+          "profit": 96981000,
+          "paths": {
+            "proceeds": "report.finReports[0].common.proceeds",
+            "profit": "report.finReports[0].common.profit",
+            "total_assets": "report.finReports[0].assets.totalAssets",
+            "current_assets": "report.finReports[0].assets.currentAssets.total",
+            "short_term_liabilities": "report.finReports[0].liabilities.shortTermLiabilities.total",
+            "long_term_duties": "report.finReports[0].liabilities.longTermDuties.total",
+            "capitals": "report.finReports[0].liabilities.capitals",
+            "current_liquidity": [
+              "report.finReports[0].assets.currentAssets.total",
+              "report.finReports[0].liabilities.shortTermLiabilities.total"
+            ],
+            "profitability_pct": [
+              "report.finReports[0].common.profit",
+              "report.finReports[0].common.proceeds"
+            ],
+            "sustainability": [
+              "report.finReports[0].liabilities.capitals",
+              "report.finReports[0].liabilities.longTermDuties.total",
+              "report.finReports[0].assets.totalAssets"
+            ]
+          }
+        },
+        {
+          "year": 2024,
+          "proceeds": 4738614000,
+          "profit": 45644000,
+          "paths": {
+            "proceeds": "report.finReports[1].common.proceeds",
+            "profit": "report.finReports[1].common.profit",
+            "total_assets": "report.finReports[1].assets.totalAssets",
+            "current_assets": "report.finReports[1].assets.currentAssets.total",
+            "short_term_liabilities": "report.finReports[1].liabilities.shortTermLiabilities.total",
+            "long_term_duties": "report.finReports[1].liabilities.longTermDuties.total",
+            "capitals": "report.finReports[1].liabilities.capitals",
+            "current_liquidity": [
+              "report.finReports[1].assets.currentAssets.total",
+              "report.finReports[1].liabilities.shortTermLiabilities.total"
+            ],
+            "profitability_pct": [
+              "report.finReports[1].common.profit",
+              "report.finReports[1].common.proceeds"
+            ],
+            "sustainability": [
+              "report.finReports[1].liabilities.capitals",
+              "report.finReports[1].liabilities.longTermDuties.total",
+              "report.finReports[1].assets.totalAssets"
+            ]
+          }
+        },
+        {
+          "year": 2023,
+          "proceeds": 5538820000,
+          "profit": 97270000,
+          "paths": {
+            "proceeds": "report.finReports[2].common.proceeds",
+            "profit": "report.finReports[2].common.profit",
+            "total_assets": "report.finReports[2].assets.totalAssets",
+            "current_assets": "report.finReports[2].assets.currentAssets.total",
+            "short_term_liabilities": "report.finReports[2].liabilities.shortTermLiabilities.total",
+            "long_term_duties": "report.finReports[2].liabilities.longTermDuties.total",
+            "capitals": "report.finReports[2].liabilities.capitals",
+            "current_liquidity": [
+              "report.finReports[2].assets.currentAssets.total",
+              "report.finReports[2].liabilities.shortTermLiabilities.total"
+            ],
+            "profitability_pct": [
+              "report.finReports[2].common.profit",
+              "report.finReports[2].common.proceeds"
+            ],
+            "sustainability": [
+              "report.finReports[2].liabilities.capitals",
+              "report.finReports[2].liabilities.longTermDuties.total",
+              "report.finReports[2].assets.totalAssets"
+            ]
+          }
+        }
+      ],
+      "manual_assessment": "Все шесть отмеченных судьёй сумм есть в снимке этой компании; текст округляет их до миллионов/миллиардов. Это ложное срабатывание автоматического судьи, а не разрешение публиковать непроверенные суммы."
+    },
+    {
+      "candidate": "I",
+      "record": "gpt_b1gir8dkimq5j60i6ajf_gpt-oss-20b_latest--comparison-tdzhbi-doska-stankistark-deferral--0.json",
+      "question": "Три покупателя просят отсрочку платежа 30 дней: ООО «ТД ЖБИ» (ИНН 1327036448), ООО «ДОСКА И БРУС» (ИНН 5047218428) и ООО «СТАНКИСТАРК» (ИНН 6320036399). Кому можно дать отсрочку, а кому нет?",
+      "judge": {
+        "score": 0,
+        "failures": [
+          "invented_fact"
+        ],
+        "deductions": [],
+        "invented_facts": [
+          "У компании ТД ЖБИ указано, что есть открытое дело, где она выступает истцом (1 дело). В предоставленных инструментах и в эталоне такого факта нет."
+        ],
+        "comment": "Ответ содержит вымышленный факт о наличии открытого иска у ТД ЖБИ, которого нет в данных. Это приводит к провалу и оценке 0."
+      },
+      "source_inn": "1327036448",
+      "source_evidence": {
+        "finished": {
+          "count": 4,
+          "amount": 2038330,
+          "path": "report.arbitrationByStatus.plaintiffArbitration.plaintiffArbitrationFinished.pfCount"
+        },
+        "pending": {
+          "count": 1,
+          "amount": 2148628,
+          "path": "report.arbitrationByStatus.plaintiffArbitration.plaintiffArbitrationPending.ppCount"
+        },
+        "appealed": {
+          "count": 0,
+          "amount": null
+        },
+        "open": {
+          "count": 1,
+          "amount": 2148628,
+          "sum_is_lower_bound": false,
+          "source_paths": [
+            "report.arbitrationByStatus.plaintiffArbitration.plaintiffArbitrationPending.ppCount",
+            "report.arbitrationByStatus.plaintiffArbitration.plaintiffArbitrationPending.ppAmount"
+          ]
+        }
+      },
+      "manual_assessment": "В сводке есть одно дело в производстве, где компания — истец. В ответе роль названа. Дело не приписано ответчику."
+    }
+  ]
+}

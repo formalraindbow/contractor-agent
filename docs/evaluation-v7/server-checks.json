@@ -1,0 +1,497 @@
+{
+  "application_commit": "d0897855c08d75ba9d494356674ebc9311f9db19",
+  "staging_smoke": {
+    "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-120b/latest",
+    "completed": 23,
+    "failures": [],
+    "checks": [
+      {
+        "name": "fresh_extract",
+        "seconds": 6.225,
+        "token_matches_final": true
+      },
+      {
+        "name": "code_guard",
+        "seconds": 0.013,
+        "token_matches_final": true
+      },
+      {
+        "name": "compare",
+        "seconds": 7.618,
+        "token_matches_final": true
+      },
+      {
+        "name": "payment",
+        "seconds": 2.717,
+        "token_matches_final": true
+      },
+      {
+        "name": "card",
+        "seconds": 9.589,
+        "token_matches_final": true
+      },
+      {
+        "name": "missing_year",
+        "seconds": 1.913,
+        "token_matches_final": true
+      },
+      {
+        "name": "head_followup",
+        "seconds": 1.927,
+        "token_matches_final": true
+      },
+      {
+        "name": "current_status",
+        "seconds": 0.055,
+        "token_matches_final": true
+      },
+      {
+        "name": "license_scope",
+        "seconds": 1.646,
+        "token_matches_final": true
+      },
+      {
+        "name": "saved_status",
+        "seconds": 1.182,
+        "token_matches_final": true
+      },
+      {
+        "name": "single_focus",
+        "seconds": 6.258,
+        "token_matches_final": true
+      },
+      {
+        "name": "rest_of_group",
+        "seconds": 1.473,
+        "token_matches_final": true
+      },
+      {
+        "name": "current_court_cases",
+        "seconds": 3.894,
+        "token_matches_final": true
+      },
+      {
+        "name": "unknown_id",
+        "seconds": 1.168,
+        "token_matches_final": true
+      },
+      {
+        "name": "exact_indicator_colors",
+        "seconds": 1.838,
+        "token_matches_final": true
+      },
+      {
+        "name": "registry_explanation",
+        "seconds": 3.303,
+        "token_matches_final": true
+      },
+      {
+        "name": "procurement_rnp",
+        "seconds": 2.963,
+        "token_matches_final": true
+      },
+      {
+        "name": "leading_zero",
+        "seconds": 4.876,
+        "token_matches_final": true
+      },
+      {
+        "name": "inspection_results",
+        "seconds": 5.456,
+        "token_matches_final": true
+      },
+      {
+        "name": "choice_critical_facts",
+        "seconds": 4.492,
+        "token_matches_final": true
+      },
+      {
+        "name": "compound_contacts",
+        "seconds": 1.377,
+        "token_matches_final": true
+      },
+      {
+        "name": "conflicting_dates",
+        "seconds": 7.937,
+        "token_matches_final": true
+      },
+      {
+        "name": "court_role_comparison",
+        "seconds": 3.712,
+        "token_matches_final": true
+      }
+    ]
+  },
+  "restored_backup": {
+    "restored_threads": 69,
+    "thread_count": 69,
+    "sqlite_check": "ok",
+    "shared_turns": 8,
+    "shared_turns_sha256": "3aa4bd2c9663161bd407422cdae2745aed464479b6fa9e9b35f80cbde3acbec6"
+  },
+  "burst_load": {
+    "candidate": "I",
+    "requests": 30,
+    "failures": 0,
+    "wall_time_s": 22.424,
+    "slowest_request_s": 22.359,
+    "scope": "short batch; not sustained capacity test"
+  },
+  "earlier_provider_failures": [
+    {
+      "candidate": "N",
+      "status": 500,
+      "outcome": "API error surfaced; no unverified answer accepted; chat context preserved"
+    },
+    {
+      "candidate": "Q",
+      "status": 500,
+      "successful_requests_in_failed_suite": 20,
+      "failed_groups": 1,
+      "repeat_suite_completed": 22,
+      "repeat_failures": 0,
+      "outcome": "Localized AgentError, no unverified answer accepted; original failure preserved"
+    },
+    {
+      "candidate": "R",
+      "completed": 21,
+      "failures": [
+        {
+          "check": "company",
+          "error": "{'type': 'AgentError', 'message': 'Не удалось завершить запрос. Попробуйте ещё раз.'}"
+        }
+      ],
+      "confirmed_provider_status": 500,
+      "step": "current_status",
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-120b/latest"
+    }
+  ],
+  "earlier_staging_r_default_uri": {
+    "completed": 23,
+    "failures": [],
+    "checks": [
+      {
+        "name": "fresh_extract",
+        "seconds": 6.397,
+        "token_matches_final": true
+      },
+      {
+        "name": "code_guard",
+        "seconds": 0.012,
+        "token_matches_final": true
+      },
+      {
+        "name": "compare",
+        "seconds": 8.742,
+        "token_matches_final": true
+      },
+      {
+        "name": "payment",
+        "seconds": 3.786,
+        "token_matches_final": true
+      },
+      {
+        "name": "card",
+        "seconds": 10.202,
+        "token_matches_final": true
+      },
+      {
+        "name": "head_followup",
+        "seconds": 1.268,
+        "token_matches_final": true
+      },
+      {
+        "name": "single_focus",
+        "seconds": 3.959,
+        "token_matches_final": true
+      },
+      {
+        "name": "missing_year",
+        "seconds": 2.603,
+        "token_matches_final": true
+      },
+      {
+        "name": "rest_of_group",
+        "seconds": 1.66,
+        "token_matches_final": true
+      },
+      {
+        "name": "license_scope",
+        "seconds": 1.873,
+        "token_matches_final": true
+      },
+      {
+        "name": "current_status",
+        "seconds": 4.193,
+        "token_matches_final": true
+      },
+      {
+        "name": "unknown_id",
+        "seconds": 1.484,
+        "token_matches_final": true
+      },
+      {
+        "name": "current_court_cases",
+        "seconds": 3.907,
+        "token_matches_final": true
+      },
+      {
+        "name": "saved_status",
+        "seconds": 4.318,
+        "token_matches_final": true
+      },
+      {
+        "name": "exact_indicator_colors",
+        "seconds": 1.66,
+        "token_matches_final": true
+      },
+      {
+        "name": "registry_explanation",
+        "seconds": 4.34,
+        "token_matches_final": true
+      },
+      {
+        "name": "procurement_rnp",
+        "seconds": 3.64,
+        "token_matches_final": true
+      },
+      {
+        "name": "leading_zero",
+        "seconds": 5.72,
+        "token_matches_final": true
+      },
+      {
+        "name": "inspection_results",
+        "seconds": 5.091,
+        "token_matches_final": true
+      },
+      {
+        "name": "choice_critical_facts",
+        "seconds": 5.98,
+        "token_matches_final": true
+      },
+      {
+        "name": "compound_contacts",
+        "seconds": 1.512,
+        "token_matches_final": true
+      },
+      {
+        "name": "conflicting_dates",
+        "seconds": 7.651,
+        "token_matches_final": true
+      },
+      {
+        "name": "court_role_comparison",
+        "seconds": 2.24,
+        "token_matches_final": true
+      }
+    ]
+  },
+  "staging_runner_startup_note": "Before testing the explicit model URI on R, the harness was started before the API listener was ready. No questions executed. Added bounded health-readiness wait; preserved original local log.",
+  "public_smoke": {
+    "completed": 23,
+    "failures": [],
+    "checks": [
+      {
+        "name": "fresh_extract",
+        "seconds": 4.353,
+        "token_matches_final": true
+      },
+      {
+        "name": "code_guard",
+        "seconds": 0.205,
+        "token_matches_final": true
+      },
+      {
+        "name": "compare",
+        "seconds": 4.751,
+        "token_matches_final": true
+      },
+      {
+        "name": "card",
+        "seconds": 5.631,
+        "token_matches_final": true
+      },
+      {
+        "name": "head_followup",
+        "seconds": 1.094,
+        "token_matches_final": true
+      },
+      {
+        "name": "current_status",
+        "seconds": 0.057,
+        "token_matches_final": true
+      },
+      {
+        "name": "payment",
+        "seconds": 2.281,
+        "token_matches_final": true
+      },
+      {
+        "name": "single_focus",
+        "seconds": 2.913,
+        "token_matches_final": true
+      },
+      {
+        "name": "saved_status",
+        "seconds": 1.296,
+        "token_matches_final": true
+      },
+      {
+        "name": "missing_year",
+        "seconds": 1.297,
+        "token_matches_final": true
+      },
+      {
+        "name": "rest_of_group",
+        "seconds": 1.21,
+        "token_matches_final": true
+      },
+      {
+        "name": "license_scope",
+        "seconds": 1.463,
+        "token_matches_final": true
+      },
+      {
+        "name": "unknown_id",
+        "seconds": 1.038,
+        "token_matches_final": true
+      },
+      {
+        "name": "current_court_cases",
+        "seconds": 2.805,
+        "token_matches_final": true
+      },
+      {
+        "name": "exact_indicator_colors",
+        "seconds": 1.299,
+        "token_matches_final": true
+      },
+      {
+        "name": "registry_explanation",
+        "seconds": 2.844,
+        "token_matches_final": true
+      },
+      {
+        "name": "procurement_rnp",
+        "seconds": 1.344,
+        "token_matches_final": true
+      },
+      {
+        "name": "leading_zero",
+        "seconds": 2.911,
+        "token_matches_final": true
+      },
+      {
+        "name": "inspection_results",
+        "seconds": 3.213,
+        "token_matches_final": true
+      },
+      {
+        "name": "choice_critical_facts",
+        "seconds": 3.899,
+        "token_matches_final": true
+      },
+      {
+        "name": "compound_contacts",
+        "seconds": 1.066,
+        "token_matches_final": true
+      },
+      {
+        "name": "conflicting_dates",
+        "seconds": 5.383,
+        "token_matches_final": true
+      },
+      {
+        "name": "court_role_comparison",
+        "seconds": 2.743,
+        "token_matches_final": true
+      }
+    ]
+  },
+  "public_verification": {
+    "health": {
+      "status": "ok",
+      "version": "0.1.0",
+      "contract_version": "1.0",
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-120b/latest",
+      "tools": [
+        "search_company",
+        "get_report_summary",
+        "get_risk_signals",
+        "get_financials",
+        "get_enforcement_summary",
+        "get_arbitration_summary",
+        "get_section",
+        "compare_companies"
+      ]
+    },
+    "prompt": "v7",
+    "fingerprint": "75151edc",
+    "shared_turns": 8,
+    "shared_turns_sha256": "3aa4bd2c9663161bd407422cdae2745aed464479b6fa9e9b35f80cbde3acbec6",
+    "public_ui_sha256": "ccd20c3c2addf960efa31487fceb319f7accb990d5dea0269c2823dac7ae1ba6",
+    "expected_public_ui_sha256": "ccd20c3c2addf960efa31487fceb319f7accb990d5dea0269c2823dac7ae1ba6",
+    "source_ui_sha256": "f6371af409c2e8e043953dce2bed3c54a7268cf23f300035a4d9ea44e62542ee",
+    "max_concurrent_runs": 4,
+    "run_queue_timeout": 30.0,
+    "run_timeout": 120.0,
+    "llm_fallback_models": "",
+    "llm_reasoning_effort": "low",
+    "llm_max_tokens": 8192,
+    "pre_activation_threads": 70,
+    "missing_pre_activation_threads": [],
+    "pre_activation_backup": "/opt/contractor-agent/releases/v7-20260907/pre-activation-backup/sessions-20260906T231433.868843Z.sqlite",
+    "timestamp_utc": "2026-09-06T23:17:45.127388+00:00",
+    "thread_count": 88,
+    "missing_threads": [],
+    "checkpoints": 1189,
+    "sqlite_check": "ok",
+    "revision": "d089785",
+    "ui_revision": "d089785",
+    "image": "kontragent:selectel-v7-d089785",
+    "restart_count": 0,
+    "oom_killed": false,
+    "container_status": "running",
+    "shared_chat_unchanged": true
+  },
+  "quality_endpoint": {
+    "rows": [
+      {
+        "model": "GPT-OSS-120B · v7",
+        "role": "current",
+        "questions": 219,
+        "total": 219,
+        "errors": 0,
+        "grounded": 0.787,
+        "refusal": 1.0,
+        "invented": 0.009,
+        "bad_citation": 0.009,
+        "missed_critical": 0.0,
+        "judge": 4.51,
+        "seconds": null
+      },
+      {
+        "model": "GPT-OSS-20B · v7",
+        "role": "other",
+        "questions": 219,
+        "total": 219,
+        "errors": 0,
+        "grounded": 0.82,
+        "refusal": 1.0,
+        "invented": 0.0,
+        "bad_citation": 0.009,
+        "missed_critical": 0.0,
+        "judge": 4.58,
+        "seconds": null
+      }
+    ],
+    "questions": 219,
+    "companies": 77
+  },
+  "browser_verification": {
+    "restored_shared_chat": true,
+    "javascript_errors": [],
+    "url": "https://kontragent-135-106-194-178.sslip.io/?chat=53a31196-0666-4b8a-96ea-44c1d30559c9"
+  }
+}

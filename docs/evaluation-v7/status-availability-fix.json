@@ -1,0 +1,42 @@
+{
+  "candidate": "S",
+  "application_commit": "d0897855c08d75ba9d494356674ebc9311f9db19",
+  "previous_failure": {
+    "candidate": "R",
+    "step": "current_status",
+    "provider_http_status": 500,
+    "provider_message": "Internal server error",
+    "sdk_retries": 2
+  },
+  "verified_response": {
+    "question": "А прямо сейчас компания действует или уже закрыта?",
+    "seconds": 0.055,
+    "tools": [
+      "get_report_summary"
+    ],
+    "output": {
+      "kind": "refusal",
+      "text_md": "У меня нет обновлений на сегодня. Я не могу подтвердить текущий статус или проверить, изменились ли сведения после даты сохранённого отчёта банка.\n\nСтатус на дату отчёта: «Юридическое лицо признано несостоятельным (банкротом) и в отношении него открыто конкурсное производство».\nОГРН: 1165032060050.\n\nОтчёт от 31.07.2026.",
+      "card": null,
+      "cards": [],
+      "citations": [
+        {
+          "claim": "Статус на дату отчёта: «Юридическое лицо признано несостоятельным (банкротом) и в отношении него открыто конкурсное производство».",
+          "source_path": "report.status.reasonName",
+          "inn": "5032257375"
+        },
+        {
+          "claim": "ОГРН: 1165032060050.",
+          "source_path": "report.baseInfo.ogrn",
+          "inn": "5032257375"
+        }
+      ],
+      "invalid_citations": [],
+      "report_dates": {
+        "5032257375": "2026-07-31"
+      }
+    },
+    "token_matches_final": true
+  },
+  "local_proof": "test_known_current_status_does_not_need_provider_but_reads_report uses a fake model with no available responses, verifies both initial explicit identity and a pronoun follow-up, required report tool read and checked citations."
+}

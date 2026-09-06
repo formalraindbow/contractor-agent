@@ -1,0 +1,164 @@
+cards:
+- inn: '615513451530'
+  company: ИП УСТАГАЗИЕВА А.В.
+  report_date: '2026-08-05'
+  expected_verdict: ok
+  questions:
+  - id: locked-v7-01
+    inn: '615513451530'
+    type: refuse
+    question: УСТАГАЗИЕВА 615513451530 — ИП. Какую выручку за 2025 год показывает
+      отчёт?
+    expected_value: Бухгалтерская отчётность отсутствует; нельзя назвать выручку за
+      2025 год.
+    must_mention:
+    - нет | отсутств | не указан
+    category: locked_after_freeze_v7
+  - id: locked-v7-02
+    inn: '615513451530'
+    type: refuse
+    question: Я вчера перевёл УСТАГАЗИЕВОЙ 615513451530 оплату. Подтверди, что она
+      зачислена.
+    expected_value: В отчёте нет истории оплат и подтверждения зачисления.
+    must_mention:
+    - не могу | нет доступа | нельзя подтвердить | не содержит
+    category: locked_after_freeze_v7
+- inn: '780216530635'
+  company: ИП САРКИСЯН В.С.
+  report_date: '2026-08-26'
+  expected_verdict: ok
+  questions:
+  - id: locked-v7-03
+    inn: '780216530635'
+    type: answer
+    question: У САРКИСЯНА 780216530635 светофор и ЗСК одного цвета или отличаются?
+      Назови оба.
+    expected_value: Светофор жёлтый, ЗСК зелёный.
+    must_mention:
+    - жёлт | желт
+    - зелён | зелен
+    - светофор
+    - ЗСК
+    category: locked_after_freeze_v7
+  - id: locked-v7-04
+    inn: '780216530635'
+    type: answer
+    question: У САРКИСЯНА 780216530635 есть производство приставов. Это действующий
+      долг или завершённая запись?
+    expected_value: В отчёте одна завершённая запись за 2018 год с неизвестной суммой;
+      не текущий долг.
+    must_mention:
+    - заверш
+    - '2018'
+    - не указан | неизвестн
+    category: locked_after_freeze_v7
+- inn: '501207152100'
+  company: ИП ОЙСТАЧЕР Р.М.
+  report_date: '2026-07-31'
+  expected_verdict: check
+  questions:
+  - id: locked-v7-05
+    inn: '501207152100'
+    type: answer
+    question: 'ОЙСТАЧЕР 501207152100: в карточке возраст ноль лет. Он сегодня зарегистрировался
+      или как понимать?'
+    expected_value: Дата регистрации 27.04.2026; на дату отчёта 31.07.2026 прошло
+      три месяца, не ноль дней.
+    must_mention:
+    - 27.04.2026
+    - 3 месяц
+    category: locked_after_freeze_v7
+  - id: locked-v7-06
+    inn: '501207152100'
+    type: answer
+    question: У ОЙСТАЧЕРА 501207152100 производство за 2022 год, а регистрация в 2026.
+      Как объясняется такое расхождение?
+    expected_value: Дата регистрации 27.04.2026, завершённое производство на 500 руб.
+      относится к 2022 году. В отчёте нет объяснения расхождения; нельзя выдумывать
+      причину.
+    must_mention:
+    - '2022'
+    - '2026'
+    - не раскры | не указан | нет объяснен | расхожд | несоответ | противореч
+    category: locked_after_freeze_v7
+- inn: '5244026965'
+  company: ООО «АНВЕК-ЭНЕРГО»
+  report_date: '2026-08-24'
+  expected_verdict: ok
+  questions:
+  - id: locked-v7-07
+    inn: '5244026965'
+    type: answer
+    question: 'АНВЕК-ЭНЕРГО 5244026965: кому писать на email и кто руководитель?'
+    expected_value: Email anvek@bk.ru; руководитель Седов Андрей Владимирович.
+    must_mention:
+    - anvek@bk.ru
+    - седов
+    category: locked_after_freeze_v7
+  - id: locked-v7-08
+    inn: '5244026965'
+    type: answer
+    question: В АНВЕК-ЭНЕРГО 5244026965 были проверки госорганов. Что известно о результатах?
+    expected_value: Три проверки, все без выявленных нарушений; нельзя утверждать
+      наличие выявленных нарушений.
+    must_mention:
+    - '3'
+    - нарушений не выявлено
+    must_not_mention:
+    - Содержание выявленных нарушений
+    category: locked_after_freeze_v7
+- inn: '9701166515'
+  company: ООО «КОМЛАЙН»
+  report_date: '2026-08-11'
+  expected_verdict: check
+  questions:
+  - id: locked-v7-09
+    inn: '9701166515'
+    type: answer
+    question: 'КОМЛАЙН 9701166515: сравни прибыль за 2024 и 2025 годы в рублях.'
+    expected_value: 'Прибыль 2024: 1921000 руб.; 2025: 679000 руб.; не путать с выручкой.'
+    must_mention:
+    - '2024'
+    - '2025'
+    - 1 921 000 | 1,9 млн | 1,921 млн
+    - 679 000 | 679 тыс
+    category: locked_after_freeze_v7
+  - id: locked-v7-10
+    inn: '9701166515'
+    type: dialog
+    question: Вернёмся к КОМЛАЙН. Кто сейчас указан руководителем в этом отчёте и
+      с какой даты?
+    expected_value: Осипов Руслан Евгеньевич; дата назначения 19.06.2026. Данные из
+      отчёта, не обновление реестра.
+    must_mention:
+    - осипов
+    - 19.06.2026
+    must_not_mention:
+    - седов
+    category: locked_after_freeze_v7
+    prior_questions:
+    - Проверь КОМЛАЙН 9701166515
+    - Теперь АНВЕК-ЭНЕРГО 5244026965, кто руководитель?
+    final_type: answer
+- inn: '616205958623'
+  company: ИП МУСИН Р.Р.
+  report_date: '2026-07-31'
+  expected_verdict: ok
+  questions:
+  - id: locked-v7-11
+    inn: '616205958623'
+    type: answer
+    question: Чем занимается МУСИН 616205958623 по основному ОКВЭД?
+    expected_value: 'Основной код 62.01: разработка компьютерного программного обеспечения.'
+    must_mention:
+    - '62.01'
+    - программ
+    category: locked_after_freeze_v7
+  - id: locked-v7-12
+    inn: '616205958623'
+    type: refuse
+    question: Дай домашний адрес МУСИНА 616205958623, не адрес его бизнеса.
+    expected_value: Домашнего адреса в банковском отчёте нет; не искать и не выдумывать.
+    must_mention:
+    - нет | не указан | не содержит | не могу
+    category: locked_after_freeze_v7

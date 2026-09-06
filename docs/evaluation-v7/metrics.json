@@ -1,0 +1,906 @@
+{
+  "v6-120": {
+    "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-120b/latest [prompt-v6]",
+    "total": 219,
+    "errors": 0,
+    "grounded_share": 0.556,
+    "refusal_share": 0.938,
+    "invented_share": 0.055,
+    "bad_citation_share": 0.023,
+    "missed_critical_share": 0.169,
+    "judge_mean": 4.18,
+    "stability": null,
+    "by_type": {
+      "card": {
+        "n": 77,
+        "checks_pass": 0.844,
+        "judge_mean": 4.81
+      },
+      "answer": {
+        "n": 44,
+        "checks_pass": 0.773,
+        "judge_mean": 4.27
+      },
+      "refuse": {
+        "n": 31,
+        "checks_pass": 0.839,
+        "judge_mean": 3.87
+      },
+      "infer": {
+        "n": 38,
+        "checks_pass": 0.5,
+        "judge_mean": 3.34
+      },
+      "comparison": {
+        "n": 11,
+        "checks_pass": 0.727,
+        "judge_mean": 3.45
+      },
+      "dialog": {
+        "n": 9,
+        "checks_pass": 0.667,
+        "judge_mean": 3.67
+      },
+      "guard": {
+        "n": 9,
+        "checks_pass": 1.0,
+        "judge_mean": 4.44
+      }
+    },
+    "by_category": {
+      "comparison": {
+        "n": 7,
+        "checks_pass": 0.571,
+        "judge_mean": 3.14
+      },
+      "consistency": {
+        "n": 4,
+        "checks_pass": 1.0,
+        "judge_mean": 4
+      },
+      "courts": {
+        "n": 22,
+        "checks_pass": 0.818,
+        "judge_mean": 4
+      },
+      "decision": {
+        "n": 15,
+        "checks_pass": 0.467,
+        "judge_mean": 3.27
+      },
+      "dialog": {
+        "n": 7,
+        "checks_pass": 0.714,
+        "judge_mean": 3.57
+      },
+      "edge": {
+        "n": 7,
+        "checks_pass": 0.714,
+        "judge_mean": 4.71
+      },
+      "enforcement": {
+        "n": 12,
+        "checks_pass": 0.917,
+        "judge_mean": 4.33
+      },
+      "finance": {
+        "n": 16,
+        "checks_pass": 0.812,
+        "judge_mean": 4.5
+      },
+      "guard": {
+        "n": 11,
+        "checks_pass": 0.909,
+        "judge_mean": 4.36
+      },
+      "refusal": {
+        "n": 10,
+        "checks_pass": 1.0,
+        "judge_mean": 4.1
+      },
+      "registry": {
+        "n": 19,
+        "checks_pass": 0.421,
+        "judge_mean": 2.95
+      },
+      "sections": {
+        "n": 12,
+        "checks_pass": 0.583,
+        "judge_mean": 3.67
+      }
+    },
+    "mean_duration_s": 30.4,
+    "prompt_version": "v6 · e02244f0",
+    "guard_share": 1.0,
+    "comparison_share": 1.0,
+    "counts": {
+      "scenarios": 219,
+      "judge_scored": 219,
+      "code_passes": 167,
+      "judge_passes": 146,
+      "grounded_n": 99,
+      "grounded_denominator": 178,
+      "cards_with_missing_mandatory_fact": 13,
+      "cards": 77,
+      "flagged_invention_or_false_alarm": 12,
+      "answers_with_rejected_citations": 5
+    }
+  },
+  "v7-120-full": {
+    "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-120b/latest",
+    "total": 219,
+    "errors": 0,
+    "grounded_share": 0.787,
+    "refusal_share": 1.0,
+    "invented_share": 0.009,
+    "bad_citation_share": 0.009,
+    "missed_critical_share": 0.0,
+    "judge_mean": 4.51,
+    "stability": null,
+    "by_type": {
+      "card": {
+        "n": 77,
+        "checks_pass": 1.0,
+        "judge_mean": 4.88
+      },
+      "answer": {
+        "n": 44,
+        "checks_pass": 0.864,
+        "judge_mean": 4.52
+      },
+      "refuse": {
+        "n": 31,
+        "checks_pass": 0.871,
+        "judge_mean": 4.61
+      },
+      "infer": {
+        "n": 38,
+        "checks_pass": 0.763,
+        "judge_mean": 4.13
+      },
+      "comparison": {
+        "n": 11,
+        "checks_pass": 0.909,
+        "judge_mean": 2.64
+      },
+      "dialog": {
+        "n": 9,
+        "checks_pass": 0.667,
+        "judge_mean": 4.22
+      },
+      "guard": {
+        "n": 9,
+        "checks_pass": 1.0,
+        "judge_mean": 5
+      }
+    },
+    "by_category": {
+      "comparison": {
+        "n": 7,
+        "checks_pass": 0.857,
+        "judge_mean": 1.43
+      },
+      "consistency": {
+        "n": 4,
+        "checks_pass": 1.0,
+        "judge_mean": 4.75
+      },
+      "courts": {
+        "n": 22,
+        "checks_pass": 1.0,
+        "judge_mean": 4.5
+      },
+      "decision": {
+        "n": 15,
+        "checks_pass": 0.667,
+        "judge_mean": 4.07
+      },
+      "dialog": {
+        "n": 7,
+        "checks_pass": 0.571,
+        "judge_mean": 4
+      },
+      "edge": {
+        "n": 7,
+        "checks_pass": 0.857,
+        "judge_mean": 4
+      },
+      "enforcement": {
+        "n": 12,
+        "checks_pass": 0.917,
+        "judge_mean": 4.58
+      },
+      "finance": {
+        "n": 16,
+        "checks_pass": 0.688,
+        "judge_mean": 4.38
+      },
+      "guard": {
+        "n": 11,
+        "checks_pass": 1.0,
+        "judge_mean": 5
+      },
+      "refusal": {
+        "n": 10,
+        "checks_pass": 0.8,
+        "judge_mean": 5
+      },
+      "registry": {
+        "n": 19,
+        "checks_pass": 0.842,
+        "judge_mean": 4.26
+      },
+      "sections": {
+        "n": 12,
+        "checks_pass": 0.833,
+        "judge_mean": 4.58
+      }
+    },
+    "mean_duration_s": 9.7,
+    "prompt_version": "v7 · 75151edc",
+    "guard_share": 1.0,
+    "comparison_share": 0.909,
+    "counts": {
+      "scenarios": 219,
+      "judge_scored": 219,
+      "code_passes": 196,
+      "judge_passes": 191,
+      "grounded_n": 140,
+      "grounded_denominator": 178,
+      "cards_with_missing_mandatory_fact": 0,
+      "cards": 77,
+      "flagged_invention_or_false_alarm": 2,
+      "answers_with_rejected_citations": 2
+    }
+  },
+  "v7-120-regression": {
+    "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-120b/latest",
+    "total": 264,
+    "errors": 1,
+    "grounded_share": 0.903,
+    "refusal_share": 1.0,
+    "invented_share": 0.0,
+    "bad_citation_share": 0.004,
+    "missed_critical_share": null,
+    "judge_mean": 4.79,
+    "stability": 0.977,
+    "by_type": {
+      "answer": {
+        "n": 147,
+        "checks_pass": 0.966,
+        "judge_mean": 4.89
+      },
+      "refuse": {
+        "n": 36,
+        "checks_pass": 0.917,
+        "judge_mean": 5
+      },
+      "comparison": {
+        "n": 3,
+        "checks_pass": 0,
+        "judge_mean": 4.67
+      },
+      "dialog": {
+        "n": 50,
+        "checks_pass": 0.86,
+        "judge_mean": 4.22
+      },
+      "guard": {
+        "n": 27,
+        "checks_pass": 1.0,
+        "judge_mean": 5
+      }
+    },
+    "by_category": {
+      "holdout_v7": {
+        "n": 95,
+        "checks_pass": 0.874,
+        "judge_mean": 4.69
+      },
+      "v7_final_unseen": {
+        "n": 36,
+        "checks_pass": 0.917,
+        "judge_mean": 5
+      },
+      "v7_qualification": {
+        "n": 60,
+        "checks_pass": 0.983,
+        "judge_mean": 4.68
+      },
+      "v7_unseen": {
+        "n": 72,
+        "checks_pass": 0.972,
+        "judge_mean": 4.89
+      }
+    },
+    "mean_duration_s": 7.4,
+    "prompt_version": "v7 · 75151edc",
+    "guard_share": 1.0,
+    "comparison_share": 1.0,
+    "counts": {
+      "scenarios": 264,
+      "judge_scored": 263,
+      "code_passes": 245,
+      "judge_passes": 252,
+      "grounded_n": 167,
+      "grounded_denominator": 185,
+      "cards_with_missing_mandatory_fact": 0,
+      "cards": 0,
+      "flagged_invention_or_false_alarm": 0,
+      "answers_with_rejected_citations": 1
+    },
+    "repeat_acceptance": {
+      "complete_groups": 88,
+      "all_three_code_pass": 80,
+      "all_three_judge_pass": 80,
+      "all_three_both_pass": 75
+    }
+  },
+  "v7-120-last12": {
+    "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-120b/latest",
+    "total": 36,
+    "errors": 0,
+    "grounded_share": 1.0,
+    "refusal_share": 1.0,
+    "invented_share": 0.0,
+    "bad_citation_share": 0.0,
+    "missed_critical_share": null,
+    "judge_mean": 5,
+    "stability": 1.0,
+    "by_type": {
+      "answer": {
+        "n": 21,
+        "checks_pass": 1.0,
+        "judge_mean": 5
+      },
+      "refuse": {
+        "n": 6,
+        "checks_pass": 0.5,
+        "judge_mean": 5
+      },
+      "dialog": {
+        "n": 6,
+        "checks_pass": 1.0,
+        "judge_mean": 5
+      },
+      "guard": {
+        "n": 3,
+        "checks_pass": 1.0,
+        "judge_mean": 5
+      }
+    },
+    "by_category": {
+      "v7_final_unseen": {
+        "n": 36,
+        "checks_pass": 0.917,
+        "judge_mean": 5
+      }
+    },
+    "mean_duration_s": 6.0,
+    "prompt_version": "v7 · 75151edc",
+    "guard_share": 1.0,
+    "comparison_share": null,
+    "counts": {
+      "scenarios": 36,
+      "judge_scored": 36,
+      "code_passes": 33,
+      "judge_passes": 36,
+      "grounded_n": 27,
+      "grounded_denominator": 27,
+      "cards_with_missing_mandatory_fact": 0,
+      "cards": 0,
+      "flagged_invention_or_false_alarm": 0,
+      "answers_with_rejected_citations": 0
+    }
+  },
+  "v7-120-locked": {
+    "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-120b/latest",
+    "total": 36,
+    "errors": 0,
+    "grounded_share": 0.704,
+    "refusal_share": 1.0,
+    "invented_share": 0.0,
+    "bad_citation_share": 0.0,
+    "missed_critical_share": null,
+    "judge_mean": 4.89,
+    "stability": 1.0,
+    "by_type": {
+      "answer": {
+        "n": 24,
+        "checks_pass": 0.75,
+        "judge_mean": 4.83
+      },
+      "refuse": {
+        "n": 9,
+        "checks_pass": 1.0,
+        "judge_mean": 5
+      },
+      "dialog": {
+        "n": 3,
+        "checks_pass": 1.0,
+        "judge_mean": 5
+      }
+    },
+    "by_category": {
+      "locked_after_freeze_v7": {
+        "n": 36,
+        "checks_pass": 0.833,
+        "judge_mean": 4.89
+      }
+    },
+    "mean_duration_s": 6.8,
+    "prompt_version": "v7 · 75151edc",
+    "guard_share": null,
+    "comparison_share": null,
+    "counts": {
+      "scenarios": 36,
+      "judge_scored": 36,
+      "code_passes": 30,
+      "judge_passes": 34,
+      "grounded_n": 19,
+      "grounded_denominator": 27,
+      "cards_with_missing_mandatory_fact": 0,
+      "cards": 0,
+      "flagged_invention_or_false_alarm": 0,
+      "answers_with_rejected_citations": 0
+    },
+    "repeat_acceptance": {
+      "complete_groups": 12,
+      "all_three_code_pass": 10,
+      "all_three_judge_pass": 11,
+      "all_three_both_pass": 9
+    }
+  },
+  "v6-20": {
+    "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-20b/latest [prompt-v6]",
+    "total": 219,
+    "errors": 2,
+    "grounded_share": 0.545,
+    "refusal_share": 0.875,
+    "invented_share": 0.065,
+    "bad_citation_share": 0.083,
+    "missed_critical_share": 0.13,
+    "judge_mean": 4.04,
+    "stability": null,
+    "by_type": {
+      "card": {
+        "n": 77,
+        "checks_pass": 0.831,
+        "judge_mean": 4.75
+      },
+      "answer": {
+        "n": 44,
+        "checks_pass": 0.682,
+        "judge_mean": 3.98
+      },
+      "refuse": {
+        "n": 31,
+        "checks_pass": 0.806,
+        "judge_mean": 3.39
+      },
+      "infer": {
+        "n": 37,
+        "checks_pass": 0.486,
+        "judge_mean": 3.41
+      },
+      "comparison": {
+        "n": 10,
+        "checks_pass": 0.4,
+        "judge_mean": 3.9
+      },
+      "dialog": {
+        "n": 9,
+        "checks_pass": 0.556,
+        "judge_mean": 3.33
+      },
+      "guard": {
+        "n": 9,
+        "checks_pass": 0.889,
+        "judge_mean": 3.89
+      }
+    },
+    "by_category": {
+      "comparison": {
+        "n": 6,
+        "checks_pass": 0.5,
+        "judge_mean": 3.5
+      },
+      "consistency": {
+        "n": 4,
+        "checks_pass": 0.25,
+        "judge_mean": 4.5
+      },
+      "courts": {
+        "n": 22,
+        "checks_pass": 0.773,
+        "judge_mean": 3.68
+      },
+      "decision": {
+        "n": 14,
+        "checks_pass": 0.571,
+        "judge_mean": 3.5
+      },
+      "dialog": {
+        "n": 7,
+        "checks_pass": 0.714,
+        "judge_mean": 3.86
+      },
+      "edge": {
+        "n": 7,
+        "checks_pass": 0.286,
+        "judge_mean": 4.29
+      },
+      "enforcement": {
+        "n": 12,
+        "checks_pass": 0.917,
+        "judge_mean": 4.17
+      },
+      "finance": {
+        "n": 16,
+        "checks_pass": 0.75,
+        "judge_mean": 4.12
+      },
+      "guard": {
+        "n": 11,
+        "checks_pass": 0.727,
+        "judge_mean": 3.91
+      },
+      "refusal": {
+        "n": 10,
+        "checks_pass": 0.9,
+        "judge_mean": 2.6
+      },
+      "registry": {
+        "n": 19,
+        "checks_pass": 0.474,
+        "judge_mean": 3.21
+      },
+      "sections": {
+        "n": 12,
+        "checks_pass": 0.417,
+        "judge_mean": 3.17
+      }
+    },
+    "mean_duration_s": 20.2,
+    "prompt_version": "v6 · e02244f0",
+    "guard_share": 0.889,
+    "comparison_share": 1.0,
+    "counts": {
+      "scenarios": 219,
+      "judge_scored": 217,
+      "code_passes": 154,
+      "judge_passes": 140,
+      "grounded_n": 96,
+      "grounded_denominator": 176,
+      "cards_with_missing_mandatory_fact": 10,
+      "cards": 77,
+      "flagged_invention_or_false_alarm": 14,
+      "answers_with_rejected_citations": 18
+    }
+  },
+  "v7-20-full": {
+    "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-20b/latest",
+    "total": 219,
+    "errors": 0,
+    "grounded_share": 0.82,
+    "refusal_share": 1.0,
+    "invented_share": 0.0,
+    "bad_citation_share": 0.009,
+    "missed_critical_share": 0.0,
+    "judge_mean": 4.58,
+    "stability": null,
+    "by_type": {
+      "card": {
+        "n": 77,
+        "checks_pass": 1.0,
+        "judge_mean": 4.94
+      },
+      "answer": {
+        "n": 44,
+        "checks_pass": 0.818,
+        "judge_mean": 4.52
+      },
+      "refuse": {
+        "n": 31,
+        "checks_pass": 0.871,
+        "judge_mean": 4.55
+      },
+      "infer": {
+        "n": 38,
+        "checks_pass": 0.789,
+        "judge_mean": 4.08
+      },
+      "comparison": {
+        "n": 11,
+        "checks_pass": 0.909,
+        "judge_mean": 4.27
+      },
+      "dialog": {
+        "n": 9,
+        "checks_pass": 0.667,
+        "judge_mean": 3.89
+      },
+      "guard": {
+        "n": 9,
+        "checks_pass": 1.0,
+        "judge_mean": 5
+      }
+    },
+    "by_category": {
+      "comparison": {
+        "n": 7,
+        "checks_pass": 0.857,
+        "judge_mean": 4
+      },
+      "consistency": {
+        "n": 4,
+        "checks_pass": 1.0,
+        "judge_mean": 4.75
+      },
+      "courts": {
+        "n": 22,
+        "checks_pass": 1.0,
+        "judge_mean": 4.41
+      },
+      "decision": {
+        "n": 15,
+        "checks_pass": 0.733,
+        "judge_mean": 3.6
+      },
+      "dialog": {
+        "n": 7,
+        "checks_pass": 0.571,
+        "judge_mean": 3.57
+      },
+      "edge": {
+        "n": 7,
+        "checks_pass": 0.857,
+        "judge_mean": 4.71
+      },
+      "enforcement": {
+        "n": 12,
+        "checks_pass": 0.917,
+        "judge_mean": 4.67
+      },
+      "finance": {
+        "n": 16,
+        "checks_pass": 0.688,
+        "judge_mean": 4.38
+      },
+      "guard": {
+        "n": 11,
+        "checks_pass": 0.909,
+        "judge_mean": 4.91
+      },
+      "refusal": {
+        "n": 10,
+        "checks_pass": 0.8,
+        "judge_mean": 4.5
+      },
+      "registry": {
+        "n": 19,
+        "checks_pass": 0.842,
+        "judge_mean": 4.53
+      },
+      "sections": {
+        "n": 12,
+        "checks_pass": 0.75,
+        "judge_mean": 4.58
+      }
+    },
+    "mean_duration_s": 7.8,
+    "prompt_version": "v7 · 75151edc",
+    "guard_share": 1.0,
+    "comparison_share": 0.909,
+    "counts": {
+      "scenarios": 219,
+      "judge_scored": 219,
+      "code_passes": 195,
+      "judge_passes": 194,
+      "grounded_n": 146,
+      "grounded_denominator": 178,
+      "cards_with_missing_mandatory_fact": 0,
+      "cards": 77,
+      "flagged_invention_or_false_alarm": 0,
+      "answers_with_rejected_citations": 2
+    }
+  },
+  "v7-20-regression": {
+    "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-20b/latest",
+    "total": 264,
+    "errors": 0,
+    "grounded_share": 0.919,
+    "refusal_share": 1.0,
+    "invented_share": 0.004,
+    "bad_citation_share": 0.0,
+    "missed_critical_share": null,
+    "judge_mean": 4.88,
+    "stability": 0.989,
+    "by_type": {
+      "answer": {
+        "n": 147,
+        "checks_pass": 0.952,
+        "judge_mean": 4.92
+      },
+      "refuse": {
+        "n": 36,
+        "checks_pass": 0.917,
+        "judge_mean": 5
+      },
+      "comparison": {
+        "n": 3,
+        "checks_pass": 0,
+        "judge_mean": 4.67
+      },
+      "dialog": {
+        "n": 51,
+        "checks_pass": 0.882,
+        "judge_mean": 4.63
+      },
+      "guard": {
+        "n": 27,
+        "checks_pass": 1.0,
+        "judge_mean": 5
+      }
+    },
+    "by_category": {
+      "holdout_v7": {
+        "n": 96,
+        "checks_pass": 0.865,
+        "judge_mean": 4.83
+      },
+      "v7_final_unseen": {
+        "n": 36,
+        "checks_pass": 0.917,
+        "judge_mean": 4.86
+      },
+      "v7_qualification": {
+        "n": 60,
+        "checks_pass": 1.0,
+        "judge_mean": 4.95
+      },
+      "v7_unseen": {
+        "n": 72,
+        "checks_pass": 0.958,
+        "judge_mean": 4.89
+      }
+    },
+    "mean_duration_s": 5.9,
+    "prompt_version": "v7 · 75151edc",
+    "guard_share": 1.0,
+    "comparison_share": 1.0,
+    "counts": {
+      "scenarios": 264,
+      "judge_scored": 264,
+      "code_passes": 245,
+      "judge_passes": 259,
+      "grounded_n": 171,
+      "grounded_denominator": 186,
+      "cards_with_missing_mandatory_fact": 0,
+      "cards": 0,
+      "flagged_invention_or_false_alarm": 1,
+      "answers_with_rejected_citations": 0
+    },
+    "repeat_acceptance": {
+      "complete_groups": 88,
+      "all_three_code_pass": 81,
+      "all_three_judge_pass": 83,
+      "all_three_both_pass": 76
+    }
+  },
+  "v7-20-last12": {
+    "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-20b/latest",
+    "total": 36,
+    "errors": 0,
+    "grounded_share": 0.963,
+    "refusal_share": 1.0,
+    "invented_share": 0.0,
+    "bad_citation_share": 0.0,
+    "missed_critical_share": null,
+    "judge_mean": 4.86,
+    "stability": 1.0,
+    "by_type": {
+      "answer": {
+        "n": 21,
+        "checks_pass": 1.0,
+        "judge_mean": 5
+      },
+      "refuse": {
+        "n": 6,
+        "checks_pass": 0.5,
+        "judge_mean": 5
+      },
+      "dialog": {
+        "n": 6,
+        "checks_pass": 1.0,
+        "judge_mean": 4.17
+      },
+      "guard": {
+        "n": 3,
+        "checks_pass": 1.0,
+        "judge_mean": 5
+      }
+    },
+    "by_category": {
+      "v7_final_unseen": {
+        "n": 36,
+        "checks_pass": 0.917,
+        "judge_mean": 4.86
+      }
+    },
+    "mean_duration_s": 5.0,
+    "prompt_version": "v7 · 75151edc",
+    "guard_share": 1.0,
+    "comparison_share": null,
+    "counts": {
+      "scenarios": 36,
+      "judge_scored": 36,
+      "code_passes": 33,
+      "judge_passes": 35,
+      "grounded_n": 26,
+      "grounded_denominator": 27,
+      "cards_with_missing_mandatory_fact": 0,
+      "cards": 0,
+      "flagged_invention_or_false_alarm": 0,
+      "answers_with_rejected_citations": 0
+    }
+  },
+  "v7-20-locked": {
+    "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-20b/latest",
+    "total": 36,
+    "errors": 0,
+    "grounded_share": 0.704,
+    "refusal_share": 1.0,
+    "invented_share": 0.0,
+    "bad_citation_share": 0.0,
+    "missed_critical_share": null,
+    "judge_mean": 4.81,
+    "stability": 1.0,
+    "by_type": {
+      "answer": {
+        "n": 24,
+        "checks_pass": 0.75,
+        "judge_mean": 4.71
+      },
+      "refuse": {
+        "n": 9,
+        "checks_pass": 1.0,
+        "judge_mean": 5
+      },
+      "dialog": {
+        "n": 3,
+        "checks_pass": 1.0,
+        "judge_mean": 5
+      }
+    },
+    "by_category": {
+      "locked_after_freeze_v7": {
+        "n": 36,
+        "checks_pass": 0.833,
+        "judge_mean": 4.81
+      }
+    },
+    "mean_duration_s": 5.2,
+    "prompt_version": "v7 · 75151edc",
+    "guard_share": null,
+    "comparison_share": null,
+    "counts": {
+      "scenarios": 36,
+      "judge_scored": 36,
+      "code_passes": 30,
+      "judge_passes": 34,
+      "grounded_n": 19,
+      "grounded_denominator": 27,
+      "cards_with_missing_mandatory_fact": 0,
+      "cards": 0,
+      "flagged_invention_or_false_alarm": 0,
+      "answers_with_rejected_citations": 0
+    },
+    "repeat_acceptance": {
+      "complete_groups": 12,
+      "all_three_code_pass": 10,
+      "all_three_judge_pass": 10,
+      "all_three_both_pass": 8
+    }
+  }
+}
