@@ -61,7 +61,9 @@ async def _run(args: argparse.Namespace) -> int:
         )
         records = []
         for i, question in enumerate(questions, 1):
-            batch = await runner.run([question], repeats=args.repeat, refresh=args.refresh)
+            batch = await runner.run(
+                [question], repeats=args.repeat, refresh=args.refresh, rejudge=args.rejudge
+            )
             records.extend(batch)
             r = batch[-1]
             status = "ошибка" if r.error else ("ок" if r.checks_passed else "провал")
@@ -115,6 +117,7 @@ def main(argv: list[str] | None = None) -> int:
     run.add_argument("--repeat", type=int, default=1)
     run.add_argument("--delay", type=float, default=0.5)
     run.add_argument("--refresh", action="store_true", help="не читать кэш")
+    run.add_argument("--rejudge", action="store_true", help="ответы из кэша, судья заново")
     report = sub.add_parser("report")
     report.add_argument("--models")
     args = parser.parse_args(argv)
