@@ -101,6 +101,7 @@ def comparison_followup(
         # Counts cannot be paraphrased across roles: open is already pending + appealed.
         # Reuse the attributed section, including explicit year windows when requested.
         lines = [
+            "По данным отчётов:",
             "Количество дел само по себе не определяет, с кем безопаснее работать. "
             "Ниже отдельно показаны иски к компании и её собственные требования."
         ]
