@@ -50,6 +50,14 @@ def decision_answer(cards: list[Card], question: str, tools: Tools | None = None
             inn=card.inn,
         ),
     ]
+    if card.inn.startswith("0") and re.search(r"нул|начинается\s+с\s+0", q, re.I):
+        claim = (
+            f"В отчёте указан {len(card.inn)}-значный ИНН {card.inn}. "
+            "Начальный ноль — часть идентификатора; при поиске он сохранён. "
+            "Сам по себе начальный ноль не является признаком риска."
+        )
+        lines += ["", claim]
+        citations.append(Citation(claim=claim, source_path="report.baseInfo.inn", inn=card.inn))
     sections = []
     if COURT_QUESTION.search(q):
         sections.append("суды")
