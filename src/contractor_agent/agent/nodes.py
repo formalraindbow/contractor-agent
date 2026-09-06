@@ -291,6 +291,7 @@ def make_nodes(llm: LLM, tools: list[Any], source: ReportSource) -> dict[str, No
                 scrub_forbidden(replace_verdict_codes(base), VERDICT_RU[answer.card.verdict]),
                 answer.card.verdict,
             )
+            text = enforce_labels(text, answer.card)
         elif answer.cards and require_comparison:
             text = enforce_comparison(scrub_forbidden(base, None), answer.cards)
         else:
@@ -1014,6 +1015,18 @@ def enforce_verdict(text: str, verdict: Verdict) -> str:
     if not verdict_present(out, verdict):
         out = f"{out.rstrip()}\n\n**По данным отчёта:** {expected}."
     return normalize_verdict_text(out)
+
+
+_LABEL_WORDS = re.compile(r"светофор|зск|метк|оценк[аи] банка", re.I)
+
+
+def enforce_labels(text: str, card: Card) -> str:
+    """Метки банка — единственный источник истины по требованию кейсодателя: если модель их
+    не назвала (20B в карточке их опускает), строка дописывается кодом первой."""
+    if _LABEL_WORDS.search(text):
+        return text
+    line = f"Оценки банка: светофор — {card.labels.riskLevel}, ЗСК — {card.labels.zskRiskLevel}."
+    return f"{line}\n\n{text.lstrip()}"
 
 
 def build_card(tools: Tools, inn: str) -> Card | None:

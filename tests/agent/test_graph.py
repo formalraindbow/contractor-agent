@@ -640,3 +640,15 @@ def test_egrul_extract_is_not_a_court_question(snapshot) -> None:
         "Пришлите свежую выписку из ЕГРЮЛ по ООО «ВИСТА» (ИНН 7722539108).",
     )
     assert d is None
+
+
+def test_labels_are_added_when_model_omits_them(snapshot) -> None:
+    from contractor_agent.agent.nodes import build_card, enforce_labels
+    from contractor_agent.mcp_server.tools import Tools
+
+    card = build_card(Tools(snapshot), "052500690823")
+    out = enforce_labels("Нужна дополнительная проверка.\n- Блокировка счетов.", card)
+    assert out.startswith("Оценки банка: светофор — красный, ЗСК — зелёный.")
+    assert (
+        enforce_labels("Светофор зелёный, ЗСК зелёный.", card) == "Светофор зелёный, ЗСК зелёный."
+    )
