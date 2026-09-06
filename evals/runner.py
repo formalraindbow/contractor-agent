@@ -87,8 +87,14 @@ class EvalRunner:
         return self.cache_dir / f"{question.id}-{repeat}.json"
 
     async def run(
-        self, questions: Sequence[GoldQuestion], *, repeats: int = 1, refresh: bool = False
+        self,
+        questions: Sequence[GoldQuestion],
+        *,
+        repeats: int = 1,
+        refresh: bool = False,
+        rejudge: bool = False,
     ) -> list[RunRecord]:
+        """``rejudge`` — ответы агента из кэша, вердикт судьи считается заново (правка рубрики)."""
         self.cache_dir.mkdir(parents=True, exist_ok=True)
         records: list[RunRecord] = []
         for question in questions:
@@ -97,6 +103,8 @@ class EvalRunner:
                 if path.exists() and not refresh:
                     record = RunRecord.model_validate_json(path.read_text(encoding="utf-8"))
                     if record.answer is not None:  # ошибка без ответа — не кэш, гоняем заново
+                        if rejudge:
+                            record.judge = None
                         changed = self._recheck(question, record)
                         changed = await self._rejudge(question, record) or changed
                         if changed:

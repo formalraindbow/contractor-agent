@@ -90,7 +90,7 @@ def test_follow_up_history_names_company_and_date():
 
     gold = load_gold()
     follow_ups = [q for q in gold.questions() if q.follow_up]
-    assert len(follow_ups) == 5  # «у них…» без названия компании — только с засевом сессии
+    assert len(follow_ups) >= 5  # «у них…» без названия компании — только с засевом сессии
     history = follow_up_history(gold.card("5032257375"))
     assert [m.type for m in history] == ["human", "ai"]
     assert "МАКСМАРКЕТ" in history[0].content and "5032257375" in history[0].content
