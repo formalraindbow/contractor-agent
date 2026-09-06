@@ -181,15 +181,31 @@ def make_nodes(llm: LLM, tools: list[Any], source: ReportSource) -> dict[str, No
                 draft = Draft.model_validate(draft)
         except Exception:
             logging.getLogger(__name__).exception("Structured answer failed")
-            # рассуждения модели и сырые выдачи наружу не отдаём, но и пустого экрана быть не должно
-            draft = Draft(
-                kind="refusal",
-                lines=[
-                    "Не удалось собрать проверяемый ответ на этот вопрос. Переформулируйте его "
-                    "короче или спросите про один раздел: суды, долги у приставов, финансы, статус."
-                ],
-                citations=[],
+            # схема не заполнилась, но текстовый ответ модель уже написала после инструментов —
+            # берём его: валидатор ниже проверит цитаты и факты как обычно
+            last_text = next(
+                (
+                    str(m.content).strip()
+                    for m in reversed(state["messages"])
+                    if isinstance(m, AIMessage) and not m.tool_calls and str(m.content).strip()
+                ),
+                "",
             )
+            if (
+                last_text
+                and len(last_text) > 20
+                and any(isinstance(m, ToolMessage) for m in state["messages"])
+            ):
+                draft = Draft(kind="answer", lines=last_text.splitlines(), citations=[])
+            else:  # рассуждения модели и сырые выдачи наружу не отдаём, но и пустого экрана быть не должно
+                draft = Draft(
+                    kind="refusal",
+                    lines=[
+                        "Не удалось собрать проверяемый ответ на этот вопрос. Переформулируйте его "
+                        "короче или спросите про один раздел: суды, долги у приставов, финансы, статус."
+                    ],
+                    citations=[],
+                )
         citations = list(draft.citations)
         seen_paths = {c.source_path for c in citations}
         for extra in extract_inline_citations(
