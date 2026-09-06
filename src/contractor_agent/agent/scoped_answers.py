@@ -60,7 +60,7 @@ def scoped_answer(tools: Tools, inns: list[str], question: str) -> Draft | None:
 
     meanings = [entry for entry in FLAG_MEANINGS if entry[0].search(q)]
     head_identity = re.search(
-        r"(?:кто|фио|имя).{0,35}(?:руководител|директор|управляющ)"
+        r"(?:кто|фио|имя).{0,35}(?:руководител|руководит|директор|управляющ)"
         r"|(?:руководител|директор).{0,20}(?:кто|зовут)",
         q,
         re.I,
@@ -87,6 +87,19 @@ def scoped_answer(tools: Tools, inns: list[str], question: str) -> Draft | None:
             claim = f"{label}: {value or 'в отчёте не указано'}."
             lines.append("- " + claim)
             cite(claim, summary["paths"]["head"])
+        if re.search(r"подпис|договор", q, re.I):
+            risk_response = tools.get_risk_signals(inn)
+            if risk_response.available:
+                for group in risk_response.data["signals"].values():
+                    for fact in group:
+                        if fact["code"] in {"status_reason", "status_not_current"}:
+                            lines += ["", fact["explanation"]]
+                            cite(fact["explanation"], fact["source_path"])
+            lines += [
+                "",
+                "По этому отчёту нельзя подтвердить действующие полномочия "
+                "на подписание конкретного договора.",
+            ]
     elif (
         len(meanings) == 1
         and re.search(r"что\s+(?:это\s+)?(?:значит|означает)|понимать|поясни|объясни", q, re.I)
@@ -255,6 +268,15 @@ def scoped_answer(tools: Tools, inns: list[str], question: str) -> Draft | None:
             + ".",
             "Это общий вывод; он не подтверждает, что компания погасит долг в запрошенный срок.",
         ]
+        # The formatter overrides the model's draft. Keep decisive facts in the visible
+        # answer as well as the typed card; prompt instructions cannot repair this omission.
+        critical = risks["signals"].get("critical", [])
+        presented_codes = {fact["code"] for fact in critical}
+        if critical:
+            lines += ["", "### Факты, важные для решения"]
+            for fact in critical:
+                lines.append("- " + fact["explanation"])
+                cite(fact["explanation"], fact["source_path"])
         if financials.available:
             for year in financials.data["years"]:
                 lines += ["", f"### Финансы за {year['year']} год"]
@@ -286,17 +308,22 @@ def scoped_answer(tools: Tools, inns: list[str], question: str) -> Draft | None:
                 financials.note
                 or "Финансовых сведений в отчёте нет — оценить возможность погашения нельзя.",
             ]
-        lines += ["", "### Обязательства"]
         facts = [
             f
             for group in risks["signals"].values()
             for f in group
             if f["code"] in {"arbitration_defendant_open", "enforcement_active", "flag_fnsBlocking"}
+            and f["code"] not in presented_codes
         ]
+        if facts:
+            lines += ["", "### Обязательства"]
         for fact in facts:
             lines.append("- " + fact["explanation"])
             cite(fact["explanation"], fact["source_path"])
-        if not facts:
+        if not facts and not presented_codes.intersection(
+            {"arbitration_defendant_open", "enforcement_active"}
+        ):
+            lines += ["", "### Обязательства"]
             lines.append(
                 "Сигналов о текущих исках и производствах в отчёте не выделено. "
                 "Это не подтверждает отсутствие обязательств."
