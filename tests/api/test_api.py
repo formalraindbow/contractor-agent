@@ -253,5 +253,35 @@ def test_quality_names_do_not_expose_provider_paths():
     uri = "gpt://test-folder/gpt-oss-20b/latest"
     assert "gpt://" not in quality_name(uri, "prompt-v3")
     assert "GPT-OSS-20B" in quality_name(uri, "prompt-v3")
-    assert quality_role(uri, "prompt-v3") == "current"
+    assert quality_role(uri, "prompt-v3") == "other"
+    assert quality_role(uri, "prompt-v7", active_model=uri, prompt_version="v7 · hash") == "current"
+    assert quality_name(uri, "prompt-v6") == "GPT-OSS-20B · v6"
     assert quality_role(uri, "original") == "first"
+
+
+def test_quality_counts_unique_cases_and_uses_the_running_model(snapshot, tmp_path):
+    from evals.runner import RunRecord
+
+    settings = _settings(tmp_path).model_copy(update={"llm_model": "gpt://test/gpt-oss-120b"})
+    folder = settings.runs_dir / "evals" / "prompt-v7"
+    folder.mkdir(parents=True)
+    for index, (question_id, inn, repeat) in enumerate(
+        (("one", "5032257375", 0), ("one", "5032257375", 1), ("two", "1684017097", 0))
+    ):
+        record = RunRecord(
+            question_id=question_id,
+            inn=inn,
+            type="answer",
+            model=settings.llm_model + "/latest",
+            prompt_version="v7 · hash",
+            repeat=repeat,
+            question="test",
+        )
+        (folder / f"{index}.json").write_text(record.model_dump_json())
+    app = create_app(lambda: _runtime(snapshot, tmp_path, []), settings=settings)
+    with TestClient(app) as client:
+        data = client.get("/v1/quality").json()
+    assert data["questions"] == 2 and data["companies"] == 2
+    assert data["rows"][0]["total"] == 3
+    assert data["rows"][0]["role"] == "current"
+    assert data["rows"][0]["model"] == "GPT-OSS-120B · v7"
