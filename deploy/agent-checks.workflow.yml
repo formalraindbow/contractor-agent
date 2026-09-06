@@ -1,0 +1,39 @@
+name: Agent checks
+
+on:
+  pull_request:
+  push:
+    branches: [main, develop, codex/agent-v7]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: agent-checks-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  offline-checks:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      PYTHONPATH: src
+    steps:
+      # https://github.com/actions/checkout (v7)
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: false
+      # https://github.com/actions/setup-python (v6)
+      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1
+        with:
+          python-version: '3.12'
+      - name: Install locked dependencies
+        run: |
+          python -m pip install uv==0.11.25
+          uv sync --frozen
+      - name: Lint
+        run: uv run ruff check src tests evals
+      - name: Unit and integration tests without model API calls
+        run: uv run pytest -m 'not live'
+      - name: Verify report invariants across all companies
+        run: uv run python -m evals.canonical --out runs/ci-canonical.json
