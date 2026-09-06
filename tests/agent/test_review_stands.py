@@ -415,7 +415,7 @@ async def test_fact_explanation_repairs_unrequested_company_summaries(snapshot, 
     async with AgentRuntime(settings, source=snapshot, llm=llm) as runtime:
         await runtime.ask("С кем лучше работать?" + context, "address")
         answer = await runtime.ask(
-            "Недостоверные регистрационные данные у 2311304742 что это значит" + context, "address"
+            "Что с регистрационными данными у 2311304742?" + context, "address"
         )
         state = await runtime.graph.aget_state({"configurable": {"thread_id": "address"}})
     assert state.values["citation_retry"] == 1
@@ -531,9 +531,9 @@ def test_head_details_keep_exact_name_and_narrow_date_followup(snapshot):
     followup = scoped_answer(tools, ["5032257375"], "Когда она назначена?")
     assert "09.02.2026" in followup.text_md and "ФИО" not in followup.text_md
     assert scoped_answer(tools, ["5032257375"], "Кто руководитель и что с финансами?") is None
-    assert (
-        scoped_answer(tools, ["5032257375"], "Кто руководитель и где его адрес проживания?") is None
-    )
+    private = scoped_answer(tools, ["5032257375"], "Кто руководитель и где его адрес проживания?")
+    assert "Москвина" in private.text_md and "нет сведений об адресе проживания" in private.text_md
+    assert "Солослово" not in private.text_md
 
 
 @pytest.mark.parametrize(

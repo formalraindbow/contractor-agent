@@ -27,7 +27,8 @@ services:
       - /tmp:size=64m,mode=1777
     cap_drop: [ALL]
     security_opt: [no-new-privileges:true]
-    stop_grace_period: 100s
+    # Default queue budget (30s) + run deadline (120s), with time to persist the result.
+    stop_grace_period: 160s
     healthcheck:
       test:
         - CMD

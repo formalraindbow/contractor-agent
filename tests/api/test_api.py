@@ -77,6 +77,24 @@ CARD_SCRIPT = [
 ]
 
 
+def test_stream_never_publishes_unchecked_draft_and_emits_required_reads(snapshot, tmp_path):
+    script = [AIMessage(content="НЕПРОВЕРЕННЫЙ ЧЕРНОВИК: можно безусловно платить")]
+    with TestClient(
+        create_app(lambda: _runtime(snapshot, tmp_path, script), settings=_settings(tmp_path))
+    ) as client:
+        frames = _sse(
+            client.post(
+                "/v1/runs/stream", json={"thread_id": "safe-stream", "input": {"inn": "5032257375"}}
+            ).iter_lines()
+        )
+    assert frames[-1][0] == "end"
+    assert "НЕПРОВЕРЕННЫЙ" not in json.dumps(frames, ensure_ascii=False)
+    names = {f[1]["data"]["name"] for f in frames if f[0] == "tool"}
+    assert {"get_report_summary", "get_risk_signals"} <= names
+    tokens = "".join(f[1]["data"]["text"] for f in frames if f[0] == "token")
+    assert tokens == frames[-1][1]["data"]["output"]["text_md"]
+
+
 def test_stream_contract_and_reference_endpoints(snapshot: Snapshot, tmp_path) -> None:
     app = create_app(
         lambda: _runtime(snapshot, tmp_path, CARD_SCRIPT), settings=_settings(tmp_path)
@@ -110,8 +128,9 @@ def test_stream_contract_and_reference_endpoints(snapshot: Snapshot, tmp_path) -
             envelopes[0]["data"]["name"] == "get_report_summary"
             and envelopes[0]["data"]["available"] is True
         )
-        assert envelopes[2]["data"]["text"] == "Фактов достаточно."
         end = envelopes[3]["data"]
+        assert envelopes[2]["data"]["text"] == end["output"]["text_md"]
+        assert "Фактов достаточно." not in envelopes[2]["data"]["text"]
         assert (
             end["output"]["kind"] == "card"
             and end["output"]["card"]["verdict"] == "not_recommended"
@@ -120,7 +139,9 @@ def test_stream_contract_and_reference_endpoints(snapshot: Snapshot, tmp_path) -
             "riskLevel": "зелёный",
             "zskRiskLevel": "зелёный",
         }
-        assert end["output"]["citations"][0]["source_path"] == "report.status.reasonName"
+        assert any(
+            c["source_path"] == "report.status.reasonName" for c in end["output"]["citations"]
+        )
         assert set(end["usage"]) == {"input_tokens", "output_tokens", "total_tokens"}
 
         state = client.get("/v1/threads/t1/state").json()
@@ -168,7 +189,8 @@ def test_inn_input_and_error_event(snapshot: Snapshot, tmp_path) -> None:
         with client.stream("POST", "/v1/runs/stream", json=body) as response:
             frames = _sse(response.iter_lines())
         assert [t for t, _ in frames] == ["error"]
-        assert "сценарий" in frames[0][1]["data"]["message"]
+        assert frames[0][1]["data"]["type"] == "AgentError"
+        assert "Попробуйте" in frames[0][1]["data"]["message"]
 
 
 def test_public_history_restores_after_restart_without_model_drafts(

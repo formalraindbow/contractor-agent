@@ -221,7 +221,7 @@ def _age(report: Report) -> list[Signal]:
             explanation_ru=(
                 f"Зарегистрирована {date_ru(info.registration_date)} — "
                 f"{plural(months, 'месяц', 'месяца', 'месяцев')} на дату отчёта; "
-                f"истории работы ещё нет."
+                f"срок с регистрации небольшой."
             ),
         )
     ]

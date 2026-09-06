@@ -82,8 +82,8 @@ def quality_role(model: str, folder: str) -> str:
 class RunInput(BaseModel):
     """Тело ``POST /v1/runs/stream``: сессия, прогон и вход — сообщения или ИНН с вопросом."""
 
-    thread_id: str = Field(min_length=1)
-    run_id: str | None = None
+    thread_id: str = Field(min_length=1, max_length=128)
+    run_id: str | None = Field(default=None, max_length=128)
     input: dict[str, Any]
 
     def question(self) -> str:
@@ -194,6 +194,8 @@ def create_app(
     async def run_stream(body: RunInput, request: Request) -> EventSourceResponse:
         runtime: AgentRuntime = request.app.state.runtime
         question = body.question()
+        if not question.strip() or len(question) > 8000:
+            raise HTTPException(400, "Вопрос должен содержать от 1 до 8000 символов.")
         run_id = body.run_id or new_run_id()
 
         async def frames():

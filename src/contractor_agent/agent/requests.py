@@ -17,6 +17,10 @@ def requested_documents(risks: dict, financials: ToolResponse) -> list[str]:
         result.append(
             "Документы о погашении или текущем состоянии действующих обязательств у приставов."
         )
+    if "arbitration_defendant_open" in codes:
+        result.append("Документы о текущем состоянии открытых арбитражных требований к компании.")
+    if "flag_invalidAuthpersonsData" in codes:
+        result.append("Актуальные сведения о руководителе и подтверждение его полномочий.")
     if "flag_invalidAddress" in codes or "flag_invalidRegistrationData" in codes:
         result.append("Подтверждение актуального адреса и регистрационных данных.")
     if financials.available:

@@ -53,7 +53,7 @@ async def test_card_flow_with_one_citation_repair(snapshot: Snapshot, tmp_path) 
         ]
     )
     async with AgentRuntime(_settings(tmp_path), source=snapshot, llm=llm) as rt:
-        answer = await rt.ask("Проверь ООО МАКСМАРКЕТ, ИНН 5032257375", thread_id="t1")
+        answer = await rt.ask("Можно ли сотрудничать с ООО МАКСМАРКЕТ, ИНН 5032257375?", thread_id="t1")
         state = await rt.graph.aget_state({"configurable": {"thread_id": "t1"}})
 
     assert answer.kind == "card" and answer.card is not None
@@ -105,8 +105,8 @@ async def test_invalid_citation_is_marked_after_one_retry(snapshot: Snapshot, tm
         ]
     )
     async with AgentRuntime(_settings(tmp_path), source=snapshot, llm=llm) as rt:
-        answer = await rt.ask("Какая выручка у ТЕХПРОФ 1684017097?")
-    assert answer.kind == "answer" and answer.card is None
+        answer = await rt.ask("Почему выручка ТЕХПРОФ 1684017097 важна для решения?")
+    assert answer.kind == "refusal" and answer.card is None
     assert answer.citations == [] and len(answer.invalid_citations) == 1
 
 
@@ -211,7 +211,10 @@ async def test_comparison_verdict_is_enforced_by_code(snapshot: Snapshot, tmp_pa
         ]
     )
     async with AgentRuntime(_settings(tmp_path), source=snapshot, llm=llm) as rt:
-        answer = await rt.ask("Сравни 5032257375 и 6165169320", thread_id="cmp2")
+        answer = await rt.ask(
+            "Сравни 5032257375 и 6165169320. С кем можно работать, учитывая суды?",
+            thread_id="cmp2",
+        )
     assert answer.kind == "comparison" and len(answer.cards) == 2
     assert "По данным отчётов" in answer.text_md
     assert answer.text_md.count("в отчёте есть факты, требующие особого внимания") == 2
@@ -312,7 +315,7 @@ def test_tool_subset_by_question() -> None:
         "get_report_summary",
         "get_enforcement_summary",
     ]
-    assert tool_subset("Сравни 5032257375 и 6165169320") == ["search_company", "compare_companies"]
+    assert tool_subset("Сравни 5032257375 и 6165169320") is None
     assert tool_subset("Проверь ООО «МАКСМАРКЕТ»: можно ли с ней работать?") is None
 
 
@@ -351,11 +354,6 @@ async def test_comparison_after_card_uses_only_this_turn_companies(
         [
             tool_call("get_risk_signals", "c1", inn="5032257375"),
             AIMessage(content="ок"),
-            Draft(
-                kind="card",
-                lines=["МАКСМАРКЕТ: есть существенные риски. Отчёт от 31.07.2026."],
-                citations=[],
-            ),
             tool_call("compare_companies", "c2", inns=["6165169320", "1684017097"]),
             AIMessage(content="ок"),
             Draft(kind="card", lines=["ГДК и ТЕХПРОФ: см. ниже."], citations=[]),
@@ -418,7 +416,7 @@ def test_tidy_text_strips_field_paths_and_inn() -> None:
     assert out.startswith("Капитал 22,8 млн ₽") and "можно работать" in out
 
 
-def test_refusal_with_data_triggers_repair() -> None:
+def test_partial_report_does_not_force_an_answer_to_an_unanswerable_question() -> None:
     from contractor_agent.agent.nodes import refusal_problem
     from contractor_agent.agent.schema import Answer
     from contractor_agent.agent.state import ToolCallTrace
@@ -429,7 +427,7 @@ def test_refusal_with_data_triggers_repair() -> None:
         )
     ]
     refusal = Answer(kind="refusal", text_md="В отчёте нет данных для оценки.")
-    assert refusal_problem(refusal, trace)
+    assert refusal_problem(refusal, trace) is None
     assert (
         refusal_problem(refusal, []) is not None
     )  # отказ без обращения к отчёту — тоже повод переспросить модель

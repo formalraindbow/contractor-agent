@@ -8,6 +8,7 @@ from __future__ import annotations
 from pathlib import Path
 from typing import Literal
 
+from pydantic import Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 from contractor_agent.data.loader import ReportSource, load_snapshot
@@ -50,6 +51,9 @@ class Settings(BaseSettings):
     session_store: Literal["sqlite", "memory"] = "sqlite"
     session_db_path: Path = Path(".cache/sessions.sqlite")
     recursion_limit: int = 16
+    max_concurrent_runs: int = Field(default=4, ge=1, le=64)
+    run_queue_timeout: float = Field(default=30, gt=0)
+    run_timeout: float = Field(default=120, gt=0)
     runs_dir: Path = Path("runs")
 
     @property

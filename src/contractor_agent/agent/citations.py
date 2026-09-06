@@ -18,8 +18,13 @@ from typing import Any
 from contractor_agent.agent.schema import Citation
 from contractor_agent.data.loader import ReportSource
 from contractor_agent.data.paths import PathNotFoundError, resolve
+from contractor_agent.labels import svetofor_ru, zsk_ru
 
 _NUMBER = re.compile(r"(?<![\w.])(-?\d[\d\s ]*(?:[.,]\d+)?)\s*(тыс\.?|млн|млрд|%)?", re.IGNORECASE)
+_MONEY = re.compile(
+    r"(?<![\w.])([-−‑–]?\s*\d[\d\s\u00a0\u202f]*(?:[.,]\d+)?\s*(?:тыс\.?|млн|млрд)?)\s*(?:₽|руб\b)",
+    re.I,
+)
 _SCALE = {
     "тыс": Decimal(1_000),
     "тыс.": Decimal(1_000),
@@ -84,6 +89,8 @@ def normalize_path(path: str) -> str:
 
 def numbers_in(text: str) -> list[Decimal]:
     """Числа из текста с учётом «26,2 млн», «180 809,59», «1,1 %» (проценты → доля)."""
+    # Typographic minus is common in Russian text. A dash between years is a range.
+    text = re.sub(r"(?<![\w\d])[−‑–]\s*(?=\d)", "-", text)
     found: list[Decimal] = []
     for raw, unit in _NUMBER.findall(text):
         cleaned = re.sub(r"\s", "", raw).replace(",", ".")  # любые пробелы, включая U+202F
@@ -111,6 +118,8 @@ def number_matches(claimed: Decimal, actual: Decimal) -> bool:
 
 
 def check_citation(source: ReportSource, inns: list[str], citation: Citation) -> CitationCheck:
+    if citation.inn and citation.inn not in inns:
+        return CitationCheck(citation, False, "цитата относится к компании вне текущего вопроса")
     if re.search(
         r"[,;]\s*report\.", citation.source_path
     ):  # два адреса в одной цитате — проверяем оба
@@ -160,7 +169,40 @@ def _is_year(n: Decimal) -> bool:
 
 
 def _check_value(citation: Citation, path: str, value: Any, inn: str) -> CitationCheck:
+    if path in {"report.baseInfo.riskLevel", "report.zskRiskLevel"}:
+        expected = svetofor_ru(value) if path.endswith("riskLevel") else zsk_ru(value)
+        colors = set(
+            re.findall(r"\b(?:зел[её]ный|ж[её]лтый|красный|серый)\b", citation.claim, re.I)
+        )
+        if len(colors) == 1 and next(iter(colors)).lower().replace("ё", "е") != expected.replace(
+            "ё", "е"
+        ):
+            return CitationCheck(
+                citation, False, "цвет не совпадает с исходной оценкой банка", value, inn
+            )
     claimed = numbers_in(citation.claim)
+    money = [n for fragment in _MONEY.findall(citation.claim) for n in numbers_in(fragment)]
+    # A year or count matching a scalar cannot validate a different claimed amount.
+    if (
+        money
+        and isinstance(value, int | float | Decimal)
+        and not isinstance(value, bool)
+        and any(
+            part in path.lower()
+            for part in ("amount", "amt", "proceeds", "profit", "capitals", "assets", "liabilities")
+        )
+    ):
+        claimed = money
+    if (
+        money
+        and path.startswith("report.procurements")
+        and (isinstance(value, list | dict) or hasattr(value, "model_dump"))
+    ):
+        amounts = _procurement_amounts(value)
+        if amounts and any(not any(number_matches(n, a) for a in amounts) for n in money):
+            return CitationCheck(
+                citation, False, "сумма не совпадает с данными о закупках", value, inn
+            )
     if claimed and all(_is_year(n) for n in claimed):
         claimed = []  # «выручка за 2024–2025» — годы в утверждении не значения поля
     if _ABSENCE_STRICT.search(citation.claim) and (
@@ -184,9 +226,31 @@ def _check_value(citation: Citation, path: str, value: Any, inn: str) -> Citatio
     if not claimed:
         return CitationCheck(citation, True, None, value, inn)
     actual = Decimal(str(value))
+    if path.endswith((".profit", ".capitals")) and money and actual != 0:
+        label_free = re.sub(r"прибыл[ььи]\s*/\s*убыток", "результат", citation.claim, flags=re.I)
+        negative_word = bool(re.search(r"\bубыт(?:ок|ка|ком)\b|отрицательн", label_free, re.I))
+        matching = [number for number in money if number_matches(number, actual)]
+        if matching and not any(
+            (number < 0 or negative_word) == (actual < 0) for number in matching
+        ):
+            return CitationCheck(
+                citation, False, "знак финансового результата не совпадает", value, inn
+            )
     if any(number_matches(c, actual) for c in claimed):
         return CitationCheck(citation, True, None, value, inn)
     return CitationCheck(citation, False, f"число не совпадает: в отчёте {value}", value, inn)
+
+
+def _procurement_amounts(value: Any) -> list[Decimal]:
+    if hasattr(value, "model_dump"):
+        value = value.model_dump(by_alias=True)
+    if isinstance(value, list):
+        amounts = [amount for item in value for amount in _procurement_amounts(item)]
+        return [*amounts, sum(amounts, Decimal(0))] if amounts else []
+    if isinstance(value, dict):
+        amount = value.get("contractSignedAmt", value.get("contract_signed_amt"))
+        return [Decimal(str(amount))] if amount is not None else []
+    return []
 
 
 def validate_citations(

@@ -16,8 +16,8 @@ from decimal import Decimal
 from typing import Any
 
 from contractor_agent.data.loader import ReportSource
-from contractor_agent.data.model import SECTIONS
-from contractor_agent.data.paths import resolve
+from contractor_agent.data.model import SECTIONS, Report
+from contractor_agent.data.paths import PathNotFoundError, resolve
 from contractor_agent.labels import svetofor_ru, zsk_ru
 from contractor_agent.mcp_server.envelope import (
     ITEM_LIMIT,
@@ -101,6 +101,16 @@ class Tools:
             if okved
             else None,
             "other_activities_count": len(other or []),
+            "report_limits": {
+                "as_of": report.report_date,
+                "unavailable": [
+                    "История фактических оплат поставщикам и просрочек по счетам",
+                    "Домашний адрес руководителя или учредителя",
+                    "Свежая выписка ЕГРЮЛ и состояние реестров в реальном времени",
+                    "Результат будущего банковского перевода или судебного спора",
+                    "Стороны и предметы отдельных арбитражных дел",
+                ],
+            },
             "head": {
                 "name": person.name,
                 "position": person.position_name,
@@ -209,7 +219,7 @@ class Tools:
                     if capitals is not None
                     else None,
                     "path": row.path,
-                    "paths": _fin_paths(row.path),
+                    "paths": _fin_paths(row.path, report),
                 }
             )
         coef = report.coefficient
@@ -306,16 +316,19 @@ class Tools:
                 {
                     "year": c.year,
                     "plaintiff_count": c.plaintiff_count,
-                    "plaintiff_amount": c.plaintiff_amount,
+                    "plaintiff_amount": c.plaintiff_amount if c.plaintiff_amount else None,
                     "defendant_count": c.defendant_count,
-                    "defendant_amount": c.defendant_amount,
+                    "defendant_amount": c.defendant_amount if c.defendant_amount else None,
                     "path": f"report.arbitrationCases[{i}]",
                 }
                 for i, c in enumerate(cases or [])
             ],
-            "by_years_window": (
-                "разбивка по годам покрывает только 2023–2026; сводка — за всё время"
-            ),
+            "by_years_window": "Разбивка покрывает только перечисленные годы; "
+            "сводка — за всё время. "
+            "При ненулевом числе дел нулевая сумма в исходной судебной сводке означает, "
+            "что размер требований не указан, а не отсутствие требований.",
+            "open_note": "open — производный итог pending + appealed для этой роли. "
+            "Не прибавляйте его к pending или appealed повторно.",
             "bank_flag": {"negative": flag[1], "text": flag[2], "path": flag[0]} if flag else None,
             "signals": [_signal_data(s) for s in result.signals],
         }
@@ -450,7 +463,7 @@ class Tools:
 # --- вспомогательное ----------------------------------------------------------------
 
 
-def _fin_paths(base: str) -> dict[str, str | list[str]]:
+def _fin_paths(base: str, report: Report | None = None) -> dict[str, str | list[str]]:
     """Адрес каждого показателя года — чтобы модель цитировала поле, а не угадывала имя.
     Производные показатели — списком адресов операндов; цитировать их можно адресом года."""
     p: dict[str, str | list[str]] = {
@@ -462,6 +475,23 @@ def _fin_paths(base: str) -> dict[str, str | list[str]]:
         "long_term_duties": f"{base}.liabilities.longTermDuties.total",
         "capitals": f"{base}.liabilities.capitals",
     }
+    if report is not None:
+        # Cite the absent parent when a whole group is missing. A path ending in
+        # '.total' does not exist inside a null shortTermLiabilities object.
+        for key, path in p.items():
+            try:
+                resolve(report, path)
+            except PathNotFoundError:
+                parent = path
+                while "." in parent:
+                    parent = parent.rsplit(".", 1)[0]
+                    try:
+                        value = resolve(report, parent)
+                    except PathNotFoundError:
+                        continue
+                    if value is None:
+                        p[key] = parent
+                    break
     p["current_liquidity"] = [p["current_assets"], p["short_term_liabilities"]]
     p["profitability_pct"] = [p["profit"], p["proceeds"]]
     p["sustainability"] = [p["capitals"], p["long_term_duties"], p["total_assets"]]
@@ -541,13 +571,21 @@ def _item_data(item: enforcement.Item) -> dict[str, Any]:
 def _roles_data(roles: arbitration.Roles) -> dict[str, Any]:
     def bucket(b):
         return (
-            {"count": b.count, "amount": b.amount, "path": b.count_path}
+            {"count": b.count, "amount": b.known_amount, "path": b.count_path}
             if b
             else {"count": 0, "amount": None}
         )
 
+    opened = [b for b in (roles.pending, roles.appealed) if b]
+    known = [b.known_amount for b in opened if b.known_amount is not None]
     return {
         "finished": bucket(roles.finished),
         "pending": bucket(roles.pending),
         "appealed": bucket(roles.appealed),
+        "open": {
+            "count": sum(b.count for b in opened),
+            "amount": sum(known) if known else None,
+            "sum_is_lower_bound": any(b.known_amount is None for b in opened),
+            "source_paths": [p for b in opened for p in (b.count_path, b.amount_path)],
+        },
     }

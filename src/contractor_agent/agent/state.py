@@ -28,6 +28,8 @@ class ToolCallTrace(BaseModel):
 
 class AgentState(MessagesState):
     selected_inns: list[str]
+    active_inns: list[str]  # focus of the last answer; separate from all companies ever mentioned
+    comparison_inns: list[str]  # restore the compared group after a narrow follow-up
     report_dates: dict[str, str]
     trace: Annotated[list[ToolCallTrace], operator.add]
     draft: Draft | None
@@ -35,3 +37,4 @@ class AgentState(MessagesState):
     citation_retry: int
     question: str  # вопрос текущего хода — для подсказки вида ответа и проверки формы
     turn_inns: list[str]  # компании из вызовов инструментов текущего хода (для карточек и цитат)
+    agent_rounds: int  # bounded tool discovery; leave room for validation and one repair
