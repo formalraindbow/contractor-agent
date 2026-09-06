@@ -621,3 +621,22 @@ def test_decision_question_requires_verdict_phrase(snapshot) -> None:
         kind="answer", text_md="В отчёте есть факты, требующие особого внимания.", citations=[]
     )
     assert decision_problem(proper, q, [card]) is None
+
+
+def test_ranking_regex_catches_dash_scores() -> None:
+    from contractor_agent.agent.nodes import _RANKING_RE
+
+    assert _RANKING_RE.search("ООО «ТСК» (ИНН 9727071240) – 10\nООО «ОМЕГА» (ИНН 6311087260) – 10")
+    assert not _RANKING_RE.search("ООО «ТСК» (ИНН 9727071240): можно работать")
+
+
+def test_egrul_extract_is_not_a_court_question(snapshot) -> None:
+    from contractor_agent.agent.section_answers import section_answer
+    from contractor_agent.mcp_server.tools import Tools
+
+    d = section_answer(
+        Tools(snapshot),
+        ["7722539108"],
+        "Пришлите свежую выписку из ЕГРЮЛ по ООО «ВИСТА» (ИНН 7722539108).",
+    )
+    assert d is None

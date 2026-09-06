@@ -17,7 +17,8 @@ def money(value) -> str:
 
 def section_answer(tools: Tools, inns: list[str], question: str) -> Draft | None:
     q = question.split("Речь о компании", 1)[0]
-    court_q = bool(re.search(r"суд|арбитраж|иск", q, re.I))
+    # «иск» только как слово: «выписка» и «поиск» — не про суды
+    court_q = bool(re.search(r"\bсуд|арбитраж|\bиск(?:и|ов|ах|ам|ами|е|а|у)?\b", q, re.I))
     bailiff_q = bool(re.search(r"пристав|исполнительн", q, re.I))
     if (
         len(inns) != 1
