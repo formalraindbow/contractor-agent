@@ -11,6 +11,7 @@ from __future__ import annotations
 
 import base64
 import json
+import re
 import secrets
 from collections.abc import Callable
 from contextlib import asynccontextmanager
@@ -34,6 +35,7 @@ from contractor_agent.agent.presentation import (
     PUBLIC_TERMS,
     public_text,
 )
+from contractor_agent.agent.prompt import PROMPT_VERSION
 from contractor_agent.agent.runtime import AgentRuntime
 from contractor_agent.agent.stream import CONTRACT_VERSION, new_run_id, stream_run
 from contractor_agent.api.evidence import evidence
@@ -46,7 +48,13 @@ from contractor_agent.signals.model import LEGACY_VERDICT_RU, VERDICT_RU
 STATIC = Path(__file__).parent / "static"
 
 
-def quality_name(model: str, folder: str) -> str:
+def quality_version(model: str, folder: str, prompt_version: str = "") -> str | None:
+    value = prompt_version or model + " " + folder
+    match = re.search(r"(?:prompt[-_ ]?|^\s*)v(\d+)", value, re.I)
+    return "v" + match[1] if match else None
+
+
+def quality_name(model: str, folder: str, prompt_version: str = "") -> str:
     """No provider paths or raw model URIs in the presentation table."""
     value = (model + " " + folder).lower()
     family = next(
@@ -62,20 +70,24 @@ def quality_name(model: str, folder: str) -> str:
         ),
         "Другая модель",
     )
-    version = (
-        "третья версия подсказок"
-        if "v3" in value
-        else ("вторая версия подсказок" if "v2" in value else "первая версия подсказок")
-    )
+    version = quality_version(model, folder, prompt_version) or "версия не указана"
     return f"{family} · {version}"
 
 
-def quality_role(model: str, folder: str) -> str:
+def quality_role(
+    model: str, folder: str, *, active_model: str = "", prompt_version: str = ""
+) -> str:
     value = (model + " " + folder).lower()
+    if (
+        active_model
+        and model.split()[0].removesuffix("/latest") == active_model.removesuffix("/latest")
+        and quality_version(model, folder, prompt_version) == PROMPT_VERSION
+    ):
+        return "current"
     if "deepseek-v4-flash" in value and "v3" not in value:
         return "control"
     if "gpt-oss-20b" in value:
-        return "current" if "v3" in value else ("first" if "v2" not in value else "other")
+        return "first" if quality_version(model, folder, prompt_version) is None else "other"
     return "other"
 
 
@@ -279,6 +291,7 @@ def create_app(
         """Как агента проверяли: эталон, доли и оценка судьи по каждому прогону."""
         cache = settings.runs_dir / "evals"
         rows = []
+        questions, companies = set(), set()
         for folder in sorted(p for p in cache.iterdir() if p.is_dir()) if cache.exists() else []:
             records = []
             for f in sorted(folder.glob("*.json")):
@@ -288,11 +301,19 @@ def create_app(
                     continue
             if not records:
                 continue
+            questions.update(r.question_id for r in records)
+            companies.update(r.inn for r in records if r.inn)
             m = compute_metrics(records)
             rows.append(
                 {
-                    "model": quality_name(m.model, folder.name),
-                    "role": quality_role(m.model, folder.name),
+                    "model": quality_name(m.model, folder.name, m.prompt_version),
+                    "role": quality_role(
+                        m.model,
+                        folder.name,
+                        active_model=settings.llm_model,
+                        prompt_version=m.prompt_version,
+                    ),
+                    "questions": len({r.question_id for r in records}),
                     "total": m.total,
                     "errors": m.errors,
                     "grounded": m.grounded_share,
@@ -304,7 +325,7 @@ def create_app(
                     "seconds": None,  # old durations include the judge, not only the answer
                 }
             )
-        return {"rows": rows, "questions": 50, "companies": 12}
+        return {"rows": rows, "questions": len(questions), "companies": len(companies)}
 
     @app.get("/companies/search")
     def companies_search(
