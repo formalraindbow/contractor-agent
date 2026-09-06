@@ -41,7 +41,13 @@ class LLM:
 
     def structured(self, schema: type) -> Runnable:
         chains: list[Runnable] = []
-        validate = RunnableLambda(lambda result: schema.model_validate(result))
+
+        def _validate(result: Any) -> Any:
+            if result is None:  # модель не заполнила схему — пусть сработает запасная цепочка
+                raise ValueError("структурный ответ пуст")
+            return schema.model_validate(result)
+
+        validate = RunnableLambda(_validate)
         for m in self.models:
             chains.append(m.with_structured_output(schema, method="json_schema") | validate)
             chains.append(m.with_structured_output(schema, method="function_calling") | validate)
