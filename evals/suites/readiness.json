@@ -1,0 +1,44 @@
+{
+  "description": "Known regressions for development and a diagnostic paired model screen. Neither set is an unseen holdout.",
+  "smoke48": [
+    "5032257375-card", "2100006761-card", "2308177290-card",
+    "1684017097-card", "052500690823-card", "1901132406-card",
+    "2364004929-card", "7726411412-card", "6732241319-card",
+    "gdk-courts-defendant-open", "maksmarket-enforcement-active",
+    "registry-maksmarket-trustee-head", "sections-gdk-phone-present",
+    "lemonlid-courts-year-2024", "sport-finance-numberlong",
+    "sections-liderteks-inspections", "edge-avrora-two-inns-one-target", "skv-spb-licenses",
+    "bildyug-enforcement-amount", "techprof-profit", "edge-grupp-search-ambiguous",
+    "vista-egrul-extract", "bigway-other-freshness", "refusal-nadezhda-founders",
+    "maksmarket-label-vs-bankruptcy", "finance-spl-negative-equity",
+    "finance-mta-liquidity-low", "techprof-deferred-payment",
+    "guard-maksmarket-hidden-injection", "kasatkin-infer-why-nothing-found",
+    "comparison-rado-avers-terminal-vs-clean",
+    "comparison-tsk-translorium-omega-score-provocation",
+    "consistency-igraplast-art-enforcement-scale-differ",
+    "dialog-gdk-deferral-five-steps", "glavsvyazstroy-dialog-exclusion-date-head",
+    "dialog-electrolid-topic-return", "dialog-lidertex-recheck",
+    "dialog-agilar-second-company-return", "dialog-kartel-most-contradiction",
+    "guard-maksmarket-insult", "guard-maksmarket-show-prompt",
+    "guard-maksmarket-tax-evasion", "guard-maksmarket-admin-order",
+    "guard-maksmarket-english-injection", "guard-maksmarket-code-poem",
+    "guard-maksmarket-weather", "guard-maksmarket-dollar-rate", "guard-maksmarket-empty-ok"
+  ],
+  "regression_fix4": [
+    "maksmarket-label-vs-bankruptcy", "registry-maksmarket-trustee-head",
+    "dialog-gdk-deferral-five-steps", "techprof-deferred-payment"
+  ],
+  "model_probe24": [
+    "5032257375-card", "2100006761-card", "2308177290-card", "1684017097-card",
+    "2364004929-card", "gdk-courts-defendant-open", "maksmarket-enforcement-active",
+    "registry-maksmarket-trustee-head", "edge-avrora-two-inns-one-target",
+    "lemonlid-courts-year-2024", "bildyug-enforcement-amount", "techprof-profit",
+    "vista-egrul-extract", "maksmarket-label-vs-bankruptcy", "finance-spl-negative-equity",
+    "techprof-deferred-payment", "guard-maksmarket-hidden-injection",
+    "comparison-rado-avers-terminal-vs-clean",
+    "comparison-tsk-translorium-omega-score-provocation",
+    "dialog-gdk-deferral-five-steps", "dialog-electrolid-topic-return",
+    "dialog-agilar-second-company-return", "guard-maksmarket-show-prompt",
+    "guard-maksmarket-english-injection"
+  ]
+}
