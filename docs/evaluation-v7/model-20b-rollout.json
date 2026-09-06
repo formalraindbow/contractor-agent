@@ -1,0 +1,160 @@
+{
+  "switch": {
+    "release": "/opt/contractor-agent/releases/model-20b-20260906T232051Z",
+    "previous_model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-120b/latest",
+    "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-20b/latest",
+    "preserved_threads": 89,
+    "image": "kontragent:selectel-v7-d089785",
+    "sqlite_check": "ok"
+  },
+  "public_health": {
+    "status": "ok",
+    "version": "0.1.0",
+    "contract_version": "1.0",
+    "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-20b/latest",
+    "tools": [
+      "search_company",
+      "get_report_summary",
+      "get_risk_signals",
+      "get_financials",
+      "get_enforcement_summary",
+      "get_arbitration_summary",
+      "get_section",
+      "compare_companies"
+    ]
+  },
+  "shared_chat_unchanged": true,
+  "current_quality_row": {
+    "model": "GPT-OSS-20B · v7",
+    "role": "current",
+    "questions": 219,
+    "total": 219,
+    "errors": 0,
+    "grounded": 0.82,
+    "refusal": 1.0,
+    "invented": 0.0,
+    "bad_citation": 0.009,
+    "missed_critical": 0.0,
+    "judge": 4.58,
+    "seconds": null
+  },
+  "completed": 23,
+  "failures": [],
+  "checks": [
+    {
+      "name": "card",
+      "seconds": 4.343,
+      "token_matches_final": true
+    },
+    {
+      "name": "compare",
+      "seconds": 4.727,
+      "token_matches_final": true
+    },
+    {
+      "name": "fresh_extract",
+      "seconds": 5.178,
+      "token_matches_final": true
+    },
+    {
+      "name": "code_guard",
+      "seconds": 0.016,
+      "token_matches_final": true
+    },
+    {
+      "name": "head_followup",
+      "seconds": 1.037,
+      "token_matches_final": true
+    },
+    {
+      "name": "current_status",
+      "seconds": 0.053,
+      "token_matches_final": true
+    },
+    {
+      "name": "saved_status",
+      "seconds": 1.046,
+      "token_matches_final": true
+    },
+    {
+      "name": "payment",
+      "seconds": 1.429,
+      "token_matches_final": true
+    },
+    {
+      "name": "single_focus",
+      "seconds": 2.438,
+      "token_matches_final": true
+    },
+    {
+      "name": "missing_year",
+      "seconds": 1.013,
+      "token_matches_final": true
+    },
+    {
+      "name": "license_scope",
+      "seconds": 1.27,
+      "token_matches_final": true
+    },
+    {
+      "name": "rest_of_group",
+      "seconds": 3.659,
+      "token_matches_final": true
+    },
+    {
+      "name": "current_court_cases",
+      "seconds": 2.539,
+      "token_matches_final": true
+    },
+    {
+      "name": "unknown_id",
+      "seconds": 0.684,
+      "token_matches_final": true
+    },
+    {
+      "name": "exact_indicator_colors",
+      "seconds": 1.015,
+      "token_matches_final": true
+    },
+    {
+      "name": "registry_explanation",
+      "seconds": 2.623,
+      "token_matches_final": true
+    },
+    {
+      "name": "procurement_rnp",
+      "seconds": 1.029,
+      "token_matches_final": true
+    },
+    {
+      "name": "leading_zero",
+      "seconds": 4.537,
+      "token_matches_final": true
+    },
+    {
+      "name": "inspection_results",
+      "seconds": 1.162,
+      "token_matches_final": true
+    },
+    {
+      "name": "choice_critical_facts",
+      "seconds": 1.526,
+      "token_matches_final": true
+    },
+    {
+      "name": "compound_contacts",
+      "seconds": 0.749,
+      "token_matches_final": true
+    },
+    {
+      "name": "conflicting_dates",
+      "seconds": 2.405,
+      "token_matches_final": true
+    },
+    {
+      "name": "court_role_comparison",
+      "seconds": 2.938,
+      "token_matches_final": true
+    }
+  ]
+}
