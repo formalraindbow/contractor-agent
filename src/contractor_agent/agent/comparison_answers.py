@@ -86,6 +86,45 @@ def comparison_followup(
             lines += ["", *draft.lines, f"Отчёт от {card.report_date.strftime('%d.%m.%Y')}."]
             citations += draft.citations
         return Draft(kind="comparison", lines=lines, citations=citations)
+    if (
+        tools
+        and re.search(r"суд|арбитраж", question, re.I)
+        and not re.search(
+            r"финанс|выручк|прибыл|ликвид|капитал|пристав|исполнительн|"
+            r"лиценз|руковод|документ|запрос|почему|за что|предмет|кто подал",
+            question,
+            re.I,
+        )
+    ):
+        from contractor_agent.agent.section_answers import section_answer
+
+        # Counts cannot be paraphrased across roles: open is already pending + appealed.
+        # Reuse the attributed section, including explicit year windows when requested.
+        lines = [
+            "Количество дел само по себе не определяет, с кем безопаснее работать. "
+            "Ниже отдельно показаны иски к компании и её собственные требования."
+        ]
+        citations = []
+        court_question = "Суды: роли и статусы. " + " ".join(
+            re.findall(r"\b20\d{2}\b|по годам", question, re.I)
+        )
+        for card in cards:
+            draft = section_answer(tools, [card.inn], court_question)
+            if draft is None:
+                return None
+            lines += [
+                "", f"### {card.name} · ИНН {card.inn}",
+                "По данным отчёта: " + VERDICT_RU[card.verdict] + ".",
+                f"Светофор банка: {card.labels.riskLevel}. ЗСК: {card.labels.zskRiskLevel}.",
+                *draft.lines,
+            ]
+            citations += draft.citations + [
+                Citation(claim="Светофор: " + card.labels.riskLevel,
+                         source_path="report.baseInfo.riskLevel", inn=card.inn),
+                Citation(claim="ЗСК: " + card.labels.zskRiskLevel,
+                         source_path="report.zskRiskLevel", inn=card.inn),
+            ]
+        return Draft(kind="comparison", lines=lines, citations=citations)
     general = re.search(r"сравни|остальн|проверь|проверить", question, re.I) and not re.search(
         r"финанс|выручк|прибыл|убыт|ликвид|капитал|суд|арбитраж|пристав|долг|"
         r"телефон|руковод|лиценз|адрес|учредител|документ|зск|светофор|почему|"

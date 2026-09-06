@@ -994,6 +994,40 @@ def test_head_and_email_question_keeps_both_requested_fields(snapshot):
     assert all(c.ok for c in validate_citations(snapshot, ["5244026965"], draft.citations))
 
 
+def test_court_comparison_does_not_add_open_to_pending_and_appealed(snapshot):
+    from contractor_agent.agent.comparison_answers import comparison_followup
+    from contractor_agent.agent.nodes import build_card
+
+    tools = Tools(snapshot)
+    inns = ["5027292906", "8602236576"]
+    cards = [build_card(tools, inn) for inn in inns]
+    draft = comparison_followup(
+        cards, "У кого меньше судов и с кем из них безопаснее работать?", tools
+    )
+    assert "22 дела" in draft.text_md and "46 дел" in draft.text_md
+    assert draft.text_md.count("Иски к компании — ответчик") == 2
+    assert draft.text_md.count("Иски компании — истец") == 2
+    first, second = draft.text_md.split("### ООО «ТЕПЛОСНАБКОМПЛЕКТ»")
+    assert "332 584 ₽" in first and "2 564 614 ₽" in first
+    assert "1 824 972 ₽" in first
+    assert "207 769 ₽" in second and "28 790 201 ₽" in second
+    assert "7 открытых" not in draft.text_md
+    assert all(c.ok for c in validate_citations(snapshot, inns, draft.citations))
+    assert comparison_followup(cards, "Сравни суды и выручку", tools) is None
+
+
+def test_court_comparison_preserves_requested_year(snapshot):
+    from contractor_agent.agent.comparison_answers import comparison_followup
+    from contractor_agent.agent.nodes import build_card
+
+    tools = Tools(snapshot)
+    cards = [build_card(tools, inn) for inn in ["5027292906", "8602236576"]]
+    draft = comparison_followup(cards, "Сравни арбитраж за 2025 год", tools)
+    assert draft.text_md.count("**2025 год**") == 2
+    assert "**2024 год**" not in draft.text_md
+    assert "не указывает, завершены ли эти дела" in draft.text_md
+
+
 def test_enforcement_before_registration_does_not_invent_a_cause(snapshot):
     draft = scoped_answer(
         Tools(snapshot), ["501207152100"],
