@@ -171,7 +171,9 @@ def test_inn_input_and_error_event(snapshot: Snapshot, tmp_path) -> None:
         assert "сценарий" in frames[0][1]["data"]["message"]
 
 
-def test_public_history_restores_after_restart_without_model_drafts(snapshot, tmp_path, monkeypatch):
+def test_public_history_restores_after_restart_without_model_drafts(
+    snapshot, tmp_path, monkeypatch
+):
     monkeypatch.setenv("SESSION_STORE", "sqlite")
     script = [
         tool_call("get_report_summary", "head", inn="5032257375"),

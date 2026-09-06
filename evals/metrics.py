@@ -28,7 +28,11 @@ class Metrics:
     judge_mean: float | None = None
     stability: float | None = None  # доля вопросов с одинаковым исходом во всех повторах
     by_type: dict[str, dict[str, float | int]] = field(default_factory=dict)
+    by_category: dict[str, dict[str, float | int]] = field(default_factory=dict)
     mean_duration_s: float | None = None
+    prompt_version: str = ""
+    guard_share: float | None = None  # посторонний ввод отбит без инструментов (guard)
+    comparison_share: float | None = None  # у каждой компании свой правильный вывод (comparison)
 
 
 def _share(numerator: int, denominator: int) -> float | None:
@@ -42,7 +46,9 @@ def compute_metrics(records: list[RunRecord]) -> Metrics:
     ok = [r for r in records if r.error is None]
     m.errors = len(records) - len(ok)
 
-    substantive = [r for r in ok if r.type in ("answer", "infer", "card")]
+    substantive = [  # ответ по существу: и прямой, и последний в диалоге, и сравнение
+        r for r in ok if (r.effective_type or r.type) in ("answer", "infer", "card", "comparison")
+    ]
     grounded = [
         r
         for r in substantive
@@ -50,7 +56,7 @@ def compute_metrics(records: list[RunRecord]) -> Metrics:
     ]
     m.grounded_share = _share(len(grounded), len(substantive))
 
-    refuse = [r for r in ok if r.type == "refuse"]
+    refuse = [r for r in ok if (r.effective_type or r.type) == "refuse"]
     m.refusal_share = _share(sum(1 for r in refuse if r.check_notes.get("refused")), len(refuse))
 
     invented = [  # выдуманный факт по мнению судьи, который видит данные инструментов
@@ -84,14 +90,28 @@ def compute_metrics(records: list[RunRecord]) -> Metrics:
     if repeated:
         m.stability = _share(sum(1 for o in repeated.values() if len(o) == 1), len(repeated))
 
-    for kind in ("card", "answer", "refuse", "infer"):
-        rows = [r for r in ok if r.type == kind]
-        if rows:
-            m.by_type[kind] = {
-                "n": len(rows),
-                "checks_pass": _share(sum(1 for r in rows if r.checks_passed), len(rows)) or 0,
-                "judge_mean": round(mean(r.judge.score for r in rows if r.judge), 2)
-                if any(r.judge for r in rows)
-                else 0,
-            }
+    guards = [r for r in ok if r.type == "guard"]
+    m.guard_share = _share(sum(1 for r in guards if r.check_notes.get("guarded")), len(guards))
+    comparisons = [r for r in ok if r.type == "comparison"]
+    m.comparison_share = _share(
+        sum(1 for r in comparisons if r.check_notes.get("verdict_match")), len(comparisons)
+    )
+    m.prompt_version = next((r.prompt_version for r in records if r.prompt_version), "")
+
+    def _group(rows: list[RunRecord]) -> dict[str, float | int]:
+        return {
+            "n": len(rows),
+            "checks_pass": _share(sum(1 for r in rows if r.checks_passed), len(rows)) or 0,
+            "judge_mean": round(mean(r.judge.score for r in rows if r.judge), 2)
+            if any(r.judge for r in rows)
+            else 0,
+        }
+
+    order = ["card", "answer", "refuse", "infer", "comparison", "dialog", "guard"]
+    for kind in sorted(
+        {r.type for r in ok}, key=lambda k: (order.index(k) if k in order else 99, k)
+    ):
+        m.by_type[kind] = _group([r for r in ok if r.type == kind])
+    for cat in sorted({r.category for r in ok if r.category}):
+        m.by_category[cat] = _group([r for r in ok if r.category == cat])
     return m

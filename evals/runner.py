@@ -22,6 +22,7 @@ from pydantic import BaseModel, Field
 
 from contractor_agent.agent.citations import check_citation
 from contractor_agent.agent.llm import LLM
+from contractor_agent.agent.prompt import PROMPT_VERSION, prompt_fingerprint
 from contractor_agent.agent.runtime import AgentRuntime
 from contractor_agent.agent.schema import Answer
 from evals.checks import CheckResult, check
@@ -36,9 +37,13 @@ class RunRecord(BaseModel):
     inn: str
     type: str
     topic: str = "other"
+    category: str = ""
+    effective_type: str = ""  # dialog меряется типом последнего вопроса
     model: str
+    prompt_version: str = ""  # «v3 · a1b2c3d4»: без неё цифры качества не воспроизводимы
     repeat: int
     question: str
+    tool_calls: int = 0  # инструментов на последнем ходу (guard: должно быть 0)
     answer: Answer | None = None
     tool_outputs: str = ""
     trace: list[dict[str, Any]] = Field(default_factory=list)
@@ -109,7 +114,7 @@ class EvalRunner:
         """Проверки кодом пересчитываются из кэша: правка проверки действует задним числом."""
         assert record.answer is not None
         self._revalidate_citations(record.answer)
-        result = check(question, record.answer, self.gold.card(question.inn).report_date)
+        result = self._check(question, record)
         before = (record.checks_passed, record.check_failures, record.check_notes)
         record.checks_passed, record.check_failures, record.check_notes = (
             result.passed,
@@ -117,6 +122,17 @@ class EvalRunner:
             result.notes,
         )
         return before != (record.checks_passed, record.check_failures, record.check_notes)
+
+    def _check(self, question: GoldQuestion, record: RunRecord) -> CheckResult:
+        assert record.answer is not None
+        expected = {inn: self.gold.card(inn).expected_verdict for inn in question.all_inns}
+        return check(
+            question,
+            record.answer,
+            self.gold.card(question.inn).report_date,
+            tool_calls=record.tool_calls,
+            expected_by_inn=expected if question.effective_type == "comparison" else None,
+        )
 
     def _revalidate_citations(self, answer: Answer) -> None:
         """Цитаты проверяются заново текущим валидатором: его правки действуют задним числом."""
@@ -161,7 +177,10 @@ class EvalRunner:
             inn=question.inn,
             type=question.type,
             topic=question.topic,
+            category=question.category,
+            effective_type=question.effective_type,
             model=self.model_name,
+            prompt_version=f"{PROMPT_VERSION} · {prompt_fingerprint()}",
             repeat=repeat,
             question=question.question,
         )
@@ -169,16 +188,26 @@ class EvalRunner:
         started = time.perf_counter()
         try:
             history = follow_up_history(self.gold.card(question.inn)) if question.follow_up else ()
+            for prior in question.prior_questions:  # dialog: прошлые ходы задаются живьём
+                await asyncio.wait_for(
+                    self.runtime.ask(prior, thread_id=thread_id, history=history),
+                    self.agent_timeout_s,
+                )
+                history = ()
             answer = await asyncio.wait_for(
                 self.runtime.ask(question.question, thread_id=thread_id, history=history),
                 self.agent_timeout_s,
             )
             state = await self.runtime.graph.aget_state({"configurable": {"thread_id": thread_id}})
             values = state.values or {}
+            messages = values.get("messages") or []
             record.answer = answer
-            record.tool_outputs = _tool_outputs(values.get("messages") or [])
+            record.tool_outputs = _tool_outputs(_last_turn(messages, question.question))
             record.trace = [t.model_dump() for t in values.get("trace") or []]
-            result: CheckResult = check(question, answer, self.gold.card(question.inn).report_date)
+            record.tool_calls = sum(
+                1 for m in _last_turn(messages, question.question) if isinstance(m, ToolMessage)
+            )
+            result: CheckResult = self._check(question, record)
             record.checks_passed = result.passed
             record.check_failures = result.failures
             record.check_notes = result.notes
@@ -201,6 +230,16 @@ def follow_up_history(card: GoldCard) -> list[BaseMessage]:
             "Могу рассказать про статус, суды, долги у приставов, финансы и проверки."
         ),
     ]
+
+
+def _last_turn(messages: list, question: str) -> list:
+    """Сообщения последнего хода: от последней реплики пользователя с этим вопросом до конца.
+    В диалоге судья и счётчик инструментов смотрят только на текущий ответ."""
+    start = 0
+    for i, m in enumerate(messages):
+        if isinstance(m, HumanMessage) and str(m.content) == question:
+            start = i
+    return messages[start:]
 
 
 def _tool_outputs(messages: list) -> str:

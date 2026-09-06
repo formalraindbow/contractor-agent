@@ -269,10 +269,7 @@ def test_verdict_codes_are_replaced_with_phrases() -> None:
         "Итог: ГДК – not_recommended, ТЕХПРОФ – ok. Поле check_id не трогаем."
     )
     assert "not_recommended" not in out and " ok" not in out
-    assert (
-        "факты, требующие особого внимания" in out
-        and "можно работать" in out
-    )
+    assert "факты, требующие особого внимания" in out and "можно работать" in out
     assert "check_id" in out
 
 

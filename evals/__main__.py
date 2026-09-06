@@ -14,6 +14,7 @@ import sys
 from pathlib import Path
 
 from contractor_agent.agent.llm import make_judge_llm, make_llm
+from contractor_agent.agent.prompt import PROMPT_VERSION, prompt_fingerprint
 from contractor_agent.agent.runtime import AgentRuntime
 from contractor_agent.settings import Settings
 from evals.gold import load_gold
@@ -26,13 +27,18 @@ CACHE = Path("runs/evals")
 
 async def _run(args: argparse.Namespace) -> int:
     logging.getLogger("httpx").setLevel(logging.WARNING)
-    settings = Settings()
-    gold = load_gold()
+    # память графа — только в процессе: иначе повторный прогон того же thread_id подхватит
+    # историю из файла диалогов стенда, и ответ будет не на тот контекст
+    settings = Settings(session_store="memory")
+    gold = load_gold(Path(args.gold)) if args.gold else load_gold()
     types = set(args.types.split(",")) if args.types else None
     questions = gold.questions(types)
     if args.only:
         wanted = set(args.only.split(","))
         questions = [q for q in questions if q.id in wanted or q.inn in wanted]
+    if args.category:
+        wanted = set(args.category.split(","))
+        questions = [q for q in questions if q.category in wanted]
     if args.limit:
         questions = questions[: args.limit]
     model = args.model or settings.llm_model
@@ -50,7 +56,7 @@ async def _run(args: argparse.Namespace) -> int:
             delay_s=args.delay,
         )
         print(
-            f"модель {model}, судья {args.judge_model or settings.judge_model if judge_llm else 'нет'}, вопросов {len(questions)} × {args.repeat}",
+            f"модель {model}, судья {args.judge_model or settings.judge_model if judge_llm else 'нет'}, промпт {PROMPT_VERSION} · {prompt_fingerprint()}, вопросов {len(questions)} × {args.repeat}",
             file=sys.stderr,
         )
         records = []
@@ -98,11 +104,13 @@ def main(argv: list[str] | None = None) -> int:
     sub = parser.add_subparsers(dest="command", required=True)
     run = sub.add_parser("run")
     run.add_argument("--model")
+    run.add_argument("--gold", help="другой файл эталона (по умолчанию evals/gold.yaml)")
     run.add_argument("--judge-model")
     run.add_argument("--tag", help="метка прогона (например prompt-v2): свой кэш и строка отчёта")
     run.add_argument("--no-judge", action="store_true")
     run.add_argument("--types", help="card,answer,refuse,infer")
     run.add_argument("--only", help="id вопросов или ИНН через запятую")
+    run.add_argument("--category", help="разделы регресса через запятую (courts,guard,…)")
     run.add_argument("--limit", type=int)
     run.add_argument("--repeat", type=int, default=1)
     run.add_argument("--delay", type=float, default=0.5)
