@@ -933,8 +933,8 @@ def offtopic_reply(question: str) -> str | None:
     # Company identity appended by the UI does not turn an unrelated request into
     # a report question. Keep the full text above for injection and abuse checks.
     if _OFFTOPIC_RE.search(question_subject(text)) or re.search(
-        r"(?:напиши|сгенерируй|покажи|сделай|write|generate)[^.!?\n]{0,35}"
-        r"(?:код\b|программ|скрипт|python|javascript|code\b|sql\b)",
+        r"(?:напиши|сгенерируй|покажи|сделай|выведи|составь|write|generate)[^.!?\n]{0,80}"
+        r"(?:код\b|программ|скрипт|python|javascript|code\b|sql\b|select\b|delete\s+from)",
         question_subject(text),
         re.I,
     ):

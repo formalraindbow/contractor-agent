@@ -88,6 +88,8 @@ class Tools:
             "age_years": finance.company_age_years(report),
             "company_size": info.company_size,
             "staff": info.staff,
+            "email": info.email,
+            "website": info.website,
             "status": report.status.status,
             "status_reason": report.status.reason_name,
             "labels": {
@@ -124,6 +126,8 @@ class Tools:
                 "age_years": "report.baseInfo.registrationInfo.yearsFromRegistration",
                 "company_size": "report.baseInfo.companySize",
                 "staff": "report.baseInfo.staff",
+                "email": "report.baseInfo.email",
+                "website": "report.baseInfo.website",
                 "address": "report.baseInfo.address",
                 "status": "report.status.status",
                 "status_reason": "report.status.reasonName",
