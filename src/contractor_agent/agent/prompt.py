@@ -76,3 +76,14 @@ def citation_repair_prompt(
         parts.append(verdict_problem)
     parts.append("Если нужно — вызови инструмент ещё раз, затем дай ответ.")
     return "\n".join(parts)
+
+
+# Версия промпта попадает в каждую запись прогона эталона и в шапку отчёта:
+# цифры качества без версии промпта не воспроизводимы.
+PROMPT_VERSION = "v3"
+
+
+def prompt_fingerprint() -> str:
+    import hashlib
+
+    return hashlib.sha1((SYSTEM_PROMPT + FINALIZE_PROMPT).encode("utf-8")).hexdigest()[:8]

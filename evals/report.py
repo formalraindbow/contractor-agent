@@ -31,13 +31,31 @@ def render(
             "",
             f"## `{m.model}` — по типам вопросов",
             "",
-            "| Тип | n | Проверки пройдены | Судья |",
-            "|---|---:|---:|---:|",
         ]
+        if m.prompt_version:
+            lines += [f"Промпт: {m.prompt_version}", ""]
+        extra = []
+        if m.guard_share is not None:
+            extra.append(f"посторонний ввод отбит: {_pct(m.guard_share)}")
+        if m.comparison_share is not None:
+            extra.append(f"сравнение — верный вывод у каждой компании: {_pct(m.comparison_share)}")
+        if extra:
+            lines += ["; ".join(extra), ""]
+        lines += ["| Тип | n | Проверки пройдены | Судья |", "|---|---:|---:|---:|"]
         for kind, row in m.by_type.items():
             lines.append(
                 f"| {kind} | {row['n']} | {_pct(row['checks_pass'])} | {row['judge_mean']} |"
             )
+        if m.by_category:
+            lines += [
+                "",
+                "| Раздел регресса | n | Проверки пройдены | Судья |",
+                "|---|---:|---:|---:|",
+            ]
+            for cat, row in m.by_category.items():
+                lines.append(
+                    f"| {cat} | {row['n']} | {_pct(row['checks_pass'])} | {row['judge_mean']} |"
+                )
         failures = [
             r
             for r in records.get(m.model, [])

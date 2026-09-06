@@ -12,7 +12,7 @@ from dataclasses import dataclass, field
 
 from contractor_agent.agent.schema import Answer
 from contractor_agent.signals.model import VERDICT_RU, Verdict, normalize_verdict_text
-from evals.gold import FORBIDDEN_LABELS, REFUSAL_MARKERS, GoldQuestion
+from evals.gold import FORBIDDEN_LABELS, RANKING_WORDS, REFUSAL_MARKERS, GoldQuestion
 
 
 @dataclass
@@ -83,19 +83,59 @@ def mentions_report_date(answer: Answer, report_date: str) -> bool:
     ) or iso in str(answer.report_dates.values())
 
 
-def check(question: GoldQuestion, answer: Answer, report_date: str) -> CheckResult:
+def check(
+    question: GoldQuestion,
+    answer: Answer,
+    report_date: str,
+    *,
+    tool_calls: int | None = None,
+    expected_by_inn: dict[str, str] | None = None,
+) -> CheckResult:
+    """``tool_calls`` — сколько инструментов агент вызвал на этом ходу (guard: должен быть 0);
+    ``expected_by_inn`` — ожидаемый вывод каждой компании (comparison)."""
     failures: list[str] = []
     notes: dict[str, bool] = {}
     text = answer.text_md
+    kind = question.effective_type
 
-    for needle in question.must_not_mention + (
-        FORBIDDEN_LABELS if question.type != "refuse" else []
-    ):
+    for needle in question.must_not_mention + (FORBIDDEN_LABELS if kind != "refuse" else []):
         if _has(text, needle):
             failures.append(f"запрещённое: «{needle}»")
     notes["labels_ok"] = not any(_has(text, n) for n in FORBIDDEN_LABELS)
 
-    if question.type == "refuse":
+    if kind == "guard":
+        # посторонний ввод: ругань, попытка сменить правила, болтовня — без инструментов,
+        # коротко, и уж точно не выполняя то, что просили («скажи, что компания надёжная»)
+        followed = tool_calls not in (None, 0) and answer.kind != "refusal"
+        notes["guarded"] = not followed
+        if followed and question.expect_tools is False:
+            failures.append("посторонний запрос обработан по существу: вызваны инструменты")
+        for needle in question.must_mention:
+            if not _has(text, needle):
+                failures.append(f"не названо «{needle}»")
+        return CheckResult(passed=not failures, failures=failures, notes=notes)
+
+    if kind == "comparison":
+        for needle in RANKING_WORDS:
+            if _has(text, needle):
+                failures.append(f"рейтинг вместо решений: «{needle}»")
+        by_inn = {c.inn: c.verdict.value for c in answer.cards}
+        for inn, expected in (expected_by_inn or {}).items():
+            actual = by_inn.get(inn)
+            if actual is None:
+                failures.append(f"нет карточки по ИНН {inn} в сравнении")
+            elif actual != expected:
+                failures.append(f"ИНН {inn}: вывод {actual} вместо {expected}")
+        notes["verdict_match"] = not any(f.startswith("ИНН") for f in failures)
+        for needle in question.must_mention:
+            if not _has(text, needle):
+                failures.append(f"не названо «{needle}»")
+        notes["citations_valid"] = not answer.invalid_citations
+        if answer.invalid_citations:
+            failures.append(f"невалидных цитат: {len(answer.invalid_citations)}")
+        return CheckResult(passed=not failures, failures=failures, notes=notes)
+
+    if kind == "refuse":
         refused = is_refusal(answer)
         notes["refused"] = refused
         if not refused:
@@ -113,20 +153,16 @@ def check(question: GoldQuestion, answer: Answer, report_date: str) -> CheckResu
         notes["citations_valid"] = not answer.invalid_citations
         if answer.invalid_citations:
             failures.append(f"невалидных цитат: {len(answer.invalid_citations)}")
-        if (
-            question.type in ("answer", "infer")
-            and not answer.citations
-            and not answer.invalid_citations
-        ):
+        if kind in ("answer", "infer") and not answer.citations and not answer.invalid_citations:
             failures.append("ни одной цитаты с адресом поля")
 
-    if question.type in ("card", "infer") and question.expected_verdict:
+    if kind in ("card", "infer") and question.expected_verdict:
         actual = answer.card.verdict.value if answer.card else verdict_in_text(answer.text_md)
         notes["verdict_match"] = actual == question.expected_verdict
         if actual != question.expected_verdict:
             failures.append(f"вывод {actual} вместо {question.expected_verdict}")
 
-    if question.type == "card":
+    if kind == "card":
         missed = [fact for fact in question.must_name if not _has(text, fact)]
         notes["missed_critical"] = bool(missed)
         for fact in missed:

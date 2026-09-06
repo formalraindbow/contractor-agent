@@ -14,7 +14,9 @@ from typing import Literal
 import yaml
 from pydantic import BaseModel, ConfigDict, Field
 
-QuestionType = Literal["answer", "refuse", "infer", "card"]
+QuestionType = Literal["answer", "refuse", "infer", "card", "comparison", "guard", "dialog"]
+FinalType = Literal["answer", "refuse", "infer", "card"]
+RANKING_WORDS = ["рейтинг", "балл", "первое место", "второе место", "третье место", "скоринг"]
 Verdict = Literal["ok", "check", "not_recommended"]
 
 GOLD_PATH = Path(__file__).parent / "gold.yaml"
@@ -59,6 +61,36 @@ class GoldQuestion(BaseModel):
         default=False,
         description="уточняющий вопрос («у них…»): раннер засевает сессию репликой о компании",
     )
+    category: str = Field(
+        default="",
+        description="раздел регресса: courts · enforcement · finance · registry · sections · "
+        "refusal · decision · comparison · dialog · guard · edge · consistency",
+    )
+    extra_inns: list[str] = Field(
+        default_factory=list, description="comparison: остальные компании (у каждой своя карточка)"
+    )
+    prior_questions: list[str] = Field(
+        default_factory=list,
+        description="dialog: предыдущие вопросы той же сессии, раннер задаёт их живьём по очереди",
+    )
+    final_type: FinalType | None = Field(
+        default=None, description="dialog: как проверять последний ответ (answer/refuse/infer/card)"
+    )
+    expect_tools: bool | None = Field(
+        default=None,
+        description="guard: False — агент не должен вызывать инструменты (посторонний ввод)",
+    )
+
+    @property
+    def effective_type(self) -> str:
+        """Каким набором проверок мерить ответ: для dialog — типом последнего вопроса."""
+        if self.type == "dialog":
+            return self.final_type or "answer"
+        return self.type
+
+    @property
+    def all_inns(self) -> list[str]:
+        return [self.inn, *self.extra_inns]
 
 
 class GoldCard(BaseModel):
