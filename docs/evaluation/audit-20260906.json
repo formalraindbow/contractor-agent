@@ -1,0 +1,314 @@
+{
+  "base_commit": "3f548ab",
+  "models": {
+    "prompt-v3": {
+      "n": 202,
+      "errors": 2,
+      "repeats": [
+        0
+      ],
+      "judge_n": 200,
+      "judge_score_ge_4": 135,
+      "type_counts": {
+        "comparison": 10,
+        "dialog": 8,
+        "refuse": 30,
+        "card": 72,
+        "guard": 9,
+        "answer": 37,
+        "infer": 36
+      },
+      "fatal_label_nonzero_score": [
+        "edge-rieltinvestocenka-quoted-name",
+        "7714729497-card"
+      ],
+      "required_fact_misses": [
+        {
+          "id": "7726411412-card",
+          "code": true,
+          "judge": false
+        },
+        {
+          "id": "6164137887-card",
+          "code": true,
+          "judge": false
+        },
+        {
+          "id": "6731007348-card",
+          "code": true,
+          "judge": false
+        },
+        {
+          "id": "5027292906-card",
+          "code": true,
+          "judge": false
+        },
+        {
+          "id": "7714729497-card",
+          "code": false,
+          "judge": true
+        },
+        {
+          "id": "2364004929-card",
+          "code": true,
+          "judge": false
+        }
+      ],
+      "card_n": 72
+    },
+    "prompt-v4": {
+      "n": 219,
+      "errors": 3,
+      "repeats": [
+        0
+      ],
+      "judge_n": 216,
+      "judge_score_ge_4": 135,
+      "type_counts": {
+        "card": 77,
+        "comparison": 11,
+        "dialog": 9,
+        "refuse": 31,
+        "answer": 44,
+        "infer": 38,
+        "guard": 9
+      },
+      "fatal_label_nonzero_score": [
+        "registry-fintreid-invalid-regdata-meaning",
+        "comparison-tdzhbi-doska-stankistark-deferral",
+        "decision-agilar-ask-before"
+      ],
+      "required_fact_misses": [
+        {
+          "id": "9728039426-card",
+          "code": true,
+          "judge": false
+        },
+        {
+          "id": "7103029029-card",
+          "code": true,
+          "judge": false
+        },
+        {
+          "id": "7720966601-card",
+          "code": true,
+          "judge": false
+        },
+        {
+          "id": "5029069967-card",
+          "code": true,
+          "judge": false
+        },
+        {
+          "id": "7816746967-card",
+          "code": true,
+          "judge": false
+        },
+        {
+          "id": "9706026247-card",
+          "code": true,
+          "judge": false
+        },
+        {
+          "id": "7726411412-card",
+          "code": true,
+          "judge": false
+        },
+        {
+          "id": "7728380537-card",
+          "code": true,
+          "judge": false
+        },
+        {
+          "id": "6732241319-card",
+          "code": true,
+          "judge": false
+        },
+        {
+          "id": "6731007348-card",
+          "code": true,
+          "judge": false
+        },
+        {
+          "id": "2345004377-card",
+          "code": true,
+          "judge": false
+        },
+        {
+          "id": "6165169320-card",
+          "code": true,
+          "judge": false
+        },
+        {
+          "id": "7727763544-card",
+          "code": true,
+          "judge": false
+        },
+        {
+          "id": "9727071240-card",
+          "code": true,
+          "judge": false
+        },
+        {
+          "id": "120705254031-card",
+          "code": true,
+          "judge": false
+        },
+        {
+          "id": "5047281765-card",
+          "code": true,
+          "judge": false
+        },
+        {
+          "id": "9718253269-card",
+          "code": true,
+          "judge": false
+        },
+        {
+          "id": "5027292906-card",
+          "code": true,
+          "judge": false
+        },
+        {
+          "id": "6320036399-card",
+          "code": true,
+          "judge": false
+        },
+        {
+          "id": "5032257375-card",
+          "code": true,
+          "judge": false
+        },
+        {
+          "id": "7714729497-card",
+          "code": true,
+          "judge": false
+        },
+        {
+          "id": "2364004929-card",
+          "code": true,
+          "judge": false
+        },
+        {
+          "id": "343703064945-card",
+          "code": true,
+          "judge": false
+        }
+      ],
+      "card_n": 77
+    },
+    "prompt-v5": {
+      "n": 219,
+      "errors": 1,
+      "repeats": [
+        0
+      ],
+      "judge_n": 218,
+      "judge_score_ge_4": 141,
+      "type_counts": {
+        "card": 77,
+        "comparison": 11,
+        "dialog": 9,
+        "refuse": 31,
+        "answer": 44,
+        "infer": 38,
+        "guard": 9
+      },
+      "fatal_label_nonzero_score": [
+        "2308177290-card",
+        "1650051822-card",
+        "registry-fintreid-invalid-regdata-meaning",
+        "comparison-tsk-translorium-omega-score-provocation"
+      ],
+      "required_fact_misses": [
+        {
+          "id": "9728039426-card",
+          "code": true,
+          "judge": false
+        },
+        {
+          "id": "1901132406-card",
+          "code": true,
+          "judge": false
+        },
+        {
+          "id": "7724398540-card",
+          "code": true,
+          "judge": false
+        },
+        {
+          "id": "5029069967-card",
+          "code": true,
+          "judge": false
+        },
+        {
+          "id": "7816746967-card",
+          "code": true,
+          "judge": false
+        },
+        {
+          "id": "7726411412-card",
+          "code": true,
+          "judge": false
+        },
+        {
+          "id": "7728380537-card",
+          "code": true,
+          "judge": false
+        },
+        {
+          "id": "6164137887-card",
+          "code": true,
+          "judge": false
+        },
+        {
+          "id": "6732241319-card",
+          "code": true,
+          "judge": false
+        },
+        {
+          "id": "2308177290-card",
+          "code": false,
+          "judge": true
+        },
+        {
+          "id": "1650051822-card",
+          "code": false,
+          "judge": true
+        },
+        {
+          "id": "5047218428-card",
+          "code": true,
+          "judge": false
+        },
+        {
+          "id": "9727071240-card",
+          "code": true,
+          "judge": false
+        },
+        {
+          "id": "120705254031-card",
+          "code": true,
+          "judge": false
+        },
+        {
+          "id": "5027292906-card",
+          "code": true,
+          "judge": false
+        },
+        {
+          "id": "2364004929-card",
+          "code": true,
+          "judge": false
+        },
+        {
+          "id": "343703064945-card",
+          "code": true,
+          "judge": false
+        }
+      ],
+      "card_n": 77
+    }
+  },
+  "all_rates_are_observational_not_release_gates": true
+}
