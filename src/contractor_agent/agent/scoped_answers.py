@@ -209,7 +209,7 @@ def scoped_answer(tools: Tools, inns: list[str], question: str) -> Draft | None:
         lines = ["### Руководитель компании"]
         fields = (
             [("since", "Дата назначения")]
-            if head_date and not head_identity and not re.search(r"зовут|имя|фио", q, re.I)
+            if head_date and not head_identity and not re.search(r"зовут|имя|фио|\bкто\b", q, re.I)
             else [("name", "ФИО"), ("position", "Должность"), ("since", "Дата назначения")]
         )
         for field, label in fields:

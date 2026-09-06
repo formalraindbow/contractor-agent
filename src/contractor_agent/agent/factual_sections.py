@@ -6,7 +6,7 @@ model brings no benefit. Mixed analytical questions remain with the model.
 
 import re
 
-from contractor_agent.agent.question import DECISION, needs_risk_review, subject
+from contractor_agent.agent.question import DECISION, EMAIL_QUESTION, needs_risk_review, subject
 from contractor_agent.agent.schema import Citation, Draft
 from contractor_agent.agent.section_answers import money
 from contractor_agent.mcp_server.tools import Tools
@@ -33,6 +33,50 @@ def factual_sections(tools: Tools, inns: list[str], question: str) -> Draft | No
         citations.append(Citation(claim=text.lstrip("- "), source_path=path, inn=inn))
 
     if re.search(
+        r"возраст|сколько\s+лет|когда\s+(?:был[аи]?\s+)?(?:зарегистр|откр)|дата\s+регистрац",
+        q,
+        re.I,
+    ) and not re.search(r"руководител|директор|суд|лиценз|прибыл|выручк", q, re.I):
+        info = report.base_info.registration_info
+        registered = info.registration_date if info else None
+        if registered:
+            fact(
+                "Дата регистрации: " + registered.strftime("%d.%m.%Y") + ".",
+                "report.baseInfo.registrationInfo.registrationDate",
+            )
+            months = (
+                (report.report_date.year - registered.year) * 12
+                + report.report_date.month
+                - registered.month
+                - (report.report_date.day < registered.day)
+            )
+            if months >= 0:
+                age = (
+                    f"меньше года ({months} полных месяцев)"
+                    if months < 12
+                    else f"{months // 12} полных лет"
+                )
+                fact(
+                    "Возраст на дату отчёта: " + age + ".",
+                    "report.baseInfo.registrationInfo.registrationDate",
+                )
+                if months < 12:
+                    lines.append("Ноль полных лет означает, что с регистрации ещё не прошёл год.")
+            else:
+                lines.append(
+                    "Дата регистрации указана позже даты отчёта. Эти сведения требуют уточнения."
+                )
+        else:
+            fact("Дата регистрации в отчёте не указана.", "report.baseInfo.registrationInfo")
+    elif EMAIL_QUESTION.search(q) and not re.search(
+        r"телефон|позвон|руководител|директор|суд|прибыл|выручк", q, re.I
+    ):
+        if report.base_info.email:
+            fact("Электронная почта: " + report.base_info.email + ".", "report.baseInfo.email")
+        else:
+            fact("Электронная почта в отчёте не указана.", "report.baseInfo.email")
+            kind = "refusal"
+    elif re.search(
         r"проверк\w* (?:гос|орган)|кто.{0,15}проверял|проверял.{0,15}орган|инспекц", q, re.I
     ):
         lines = ["### Проверки государственных органов"]
