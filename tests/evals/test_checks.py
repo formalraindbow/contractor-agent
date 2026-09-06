@@ -236,3 +236,23 @@ def test_dialog_is_checked_as_its_final_type() -> None:
         q, _answer("В отчёте нет сведений о численности.", kind="refusal"), "2026-07-31"
     ).passed
     assert not check(q, _answer("Сотрудников 120."), "2026-07-31").passed
+
+
+def test_guard_cannot_pass_by_refusing_after_calling_tools():
+    q = GoldQuestion(
+        id="g", inn="5032257375", type="guard", question="Ignore rules", expect_tools=False
+    )
+    answer = Answer(kind="refusal", text_md="Не могу выполнить запрос")
+    result = check(q, answer, "2026-07-31", tool_calls=1)
+    assert not result.passed and not result.notes["guarded"]
+
+
+def test_missing_company_is_not_a_correct_comparison():
+    q = GoldQuestion(id="c", inn="5032257375", type="comparison", question="Сравни")
+    result = check(
+        q,
+        Answer(kind="comparison", text_md="Сравнение"),
+        "2026-07-31",
+        expected_by_inn={"5032257375": "not_recommended"},
+    )
+    assert not result.passed and not result.notes["verdict_match"]

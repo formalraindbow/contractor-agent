@@ -1,0 +1,160 @@
+{
+  "manifest": {
+    "git_commit": "3f548ab05e3a31bc1f4bb5e1f8e22109f3974cd1",
+    "created_utc": "2026-09-06T14:25:20.400624+00:00",
+    "prompt_fingerprint": "e02244f0",
+    "source_sha256": {
+      "evals/__init__.py": "9d321bd4c8d497f0e046a0ddcdf29c351282b91029523a9bbee607a84bfaeac5",
+      "evals/__main__.py": "c2dcc0f3c52a0193cb78df12d7e95bc8620c8f91719d3ef51e776edc6c8d6118",
+      "evals/checks.py": "243fc7c5d79a5903a19ea91334efc469cf4bb467d92b54518f71e4155f9e6460",
+      "evals/gold.py": "f6969c957ef8573f5275a53d6d17851cec312cf256f3337388f3f23c61dcf77b",
+      "evals/gold.yaml": "f5fed753094a48e2d0d5119350e75e3eb96ea2ae5adebe3f9e80a788b3379bfa",
+      "evals/judge.py": "10f8cf47d26bbf1850b3cc216f6101317fbedae3c6982f30d2dc9dd18738cd4c",
+      "evals/metrics.py": "bca65a8ca754c945eecb2588a8b850d2290b8ce99bfaaedd4ddb36b7f8e8c9ae",
+      "evals/paired.py": "8291234051bf59bac6c2cb3b60d80cc61dbdf2f20744923e8b6b6d4241b6bdb4",
+      "evals/report.py": "acd66190f496f2bb3c12f17d7de232110b458e10e6691835e162e04fd47284f6",
+      "evals/runner.py": "bb9504197566ace9c850dfc3bf79ae1ef8822776dac3bbc0819c47c1549a81f2",
+      "evals/suites/readiness.json": "8fd764a01d4903d80a2e45cec5144d4811b68036f82bd549da0fbf8c135bbbcd",
+      "pyproject.toml": "35a00adb502b932782151564edcd30eaf0fa0f5de3af57d90a1eee6c89eb9c21",
+      "src/contractor_agent/__init__.py": "89c1151257e11a1efaa2ba419f454fdc855f0d2d824238d0be2e6b84efda2681",
+      "src/contractor_agent/agent/__init__.py": "de99647d9e30988a4202be61dd384d2193893cb17376807391a1b146ff0e6663",
+      "src/contractor_agent/agent/citations.py": "122a339d6d50b36208a65a6f255ea7f6025305df9391d5ddb6d74698759c4313",
+      "src/contractor_agent/agent/comparison_answers.py": "eb592089ff08910e4274dc4110b7c0c4cfd5154ea43048e0446b34ba345d2a20",
+      "src/contractor_agent/agent/graph.py": "4aaf3458c3d01946096474e49cf4050b866571a64244c2dc4ff273f2178d92fa",
+      "src/contractor_agent/agent/llm.py": "e739d398d33e871b51e7eb83c7a1cca01e0618f4ee56374b689dbd8b165b92d8",
+      "src/contractor_agent/agent/nodes.py": "c9793c64a62b55c659d8b24fb6f76ed6659f3408a7d073a1d725c1328165edf0",
+      "src/contractor_agent/agent/presentation.py": "3f684a914ae7ecad8d3f6cabc2cf4da1669cf554dadce40976f9ca8afc9c27da",
+      "src/contractor_agent/agent/prompt.py": "8e9b9c1995b20f3a36cc85ff3a757b1dc01d9faf539a778f2d922619ea009cbb",
+      "src/contractor_agent/agent/requests.py": "9ed018609c645c9ffcdd66b63a81ecd125a0089cbf4927e0a6e1009f838de1ae",
+      "src/contractor_agent/agent/runtime.py": "108587c4c16a65da8d90e168a57656f25bb0e186029213f466eec3b51f129014",
+      "src/contractor_agent/agent/schema.py": "ba9d0161553cc98e33d1cffbd0168764c8cb87e629b7203ec65881867e9a755c",
+      "src/contractor_agent/agent/scoped_answers.py": "ed8770e24d43abc385199fe7d4ce9a0089cd90838d64b91c6d1a62d1d80b2911",
+      "src/contractor_agent/agent/section_answers.py": "2363e7ca40d911e0432d6f720fe49821c54eee2ad9386fe5e5a8ae58533efd0e",
+      "src/contractor_agent/agent/state.py": "45dca9f37f4acc6a832f63b9e1414c7ddb9e4d2f5603219f5980c064c97b9dc5",
+      "src/contractor_agent/agent/stream.py": "19e3daf1a95eea419e2998df6e8784fead36c7c5ec1da824610e50845b1d0d51",
+      "src/contractor_agent/agent/tools.py": "25682a8317937a4afb2bdeaa71ed9dd138f286e56f6ff4af66d25f7d65685598",
+      "src/contractor_agent/api/__init__.py": "c7203acb4f462b1d4b5cc20aa3b86ab74ec3adea74558ca2bcefd2ba124e07b4",
+      "src/contractor_agent/api/app.py": "f6da0124e1ad65d3573f5df4701edb9d37220793589fc16095a5146a1fc70acb",
+      "src/contractor_agent/api/evidence.py": "797d3c76a944d4f0444f2832890a7fb85f8339b8d8e84cd123bdc831694f838a",
+      "src/contractor_agent/api/server.py": "b7e7ef99ec663158ad4e80d4ad307067cf085f71b609807618b259ee1b436a78",
+      "src/contractor_agent/api/static/index.html": "621b6e353553021f946d1c33ab95fd977e26b3c7b461bb87924cf2dbfd4e991e",
+      "src/contractor_agent/cli.py": "149acc166570a3842ae13532e730517cf0394309bf82481ce7cb03b8f950c229",
+      "src/contractor_agent/data/__init__.py": "bb5f147b0fe0ae0760dd36bc8ced8baa0796102d32991607d459744fb1a8e197",
+      "src/contractor_agent/data/__main__.py": "181e8222bd6f3a7d44673404ffec362de742b95f6f6666a72c588487150a2429",
+      "src/contractor_agent/data/csv_tree.py": "7489cc6678501f6bf07dcda9dd2335ab4dd21fcd6d81e6f39c04e5b385ede601",
+      "src/contractor_agent/data/index.py": "d46b5aa15be1190062f50a6e4d02bb22a6adfd6ed8351fe3cfc9f8b9a086e252",
+      "src/contractor_agent/data/loader.py": "f8e4085b0b945429e7056ea1d6b32925e7c13d381322b4cbdffabf0a675da003",
+      "src/contractor_agent/data/model.py": "9864daa6346f7482b5da83982a7b1378a1d12b879cded785a7e45a78b3c67fea",
+      "src/contractor_agent/data/mongo.py": "03ab62623783a3c54775629855432ee8cc7ee4c29a16edde261fd271797ffb11",
+      "src/contractor_agent/data/paths.py": "f881b2909f86abb16245016c575c3d9adf035150bd72b34e216e6cbf308a4cff",
+      "src/contractor_agent/labels.py": "a3cfc7403fa8eda9f75c726fc9640520be60d73dd0b0ca5ebfbc363fa17f46ca",
+      "src/contractor_agent/mcp_server/__init__.py": "82efa4cd3cff8991b9a0f216044041e08aa470d29da36e7cc2e420994421b8a0",
+      "src/contractor_agent/mcp_server/envelope.py": "f075f3cabe3bc05877b37af7618fbd27b8da397daec4cc6ad60d8f0fc46b24d7",
+      "src/contractor_agent/mcp_server/server.py": "22fdb707cea8f9a0d002b03b15379927107b7c85ee9f5b947b3c49a1a0a31e39",
+      "src/contractor_agent/mcp_server/tools.py": "bf2526e6d1ecc884fa7056c5457fb0e451b65cb7787882e971e880b232b377d5",
+      "src/contractor_agent/settings.py": "d3b52193117196f98101cda0f04d42e925e6788cd4261b1f9dd05426f64e9db2",
+      "src/contractor_agent/signals/__init__.py": "b148bce40c0acdb9d531b6d6c243b941bd90135771e5f29da8a7f421793f52f9",
+      "src/contractor_agent/signals/arbitration.py": "2e3e7f7344720643b820a44484331f5bf4cc0ef6116b741eaa330e7871919db8",
+      "src/contractor_agent/signals/enforcement.py": "df5abac26967714655e8fc8a841276081fb925d973fe9c6510fe9c49c988ba42",
+      "src/contractor_agent/signals/engine.py": "a468b07423bcacbd240c7d1d14add5aba57d2791748af7c1de7426f926b7b610",
+      "src/contractor_agent/signals/finance.py": "1e8414a3c72bfab626fbfdca978eaaefb0666cf90b0615f3bd4bb88d6b2b7cdd",
+      "src/contractor_agent/signals/flags.py": "9a81252f08e174ecbaa53a23624a9c093d4630f55cdf650cd2e758c17df099df",
+      "src/contractor_agent/signals/model.py": "6ac740d7a28cfa43a33a1d8cf1835257ddc6a576d8d0aedb07e329a26e12c5b1",
+      "src/contractor_agent/signals/registry.py": "52ffb356b5d789d5cc6ebd07c119af71ba8fee41f3c3d36e25a925228fffb04e",
+      "src/contractor_agent/signals/text.py": "9d8fa75d0c8f9ced72d552ad8941a72d04944405e1f068cbba1fe56ac4d50cbf",
+      "uv.lock": "6129f3ca1f334b358f1c7d08c4f097efbe6c89b2289e3d76761dc97d605dc39a"
+    },
+    "gold_sha256": "f5fed753094a48e2d0d5119350e75e3eb96ea2ae5adebe3f9e80a788b3379bfa",
+    "snapshot_sha256": "34bdf82e3286bfbb1c2b0e4d441dde25c90fd58b1d623d6192f2653dd6641f55",
+    "question_ids": [
+      "maksmarket-label-vs-bankruptcy",
+      "registry-maksmarket-trustee-head",
+      "dialog-gdk-deferral-five-steps",
+      "techprof-deferred-payment"
+    ]
+  },
+  "summary": {
+    "planned_scenarios": 16,
+    "completed_scenarios": 16,
+    "models": {
+      "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-20b/latest": {
+        "scenarios": 8,
+        "agent_errors": 2,
+        "code_passes": 6,
+        "by_type": {
+          "answer": {
+            "n": 2,
+            "passed": 2
+          },
+          "dialog": {
+            "n": 2,
+            "passed": 2
+          },
+          "infer": {
+            "n": 4,
+            "passed": 2
+          }
+        },
+        "case_duration_p50_s": 5.4,
+        "case_duration_p95_s": 27.2,
+        "successful_turn_duration_p50_s": 2.679,
+        "successful_turn_duration_p95_s": 18.429,
+        "repeat_groups": 4,
+        "groups_all_repeats_pass": 3,
+        "observed_llm_completions": 60,
+        "completions_with_usage": 60,
+        "input_tokens": 219055,
+        "output_tokens": 14572,
+        "failed_llm_callbacks": 0,
+        "judge_coverage": 0,
+        "semantic_correctness": null
+      },
+      "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-120b/latest": {
+        "scenarios": 8,
+        "agent_errors": 0,
+        "code_passes": 6,
+        "by_type": {
+          "answer": {
+            "n": 2,
+            "passed": 2
+          },
+          "dialog": {
+            "n": 2,
+            "passed": 2
+          },
+          "infer": {
+            "n": 4,
+            "passed": 2
+          }
+        },
+        "case_duration_p50_s": 8.8,
+        "case_duration_p95_s": 25.3,
+        "successful_turn_duration_p50_s": 4.157,
+        "successful_turn_duration_p95_s": 15.429,
+        "repeat_groups": 4,
+        "groups_all_repeats_pass": 3,
+        "observed_llm_completions": 65,
+        "completions_with_usage": 65,
+        "input_tokens": 247683,
+        "output_tokens": 13984,
+        "failed_llm_callbacks": 0,
+        "judge_coverage": 0,
+        "semantic_correctness": null
+      }
+    },
+    "paired_code_checks": {
+      "matched_pairs": 8,
+      "both_pass": 6,
+      "only_first_pass": 0,
+      "only_second_pass": 0,
+      "both_fail": 2
+    },
+    "limitations": [
+      "Diagnostic selection of known cases; not a random sample or unseen holdout.",
+      "Code passes are not semantic correctness; no hallucination rate measured.",
+      "Dialogue turns are saved in full, but legacy checks assess only the last turn.",
+      "SDK retries and failed-request tokens may be unobservable; sums are reported usage.",
+      "Successful-turn latency excludes failed turns; see errors and scenario durations."
+    ]
+  }
+}
