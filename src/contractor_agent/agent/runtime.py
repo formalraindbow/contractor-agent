@@ -8,11 +8,13 @@
 
 from __future__ import annotations
 
+import asyncio
 import json
 from collections.abc import Sequence
-from contextlib import AsyncExitStack
+from contextlib import AsyncExitStack, asynccontextmanager
 from datetime import UTC, datetime
 from typing import Any
+from weakref import WeakValueDictionary
 
 from langchain_core.messages import BaseMessage
 from langgraph.checkpoint.base import BaseCheckpointSaver
@@ -26,6 +28,10 @@ from contractor_agent.agent.tools import load_tools
 from contractor_agent.data.loader import ReportSource
 from contractor_agent.mcp_server.server import build_server
 from contractor_agent.settings import Settings, make_source
+
+
+class RunBusyError(TimeoutError):
+    """A bounded queue prevents overload and concurrent writes to one conversation."""
 
 
 class AgentRuntime:
@@ -47,6 +53,31 @@ class AgentRuntime:
         self.client: Client | None = None
         self.graph = None
         self.tools: list[Any] = []
+        self._slots = asyncio.Semaphore(self.settings.max_concurrent_runs)
+        self._thread_locks: WeakValueDictionary[str, asyncio.Lock] = WeakValueDictionary()
+
+    @asynccontextmanager
+    async def run_slot(self, thread_id: str):
+        lock = self._thread_locks.setdefault(thread_id, asyncio.Lock())
+        queue_deadline = asyncio.get_running_loop().time() + self.settings.run_queue_timeout
+        try:
+            async with asyncio.timeout_at(queue_deadline):
+                await lock.acquire()
+        except TimeoutError as exc:
+            raise RunBusyError("В этом диалоге ещё выполняется предыдущий запрос.") from exc
+        try:
+            try:
+                async with asyncio.timeout_at(queue_deadline):
+                    await self._slots.acquire()
+            except TimeoutError as exc:
+                raise RunBusyError("Сейчас много запросов. Попробуйте немного позже.") from exc
+            try:
+                async with asyncio.timeout(self.settings.run_timeout):
+                    yield
+            finally:
+                self._slots.release()
+        finally:
+            lock.release()
 
     async def __aenter__(self) -> AgentRuntime:
         if self.checkpointer is None and self.settings.session_store == "sqlite":
@@ -80,9 +111,10 @@ class AgentRuntime:
             "configurable": {"thread_id": thread_id},
             "recursion_limit": self.settings.recursion_limit,
         }
-        result = await self.graph.ainvoke(initial_state(question, history), config=config)
-        answer: Answer = result["answer"]
-        self.record_trace(thread_id, question, result, answer)
+        async with self.run_slot(thread_id):
+            result = await self.graph.ainvoke(initial_state(question, history), config=config)
+            answer: Answer = result["answer"]
+            self.record_trace(thread_id, question, result, answer)
         return answer
 
     def record_trace(

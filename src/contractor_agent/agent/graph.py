@@ -60,9 +60,14 @@ def build_graph(
     graph.add_conditional_edges(START, route_input, {"guard": "guard", "agent": "agent"})
     graph.add_edge("guard", END)
     graph.add_conditional_edges(
-        "agent", route_after_agent, {"tools": "tools", "finalize": "finalize"}
+        "agent", route_after_agent, {"tools": "tools", "finalize": "evidence"}
     )
-    graph.add_edge("tools", "agent")
+    graph.add_conditional_edges(
+        "tools",
+        lambda state: "evidence" if state.get("agent_rounds", 0) >= 3 else "agent",
+        {"agent": "agent", "evidence": "evidence"},
+    )
+    graph.add_edge("evidence", "finalize")
     graph.add_edge("finalize", "validate")
     graph.add_conditional_edges("validate", route_after_validate, {"agent": "agent", END: END})
     return graph.compile(checkpointer=checkpointer or memory_saver())
@@ -111,4 +116,5 @@ def initial_state(question: str, history: Sequence[BaseMessage] = ()) -> dict[st
         "draft": None,
         "answer": None,
         "citation_retry": 0,
+        "agent_rounds": 0,
     }

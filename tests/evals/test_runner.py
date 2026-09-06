@@ -39,14 +39,6 @@ async def test_runner_caches_and_metrics(snapshot: Snapshot, tmp_path) -> None:
         [
             tool_call("get_risk_signals", "c1", inn="5032257375"),
             AIMessage(content="ok"),
-            Draft(
-                kind="card",
-                lines=[
-                    "Компания признана банкротом [report.status.reasonName].",
-                    "Есть существенные риски. Отчёт от 31.07.2026.",
-                ],
-                citations=[],
-            ),
             tool_call("get_report_summary", "c2", inn="5032257375"),
             AIMessage(content="ok"),
             Draft(

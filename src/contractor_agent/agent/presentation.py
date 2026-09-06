@@ -49,6 +49,11 @@ PUBLIC_PHRASES = {
     "Раздел «Финансовая отчётность» пуст": "Финансовой отчётности в отчёте нет",
 }
 PUBLIC_ANNOTATIONS = ["HIGH", "MEDIUM", "LOW", "UNKNOWN", "critical", "moderate", "info"]
+PUBLIC_SEVERITIES = {
+    "critical": "особое внимание",
+    "moderate": "дополнительная проверка",
+    "info": "справочная информация",
+}
 
 
 def _field_names(value: object) -> set[str]:
@@ -117,6 +122,13 @@ def public_text(text: str) -> str:
         text = text.replace(old, new)
     text = _BANNER.sub("", text)
     text = re.sub(r"`(?:report|critical|moderate|info)`", "", text)
+    text = re.sub(
+        r"(\b(?:категор\w*|уров\w*|тип\w*|сигнал\w*)\s*(?:[:—-]\s*)?)"
+        r"\**\b(critical|moderate|info)\b\**",
+        lambda m: m[1] + "«" + PUBLIC_SEVERITIES[m[2].lower()] + "»",
+        text,
+        flags=re.I,
+    )
     text = re.sub(r"(?m)[ \t]*\\[ \t]*$", "", text)
     text = re.sub(r"(?i)\b(вывод|рекомендация) банка\b", r"\1 помощника", text)
     # Remove malformed, unclosed annotations before deleting their keywords.

@@ -1,4 +1,4 @@
-"""Frozen, bounded A/B runs. Never rewrites historical eval caches or uses an LLM judge.
+"""Frozen, bounded runs. Never rewrites historical eval caches; judge is opt-in.
 
 python -m evals.paired --env-file /path/to/.env --models MODEL_A MODEL_B --out runs/paired/NAME
 Add --execute to make API calls. Default is a dry run. See docs/EVAL_READINESS_2026-09-06.md.
@@ -21,7 +21,7 @@ from pathlib import Path
 
 from langchain_core.callbacks import BaseCallbackHandler
 
-from contractor_agent.agent.llm import make_llm
+from contractor_agent.agent.llm import make_judge_llm, make_llm
 from contractor_agent.agent.prompt import PROMPT_VERSION, prompt_fingerprint
 from contractor_agent.agent.runtime import AgentRuntime
 from contractor_agent.settings import Settings, make_source
@@ -32,6 +32,8 @@ SUITES = Path(__file__).parent / "suites/readiness.json"
 
 
 def select_suite(gold: Gold, name: str) -> list:
+    if name == "all":
+        return gold.questions()
     ids = json.loads(SUITES.read_text())[name]
     questions = {q.id: q for q in gold.questions()}
     if len(set(ids)) != len(ids):
@@ -141,7 +143,10 @@ def summarize(records: list[dict], models: list[str], planned: int, repeats: int
             "input_tokens": sum(u.get("input_tokens", 0) for u in usage),
             "output_tokens": sum(u.get("output_tokens", 0) for u in usage),
             "failed_llm_callbacks": sum(r["failed_callbacks"] for r in rows),
-            "judge_coverage": 0,
+            "judge_coverage": sum(bool(r["record"].get("judge")) for r in rows),
+            "judge_passes": sum(
+                bool(r["record"].get("judge")) and r["record"]["judge"]["score"] >= 4 for r in rows
+            ),
             "semantic_correctness": None,
         }
     paired = defaultdict(dict)
@@ -151,14 +156,15 @@ def summarize(records: list[dict], models: list[str], planned: int, repeats: int
             r["checks_passed"] and not r["error"]
         )
     pairs = [p for p in paired.values() if all(m in p for m in models)]
-    a, b = models
-    result["paired_code_checks"] = {
-        "matched_pairs": len(pairs),
-        "both_pass": sum(p[a] and p[b] for p in pairs),
-        "only_first_pass": sum(p[a] and not p[b] for p in pairs),
-        "only_second_pass": sum(p[b] and not p[a] for p in pairs),
-        "both_fail": sum(not p[a] and not p[b] for p in pairs),
-    }
+    if len(models) == 2:
+        a, b = models
+        result["paired_code_checks"] = {
+            "matched_pairs": len(pairs),
+            "both_pass": sum(p[a] and p[b] for p in pairs),
+            "only_first_pass": sum(p[a] and not p[b] for p in pairs),
+            "only_second_pass": sum(not p[a] and p[b] for p in pairs),
+            "both_fail": sum(not p[a] and not p[b] for p in pairs),
+        }
     result["limitations"] = [
         "Diagnostic selection of known cases; not a random sample or unseen holdout.",
         "Code passes are not semantic correctness; no hallucination rate measured.",
@@ -170,10 +176,22 @@ def summarize(records: list[dict], models: list[str], planned: int, repeats: int
 
 
 async def run(args):
-    gold = load_gold()
+    gold = load_gold(args.gold) if args.gold else load_gold()
     questions = select_suite(gold, args.suite)
-    if len(set(args.models)) != 2 or not 1 <= args.repeats <= 5:
-        raise ValueError("Exactly two different models and 1–5 repeats required")
+    if args.only:
+        selected = set(args.only.split(","))
+        unknown = selected - {q.id for q in questions}
+        if unknown:
+            raise ValueError(f"Unknown case IDs: {sorted(unknown)}")
+        questions = [q for q in questions if q.id in selected]
+    if (
+        not 1 <= len(set(args.models)) <= 2
+        or len(set(args.models)) != len(args.models)
+        or not 1 <= args.repeats <= 5
+    ):
+        raise ValueError("One or two different models and 1–5 repeats required")
+    if not 1 <= args.concurrency <= 4:
+        raise ValueError("Concurrency must be 1–4")
     if args.out.exists():
         raise ValueError("Output directory already exists. Use a new name; runs are immutable.")
     settings = Settings(
@@ -208,13 +226,17 @@ async def run(args):
     source_paths.update(
         p for p in Path("evals").rglob("*") if p.is_file() and p.suffix in (".py", ".json", ".yaml")
     )
+    source_paths.update(Path("src").rglob("*.py"))
     manifest = {
         "created_utc": datetime.now(UTC).isoformat(),
         "git_commit": subprocess.check_output(["git", "rev-parse", "HEAD"]).decode().strip(),
         "source_sha256": {str(p): digest(p) for p in sorted(source_paths)},
-        "gold_sha256": digest(GOLD_PATH),
+        "gold_sha256": digest(args.gold or GOLD_PATH),
         "suite_sha256": digest(SUITES),
         "snapshot_sha256": digest(settings.data_dir / "contractors_audit.snapshot.json"),
+        "snapshot_csv_sha256": digest(
+            settings.data_dir / "contractors_audit.snapshot_C12613591.csv"
+        ),
         "prompt_version": PROMPT_VERSION,
         "prompt_fingerprint": prompt_fingerprint(),
         "base_url": args.base_url,
@@ -228,13 +250,15 @@ async def run(args):
         "scenario_timeout_s": 360,
         "repeats": args.repeats,
         "seed": args.seed,
-        "concurrency": 2,
+        "concurrency": args.concurrency,
         "suite": args.suite,
         "question_ids": [q.id for q in questions],
         "type_counts": dict(Counter(q.type for q in questions)),
         "planned_scenarios": len(jobs),
         "job_order": [{"id": q.id, "repeat": rep, "model": m} for q, rep, m in jobs],
-        "judge": None,
+        "judge": {"model": settings.judge_model, "base_url": settings.judge_base_url}
+        if args.judge
+        else None,
         "holdout": False,
     }
     if not args.execute:
@@ -246,6 +270,7 @@ async def run(args):
     args.out.mkdir(parents=True)
     (args.out / "manifest.json").write_text(json.dumps(manifest, indent=2, ensure_ascii=False))
     source = make_source(settings)
+    judge_llm = make_judge_llm(settings) if args.judge else None
     records = []
     queue = asyncio.Queue()
     for job in jobs:
@@ -261,7 +286,12 @@ async def run(args):
                 underlying.callbacks = [usage]
             async with ObservedRuntime(settings, source=source, llm=llm) as runtime:
                 runner = EvalRunner(
-                    gold, runtime, cache_dir=args.out, model_name=model, agent_timeout_s=120
+                    gold,
+                    runtime,
+                    cache_dir=args.out,
+                    model_name=model,
+                    agent_timeout_s=120,
+                    judge_llm=judge_llm,
                 )
                 try:
                     record = await asyncio.wait_for(runner.run_one(q, repeat), timeout=360)
@@ -307,7 +337,7 @@ async def run(args):
                 flush=True,
             )
 
-    await asyncio.gather(worker(), worker())
+    await asyncio.gather(*(worker() for _ in range(args.concurrency)))
     print(
         json.dumps(summarize(records, args.models, len(jobs), args.repeats), indent=2), flush=True
     )
@@ -316,10 +346,16 @@ async def run(args):
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--env-file", type=Path, required=True)
-    parser.add_argument("--models", nargs=2, required=True)
+    parser.add_argument("--models", nargs="+", required=True)
+    parser.add_argument("--gold", type=Path)
+    parser.add_argument("--only", help="Comma-separated IDs; unknown IDs fail before API calls")
+    parser.add_argument("--judge", action="store_true")
+    parser.add_argument("--concurrency", type=int, default=2)
     parser.add_argument("--base-url", default="https://llm.api.cloud.yandex.net/v1")
     parser.add_argument(
-        "--suite", choices=["model_probe24", "smoke48", "regression_fix4"], default="model_probe24"
+        "--suite",
+        choices=["all", "model_probe24", "smoke48", "regression_fix4"],
+        default="model_probe24",
     )
     parser.add_argument("--repeats", type=int, default=2)
     parser.add_argument("--seed", type=int, default=20260906)

@@ -20,6 +20,7 @@ from langchain_core.messages import AIMessage, BaseMessage, HumanMessage, System
 from langgraph.graph import END
 from langgraph.prebuilt import ToolNode
 
+from contractor_agent.agent.card_answer import card_answer
 from contractor_agent.agent.citations import (
     extract_inline_citations,
     is_meta_path,
@@ -28,11 +29,27 @@ from contractor_agent.agent.citations import (
     validate_citations,
 )
 from contractor_agent.agent.comparison_answers import comparison_followup
+from contractor_agent.agent.decision_answers import decision_answer
+from contractor_agent.agent.factual_sections import factual_sections
+from contractor_agent.agent.financial_answers import (
+    financial_answer,
+    financial_comparison,
+    financial_explanation,
+)
 from contractor_agent.agent.llm import LLM
+from contractor_agent.agent.money_guard import label_violations, monetary_violations
 from contractor_agent.agent.presentation import comparison_text, public_text
 from contractor_agent.agent.prompt import FINALIZE_PROMPT, SYSTEM_PROMPT, citation_repair_prompt
+from contractor_agent.agent.question import (
+    BANK_LABEL,
+    COURT_QUESTION,
+    RATING_REQUEST,
+    STAFF_QUESTION,
+    limitation,
+    needs_risk_review,
+)
 from contractor_agent.agent.schema import Answer, Attention, Card, CardLabels, Citation, Draft
-from contractor_agent.agent.scoped_answers import scoped_answer
+from contractor_agent.agent.scoped_answers import DOCUMENTS, scoped_answer
 from contractor_agent.agent.section_answers import section_answer
 from contractor_agent.agent.state import AgentState, ToolCallTrace
 from contractor_agent.data.loader import ReportSource, normalize_name, strip_legal_form
@@ -58,19 +75,144 @@ def make_nodes(llm: LLM, tools: list[Any], source: ReportSource) -> dict[str, No
     tool_node = ToolNode(tools, handle_tool_errors=True)
     tools_layer = Tools(source)
 
+    def ambiguity(state: AgentState) -> Draft | None:
+        question = question_subject(str(state.get("question") or ""))
+        if re.search(r"\b(?:\d{10}|\d{12})\b|сравни|обе компании|обоих", question, re.I):
+            return None
+        start = next(
+            (
+                i
+                for i in range(len(state["messages"]) - 1, -1, -1)
+                if isinstance(state["messages"][i], HumanMessage)
+                and str(state["messages"][i].content) == str(state.get("question"))
+            ),
+            0,
+        )
+        for message in reversed(state["messages"][start:]):
+            if not isinstance(message, ToolMessage) or message.name != "search_company":
+                continue
+            payload = _parse(message.content)
+            data = payload.get("data") or {} if isinstance(payload, dict) else {}
+            items = data.get("items") or []
+            if len(items) < 2:
+                continue
+            matched = requested_inns(question, [item["inn"] for item in items], source)
+            if len(matched) == 1:
+                continue
+            # Two identically named entities are not a comparison requested by the user.
+            if len(matched) > 1 and len({source.get(i).base_info.short_name for i in matched}) > 1:
+                continue
+            lines = ["По этому названию найдено несколько компаний. Уточните ИНН или адрес:"]
+            for item in items[:5]:
+                lines += [
+                    "",
+                    f"- **{item['name']} · ИНН {item['inn']}** — {item.get('address') or 'адрес не указан'}.",
+                ]
+            return Draft(kind="refusal", lines=lines, citations=[])
+        return None
+
     def answer_inns(state: AgentState) -> list[str]:
         question = str(state.get("question") or "")
+        explicit = list(
+            dict.fromkeys(re.findall(r"\b(?:\d{10}|\d{12})\b", question_subject(question)))
+        )
+        if len(explicit) == 1:
+            # Even an unknown INN replaces the previous company: never answer about its neighbour.
+            return explicit
+        group = state.get("comparison_inns") or []
+        ordinal = re.search(
+            r"\b(?:у|по|про|о)\s+(перв\w*|втор\w*|треть\w*)\b", question_subject(question), re.I
+        )
+        if not explicit and group and ordinal:
+            index = (
+                0
+                if ordinal[1].lower().startswith("перв")
+                else 1
+                if ordinal[1].lower().startswith("втор")
+                else 2
+            )
+            if index < len(group):
+                return [group[index]]
+        if re.search(r"остальн", question_subject(question), re.I) and state.get("comparison_inns"):
+            return [
+                i for i in state["comparison_inns"] if i not in (state.get("active_inns") or [])
+            ]
+        prior_messages = [
+            m
+            for m in state["messages"]
+            if isinstance(m, (HumanMessage, AIMessage))
+            and not getattr(m, "tool_calls", None)
+            and not m.additional_kwargs.get("repair")
+            and str(m.content) != question
+        ]
+        prior_ids = [
+            inn
+            for m in prior_messages
+            for inn in re.findall(r"\b(?:\d{10}|\d{12})\b", str(m.content))
+        ]
+        search_ids = []
+        for message in state["messages"]:
+            if isinstance(message, ToolMessage) and message.name == "search_company":
+                payload = _parse(message.content)
+                data = payload.get("data") or {} if isinstance(payload, dict) else {}
+                search_ids.extend(item["inn"] for item in data.get("items") or [])
         candidates = list(
             dict.fromkeys(
                 [
                     *(state.get("turn_inns") or []),
                     *(state.get("selected_inns") or []),
+                    *search_ids,
+                    *prior_ids,
                     *re.findall(r"\b\d{10,12}\b", question),
                 ]
             )
         )
-        return requested_inns(question, candidates, source) or list(
-            state.get("turn_inns") or state.get("selected_inns") or []
+        focus = requested_inns(question, candidates, source)
+        if explicit:
+            return focus or explicit
+        if focus:
+            return focus
+        if ambiguity(state):
+            return []
+        if not state.get("turn_inns") and any(
+            t.name == "search_company" for t in _turn_trace(state)
+        ):
+            # Searching for a new name without selecting a report is not a pronoun
+            # follow-up. Preserve the question/ambiguity instead of reusing the last report.
+            for message in reversed(state["messages"]):
+                if isinstance(message, ToolMessage) and message.name == "search_company":
+                    payload = _parse(message.content)
+                    data = payload.get("data") or {} if isinstance(payload, dict) else {}
+                    items = data.get("items") or []
+                    return [items[0]["inn"]] if len(items) == 1 else []
+            return []
+        legacy_focus = next(
+            (
+                found
+                for m in reversed(prior_messages)
+                if (found := mentioned_inns(str(m.content), candidates, source))
+            ),
+            [],
+        )
+        if re.search(
+            r"остальн|у всех|каждой|обоих|из них|с кем|сравни", question_subject(question), re.I
+        ):
+            return list(
+                state.get("comparison_inns")
+                or state.get("turn_inns")
+                or state.get("active_inns")
+                or legacy_focus
+            )
+        if state.get("active_inns") == [] and not any(
+            t.name == "search_company" for t in _turn_trace(state)
+        ):
+            return []  # an unresolved name must not resurrect the last resolved company
+        return list(
+            state.get("turn_inns")
+            or state.get("active_inns")
+            or legacy_focus
+            or state.get("selected_inns")
+            or []
         )
 
     async def guard(state: AgentState) -> dict[str, Any]:
@@ -82,13 +224,19 @@ def make_nodes(llm: LLM, tools: list[Any], source: ReportSource) -> dict[str, No
                 text_md=reply,
                 citations=[],
                 report_dates={},
-            )
+            ),
+            "messages": [AIMessage(content=reply, additional_kwargs={"final_answer": True})],
         }
 
     async def agent(state: AgentState) -> dict[str, Any]:
         question = str(state.get("question") or "")
         history = visible_history(state["messages"], question)
         messages = [SystemMessage(content=SYSTEM_PROMPT), *history]
+        if (clarification := ambiguity(state)) is not None:
+            return {
+                "messages": [AIMessage(content=clarification.text_md)],
+                "agent_rounds": state.get("agent_rounds", 0) + 1,
+            }
         focus = requested_inns(question, answer_inns(state), source)
         if focus:
             messages.append(
@@ -98,8 +246,23 @@ def make_nodes(llm: LLM, tools: list[Any], source: ReportSource) -> dict[str, No
                     + ". Отвечай о них; общий список прошлого сравнения не расширяет этот вопрос."
                 )
             )
-        response = await tools_for(question).ainvoke(messages)
-        return {"messages": [response]}
+        # A name must be resolved before the model can pass an INN to report tools.
+        # In particular, weak models sometimes invent placeholders such as <unknown>.
+        lookup_needed = not answer_inns(state) and not any(
+            t.name == "search_company" for t in _turn_trace(state)
+        )
+        chain = (
+            llm.with_tools(
+                [by_name["search_company"]],
+                tool_choice="search_company"
+                if re.search(r"\b(?:ООО|ПАО|АО|ЗАО|ОАО|ИП)\b|\b[А-ЯЁ][А-ЯЁ-]{2,}\b", question)
+                else None,
+            )
+            if lookup_needed and "search_company" in by_name
+            else tools_for(question)
+        )
+        response = await chain.ainvoke(messages)
+        return {"messages": [response], "agent_rounds": state.get("agent_rounds", 0) + 1}
 
     async def tools_(state: AgentState) -> dict[str, Any]:
         result = await tool_node.ainvoke(state)
@@ -143,6 +306,20 @@ def make_nodes(llm: LLM, tools: list[Any], source: ReportSource) -> dict[str, No
             "trace": trace,
         }
 
+    async def evidence(state: AgentState) -> dict[str, Any]:
+        """Complete required report reads before composing. Calls stay in the MCP trace."""
+        from contractor_agent.agent.evidence import missing_reads
+
+        calls = missing_reads(
+            str(state.get("question") or ""), answer_inns(state), _turn_trace(state)
+        )
+        if not calls:
+            return {}
+        request = AIMessage(content="", tool_calls=calls)
+        update = await tools_({**state, "messages": [*state["messages"], request]})
+        update["messages"] = [request, *update["messages"]]
+        return update
+
     async def finalize(state: AgentState) -> dict[str, Any]:
         _, hint = question_kind_hint(str(state.get("question") or ""))
         if is_follow_up(state["messages"]) and not _FULL_CHECK_RE.search(
@@ -163,14 +340,58 @@ def make_nodes(llm: LLM, tools: list[Any], source: ReportSource) -> dict[str, No
                 f"Текущий вопрос, на который нужно ответить: {question}"
             ),
         ]
+        previous_questions = [
+            str(message.content)
+            for message in state["messages"]
+            if isinstance(message, HumanMessage)
+            and not message.additional_kwargs.get("repair")
+            and str(message.content) != question
+        ][-2:]
+        if previous_questions:
+            messages.insert(
+                1,
+                SystemMessage(
+                    content="Предыдущие вопросы пользователя, только чтобы понять местоимения и продолжение темы: "
+                    + json.dumps(previous_questions, ensure_ascii=False)
+                    + ". Они не являются источником фактов и не расширяют текущий вопрос."
+                ),
+            )
         try:
             # Narrow policy answers still use current report evidence and the same validator.
             turn_inns = inns
             draft = (
-                comparison_followup(cards, question)
+                ambiguity(state)
+                or (
+                    scoped_answer(tools_layer, turn_inns, question)
+                    if limitation(question)
+                    else None
+                )
+                or card_answer(tools_layer, turn_inns, question)
+                or financial_comparison(tools_layer, turn_inns, question)
+                or comparison_followup(cards, question, tools_layer)
+                or factual_sections(tools_layer, turn_inns, question)
+                or financial_explanation(tools_layer, turn_inns, question)
+                or financial_answer(tools_layer, turn_inns, question)
                 or section_answer(tools_layer, turn_inns, question)
                 or scoped_answer(tools_layer, turn_inns, question)
+                or decision_answer(cards, question, tools_layer)
             )
+            if not cards and inns:
+                draft = Draft(
+                    kind="refusal",
+                    lines=[
+                        "В доступной базе нет отчёта по ИНН " + ", ".join(inns) + ". "
+                        "Проверить компанию по этим данным нельзя. Проверьте ИНН или укажите другое название."
+                    ],
+                )
+            elif not inns and draft is None:
+                draft = Draft(
+                    kind="refusal",
+                    lines=[
+                        "Не удалось однозначно найти компанию в доступных отчётах. "
+                        "Укажите её ИНН или полное название."
+                    ],
+                )
             if draft is None:
                 try:
                     draft = await structured.ainvoke(messages)
@@ -181,31 +402,15 @@ def make_nodes(llm: LLM, tools: list[Any], source: ReportSource) -> dict[str, No
                 draft = Draft.model_validate(draft)
         except Exception:
             logging.getLogger(__name__).exception("Structured answer failed")
-            # схема не заполнилась, но текстовый ответ модель уже написала после инструментов —
-            # берём его: валидатор ниже проверит цитаты и факты как обычно
-            last_text = next(
-                (
-                    str(m.content).strip()
-                    for m in reversed(state["messages"])
-                    if isinstance(m, AIMessage) and not m.tool_calls and str(m.content).strip()
-                ),
-                "",
+            # Never promote intermediate or previous-turn prose to a checked answer.
+            draft = Draft(
+                kind="refusal",
+                lines=[
+                    "Не удалось собрать проверяемый ответ на этот вопрос. "
+                    "Попробуйте повторить запрос или спросить про один раздел отчёта."
+                ],
+                citations=[],
             )
-            if (
-                last_text
-                and len(last_text) > 20
-                and any(isinstance(m, ToolMessage) for m in state["messages"])
-            ):
-                draft = Draft(kind="answer", lines=last_text.splitlines(), citations=[])
-            else:  # рассуждения модели и сырые выдачи наружу не отдаём, но и пустого экрана быть не должно
-                draft = Draft(
-                    kind="refusal",
-                    lines=[
-                        "Не удалось собрать проверяемый ответ на этот вопрос. Переформулируйте его "
-                        "короче или спросите про один раздел: суды, долги у приставов, финансы, статус."
-                    ],
-                    citations=[],
-                )
         citations = list(draft.citations)
         seen_paths = {c.source_path for c in citations}
         for extra in extract_inline_citations(
@@ -216,7 +421,11 @@ def make_nodes(llm: LLM, tools: list[Any], source: ReportSource) -> dict[str, No
                 seen_paths.add(extra.source_path)
         question = str(state.get("question") or "")
         kind_hint, _ = question_kind_hint(question)
-        if kind_hint == "comparison" and len(cards) >= 2 and draft.kind != "comparison":
+        if (
+            kind_hint == "comparison"
+            and len(cards) >= 2
+            and draft.kind not in {"comparison", "refusal"}
+        ):
             draft = draft.model_copy(
                 update={"kind": "comparison"}
             )  # несколько компаний — сравнение
@@ -224,7 +433,7 @@ def make_nodes(llm: LLM, tools: list[Any], source: ReportSource) -> dict[str, No
             len(inns) == 1 and draft.kind == "comparison"
         ):
             draft = draft.model_copy(update={"kind": "answer"})
-        elif kind_hint == "card" and cards and draft.kind in ("refusal", "answer"):
+        elif kind_hint == "card" and cards and draft.kind == "answer":
             # просили проверить компанию, карточка собрана кодом: пробелы в отчёте не повод
             # отдавать ответ без рекомендации — иначе интерфейс теряет вывод и вид ответа
             draft = draft.model_copy(update={"kind": "card"})
@@ -247,6 +456,13 @@ def make_nodes(llm: LLM, tools: list[Any], source: ReportSource) -> dict[str, No
         checks = validate_citations(
             source, list(state.get("turn_inns") or state.get("selected_inns") or []), real
         )
+        checks += monetary_violations(
+            tools_layer,
+            list(state.get("turn_inns") or []),
+            answer.text_md,
+            str(state.get("question") or ""),
+        )
+        checks += label_violations(tools_layer, list(state.get("turn_inns") or []), answer.text_md)
         invalid = [c for c in checks if not c.ok]
         require_comparison = comparison_needs_verdict(str(state.get("question") or "")) and (
             comparison_followup(answer.cards, str(state.get("question") or "")) is None
@@ -258,8 +474,9 @@ def make_nodes(llm: LLM, tools: list[Any], source: ReportSource) -> dict[str, No
                 list(state.get("selected_inns") or []),
                 source,
             )
-            or refusal_problem(answer, _turn_trace(state))
+            or refusal_problem(answer, _turn_trace(state), str(state.get("question") or ""))
             or empty_problem(answer)
+            or comparison_verdict_problem(answer)
             or verdict_mismatch(answer, require_comparison=require_comparison)
             or forbidden_problem(answer.text_md)
             or format_problem(answer, str(state.get("question") or ""))
@@ -283,9 +500,62 @@ def make_nodes(llm: LLM, tools: list[Any], source: ReportSource) -> dict[str, No
                 "citation_retry": retry + 1,
                 "answer": None,
             }
+        if ranking_problem(answer):
+            checked = Answer(
+                kind="refusal",
+                text_md="Не назначаю компаниям баллы и места в рейтинге: такой оценки в отчётах нет. "
+                "Могу сравнить конкретные факты и привести исходные оценки банка.",
+                report_dates=answer.report_dates,
+            )
+            return {
+                "answer": checked,
+                "active_inns": list(state.get("turn_inns") or []),
+                "messages": [
+                    AIMessage(content=checked.text_md, additional_kwargs={"final_answer": True})
+                ],
+            }
+        if comparison_verdict_problem(answer):
+            checked = Answer(
+                kind="refusal",
+                text_md="Не удалось согласовать выводы по каждой компании с фактами её отчёта. "
+                "Уточните вопрос или проверьте компании по отдельности.",
+                citations=[],
+                report_dates=answer.report_dates,
+            )
+            return {
+                "answer": checked,
+                "active_inns": list(state.get("turn_inns") or []),
+                "messages": [
+                    AIMessage(content=checked.text_md, additional_kwargs={"final_answer": True})
+                ],
+            }
+        if scope_problem(
+            answer, str(state.get("question") or ""), list(state.get("selected_inns") or []), source
+        ):
+            # A failed repair must not expose the cross-company answer it detected.
+            checked = Answer(
+                kind="refusal",
+                text_md="Не удалось отделить сведения запрошенной компании от предыдущего сравнения. "
+                "Повторите вопрос с её ИНН.",
+                citations=[],
+                report_dates={},
+            )
+            return {
+                "answer": checked,
+                "active_inns": list(state.get("turn_inns") or []),
+                "messages": [
+                    AIMessage(content=checked.text_md, additional_kwargs={"final_answer": True})
+                ],
+            }
         base = public_text(
             tidy_text(drop_invalid_lines(answer.text_md, [c.citation for c in invalid]))
         )
+        if len(re.sub(r"[\s*#|_\-—–]+", "", base)) < 12:
+            answer = answer.model_copy(update={"kind": "refusal", "card": None, "cards": []})
+            base = (
+                "Не удалось подтвердить запрошенные сведения по отчёту. Попробуйте уточнить вопрос."
+            )
+        base = re.sub(r"вердикт\s+банка|рекомендация\s+банка", "Вывод помощника", base, flags=re.I)
         if answer.card:
             text = enforce_verdict(
                 scrub_forbidden(replace_verdict_codes(base), VERDICT_RU[answer.card.verdict]),
@@ -352,6 +622,15 @@ def make_nodes(llm: LLM, tools: list[Any], source: ReportSource) -> dict[str, No
         )
         return {
             "answer": checked,
+            "active_inns": list(state.get("turn_inns") or []),
+            **(
+                {"comparison_inns": [c.inn for c in checked.cards]}
+                if checked.cards
+                and not re.search(
+                    r"остальн", question_subject(str(state.get("question") or "")), re.I
+                )
+                else {}
+            ),
             "messages": [
                 AIMessage(content=checked.text_md, additional_kwargs={"final_answer": True})
             ],
@@ -361,6 +640,7 @@ def make_nodes(llm: LLM, tools: list[Any], source: ReportSource) -> dict[str, No
         "guard": guard,
         "agent": agent,
         "tools": tools_,
+        "evidence": evidence,
         "finalize": finalize,
         "validate": validate,
     }
@@ -409,9 +689,43 @@ def verdict_mismatch(answer: Answer, *, require_comparison: bool = True) -> str 
     return None
 
 
+def comparison_verdict_problem(answer: Answer) -> str | None:
+    """A correct conclusion elsewhere in the response cannot mask another company's error."""
+    if not answer.cards:
+        return None
+    current = None
+    for line in answer.text_md.splitlines():
+        normal = normalize_name(line)
+        named = [
+            c
+            for c in answer.cards
+            if c.inn in line
+            or (
+                (name := strip_legal_form(normalize_name(c.name)))
+                and re.search(rf"\b{re.escape(name)}\b", normal)
+            )
+        ]
+        if named:
+            current = named[0] if len(named) == 1 else None
+        elif re.match(r"^#{1,6}\s", line.strip()):
+            current = None
+        if current is None:
+            continue
+        text = normalize_verdict_text(line).casefold()
+        expected = VERDICT_RU[current.verdict]
+        other = [v for v in VERDICT_RU.values() if v != expected and v in text]
+        if other:
+            return (
+                f"В блоке {current.name} (ИНН {current.inn}) указан чужой вывод «{other[0]}». "
+                f"По её фактам вывод должен быть: «{expected}». "
+                "Правильный вывод в другой строке не исправляет это противоречие."
+            )
+    return None
+
+
 _SECTION_HINTS = (  # слова вопроса → раздел отчёта: подсказка виду ответа, чтобы слабая модель не давала сводку
     ("долги у приставов", re.compile(r"пристав|исполнительн|долг", re.I)),
-    ("суды", re.compile(r"\bсуд|\bиск|арбитраж", re.I)),
+    ("суды", COURT_QUESTION),
     (
         "финансы",
         re.compile(r"финанс|выручк|прибыл|убыт|актив|капитал|ликвидн|отч[её]тност|оборот", re.I),
@@ -421,7 +735,7 @@ _SECTION_HINTS = (  # слова вопроса → раздел отчёта: �
     ("проверки госорганов", re.compile(r"проверк[аи]\b|проверял|инспекц|надзор", re.I)),
     ("виды деятельности", re.compile(r"оквэд|вид\w* деятельн", re.I)),
     ("госзакупки", re.compile(r"закупк|тендер|госзаказ", re.I)),
-    ("численность", re.compile(r"сотрудник|численност|\bштат|персонал", re.I)),
+    ("численность", STAFF_QUESTION),
 )
 _CARD_RE = re.compile(
     r"провер(ь|ить|ка)\b|что можешь сказать|можно ли .{0,40}работ|стоит ли .{0,40}работ|отсрочк|предоплат"
@@ -436,15 +750,16 @@ _DECISION_RE = re.compile(
     r"с ними работать|брать (?:у них|товар)|в поставщики|заключать договор|оплачу|оплатить",
     re.I,
 )
-_DOCUMENTS_Q = re.compile(r"что (?:запросить|уточнить)|какие документы|список документов", re.I)
+_DOCUMENTS_Q = DOCUMENTS
 _EXPLAIN_Q = re.compile(
     r"почему.{0,70}(?:вывод|сигнал|риск)|объясни.{0,20}(?:рекомендац|вывод)", re.I
 )
 _MEANING_Q = re.compile(
-    r"что\s+(?:это\s+)?(?:значит|означает)|как\s+(?:это\s+)?понимать|поясни|объясни", re.I
+    r"что\s+(?:это\s+)?(?:вообще\s+)?(?:значит|означает)|как\s+(?:это\s+)?понимать|поясни|объясни",
+    re.I,
 )
 _HEAD_Q = re.compile(r"руковод|управляющ|директор|сколько лет|возраст компан", re.I)
-_LABEL_Q = re.compile(r"зск|светофор|метк[аиу]|оценк[аиу] банка", re.I)
+_LABEL_Q = BANK_LABEL
 
 
 def question_subject(question: str) -> str:
@@ -457,6 +772,11 @@ def question_subject(question: str) -> str:
 def requested_inns(question: str, candidates: list[str], source: ReportSource) -> list[str]:
     """Named companies narrow this turn; the comparison remains in session memory."""
     subject = normalize_name(question_subject(question))
+    narrowed = re.split(r"только\s+(?:о|об|про)\s+|(?:а|но)\s+вот\s+", subject)
+    if len(narrowed) > 1:
+        focus = mentioned_inns(narrowed[-1], candidates, source)
+        if focus:
+            return focus
     if re.search(r"остальн|другими|всеми|у всех|каждой|обоих|из них|с кем", subject):
         return []
     return mentioned_inns(subject, candidates, source)
@@ -525,7 +845,7 @@ def tool_subset(question: str) -> list[str] | None:
     question = question_subject(question)
     kind, _ = question_kind_hint(question)
     if kind == "comparison":
-        return ["search_company", "compare_companies"]
+        return None  # A comparison can also ask for licences, phones or a particular year.
     if kind != "answer":
         return None
     selected = ["search_company", "get_report_summary"]
@@ -533,7 +853,7 @@ def tool_subset(question: str) -> list[str] | None:
         selected.extend(["get_risk_signals", "get_financials"])
     if _MEANING_Q.search(question):
         selected.append("get_risk_signals")
-    if _HEAD_Q.search(question) or _LABEL_Q.search(question):
+    if _HEAD_Q.search(question) or _LABEL_Q.search(question) or needs_risk_review(question):
         selected.append("get_risk_signals")
     for name, rx in _SECTION_HINTS:
         if rx.search(question):
@@ -561,7 +881,8 @@ _TOPIC_RE = re.compile(
     r"\d{10,12}|компан|контрагент|фирм|ооо|ип\b|инн|суд|иск|приста|долг|финанс|выручк|прибыл|"
     r"убыт|отчёт|отчет|светофор|зск|лиценз|адрес|директор|учредит|банкрот|реестр|закупк|проверк|"
     r"работать|отсрочк|предоплат|сделк|договор|поставк|надёжн|надежн|риск|что\s+ты\s+умеешь|"
-    r"чем\s+(?:ты\s+)?поможешь|привет|здравств|спасибо|помог",
+    r"чем\s+(?:ты\s+)?поможешь|привет|здравств|спасибо|помог|телефон|контакт|руковод|назначен|"
+    r"численност|сотрудник|персонал|филиал|оквэд|выписк|\bрнп\b|сравни|остальн|полномоч",
     re.I,
 )
 _OFFTOPIC_RE = re.compile(
@@ -574,7 +895,7 @@ _OFFTOPIC_RE = re.compile(
 )
 _CAPABILITIES = (
     "Я отвечаю по отчёту банка о контрагенте: оценки банка, суды, долги у приставов, финансы, "
-    "лицензии, проверки, виды деятельности — и говорю, на каких условиях с компанией работать. "
+    "лицензии, проверки и виды деятельности. Помогаю разобраться в фактах отчёта. "
     "Назовите компанию или ИНН."
 )
 _INJECTION_REPLY = (
@@ -594,13 +915,29 @@ def offtopic_reply(question: str) -> str | None:
     text = question.strip()
     if not text:
         return "Напишите вопрос: название компании, ИНН или что посмотреть в отчёте."
+    if re.fullmatch(
+        r"(?:привет|здравствуйте|добрый день|спасибо|что ты умеешь|чем ты можешь помочь)[?!.\s]*",
+        text,
+        re.I,
+    ):
+        return _CAPABILITIES
+    if RATING_REQUEST.search(question_subject(text)):
+        return (
+            "Не назначаю компаниям баллы и места в рейтинге: такой оценки в отчётах нет. "
+            "Могу сравнить конкретные факты и привести исходные оценки банка."
+        )
     if _INJECTION_RE.search(text):
         return _INJECTION_REPLY
     if _ABUSE_RE.search(text):
         return "Давайте по делу. " + _CAPABILITIES
     # Company identity appended by the UI does not turn an unrelated request into
     # a report question. Keep the full text above for injection and abuse checks.
-    if _OFFTOPIC_RE.search(question_subject(text)):
+    if _OFFTOPIC_RE.search(question_subject(text)) or re.search(
+        r"(?:напиши|сгенерируй|покажи|сделай|write|generate)[^.!?\n]{0,35}"
+        r"(?:код\b|программ|скрипт|python|javascript|code\b|sql\b)",
+        question_subject(text),
+        re.I,
+    ):
         return _OFFTOPIC_REPLY
     if len(text) <= 60 and not _TOPIC_RE.search(text) and not re.search(r"\?$", text):
         return _CAPABILITIES
@@ -611,6 +948,11 @@ def question_kind_hint(question: str) -> tuple[str | None, str | None]:
     """Вид ответа по словам вопроса и подсказка модели: несколько компаний → comparison,
     вопрос про раздел → answer, «можно ли работать» → card. Решает модель, но с якорем."""
     question = question_subject(question)
+    if limitation(question):
+        return (
+            "answer",
+            "Прямо обозначь предел данных: запрошенных актуальных или персональных сведений в отчёте нет. Не подменяй их общей карточкой.",
+        )
     if _COMPARE_RE.search(question) or len(re.findall(r"\b\d{10,12}\b", question)) >= 2:
         return "comparison", "Подсказка: в вопросе несколько компаний — kind «comparison»."
     if _DOCUMENTS_Q.search(question):
@@ -655,7 +997,7 @@ def question_kind_hint(question: str) -> tuple[str | None, str | None]:
     return None, None
 
 
-_COURT_Q = re.compile(r"\bсуд|\bиск|арбитраж|ответчик|истец", re.I)
+_COURT_Q = COURT_QUESTION
 _BAILIFF_Q = re.compile(r"пристав|исполнительн", re.I)
 _ROLE_WORDS = re.compile(r"ответчик|истец|истц|подавал|к компании|против компании", re.I)
 _FINISHED_WORDS = re.compile(r"заверш|закрыт|окончен", re.I)
@@ -755,11 +1097,13 @@ _ABOUT_COMPANY_RE = re.compile(
 )
 
 
-def refusal_problem(answer: Answer, trace: list[ToolCallTrace]) -> str | None:
+def refusal_problem(answer: Answer, trace: list[ToolCallTrace], question: str = "") -> str | None:
     """Отказ, когда инструмент вернул данные, — ошибка модели, а не пробел в отчёте.
     Отказ вообще без вызова инструментов по вопросу про компанию — тем более: модель
     решила «в отчёте нет телефона», не заглянув в отчёт."""
     if answer.kind != "refusal":
+        return None
+    if limitation(question) or "Не удалось собрать проверяемый ответ" in answer.text_md:
         return None
     if not trace:
         return (
@@ -767,14 +1111,9 @@ def refusal_problem(answer: Answer, trace: list[ToolCallTrace]) -> str | None:
             "(get_section для телефонов, лицензий, учредителей и других разделов; get_report_summary "
             "для реквизитов) и ответь по его данным; «нет сведений» — только если инструмент так сказал."
         )
-    with_data = [t.name for t in trace if t.available and t.result_chars > 400]
-    if not with_data:
-        return None
-    return (
-        f"Данные получены ({', '.join(dict.fromkeys(with_data))}), отказываться нельзя. "
-        "Перепиши ответ по существу: назови числа из ответа инструмента и дату отчёта; "
-        "«нет сведений» пиши только про то, чего в отчёте действительно нет."
-    )
+    # A populated report can still lack the requested phone, case parties or payment history.
+    # Payload size is not evidence that a particular question is answerable.
+    return None
 
 
 def empty_problem(answer: Answer) -> str | None:
@@ -912,11 +1251,19 @@ def drop_invalid_lines(text: str, invalid: list[Citation]) -> str:
     пользователь не должен видеть «7 152 200 %», которых нет в отчёте."""
     if not invalid:
         return text
+
+    def normalize(value: str) -> str:
+        return re.sub(r"[\s*#`_]+", " ", value).strip(" -•.:").casefold()
+
     lines = text.split("\n")
     keep: list[str] = []
     for line in lines:
         hit = False
         for c in invalid:
+            claim_text, line_text = normalize(c.claim), normalize(line)
+            if len(claim_text) >= 12 and claim_text in line_text:
+                hit = True
+                break
             nums = {str(n) for n in numbers_in(c.claim)}
             inline = f"[{c.source_path}]" in line
             by_number = bool(nums) and bool(nums & {str(n) for n in numbers_in(line)})
@@ -1111,7 +1458,7 @@ def visible_history(messages: list[BaseMessage], question: str) -> list[BaseMess
     past = [
         m
         for m in messages[:start]
-        if isinstance(m, HumanMessage)
+        if (isinstance(m, HumanMessage) and not m.additional_kwargs.get("repair"))
         or (
             isinstance(m, AIMessage)
             and not m.tool_calls
@@ -1119,7 +1466,9 @@ def visible_history(messages: list[BaseMessage], question: str) -> list[BaseMess
             and (not has_checked or m.additional_kwargs.get("final_answer"))
         )
     ]
-    return [*past, *messages[start:]]
+    # Preserve the full conversation in storage, but bound provider context.
+    # Active companies and the comparison group are kept separately in state.
+    return [*past[-20:], *messages[start:]]
 
 
 def finalization_history(messages: list[BaseMessage], question: str) -> list[BaseMessage]:
@@ -1155,4 +1504,4 @@ def _inns_from_args(args: dict[str, Any]) -> list[str]:
         inns = re.findall(r"\d{10,12}", inns)
     out = [str(inn)] if inn else []
     out.extend(str(i) for i in inns)
-    return out
+    return [inn for inn in out if re.fullmatch(r"(?:\d{10}|\d{12})", inn)]

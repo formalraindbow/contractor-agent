@@ -1,6 +1,6 @@
 """События графа → SSE-конверт ``{type, thread_id, run_id, seq, contract_version, ts, data}``.
 
-Типы: ``token`` — кусок текста модели из узла ``agent``; ``tool`` — вызов
+Типы: ``token`` — проверенный итоговый текст (не промежуточный черновик); ``tool`` — вызов
 инструмента (имя, аргументы, доступность, размер ответа) — это и есть «агент
 работает» на UI; ``end`` — ``Answer`` и ``usage``; ``error`` — исключение.
 ``interrupt`` зарезервирован под human-in-the-loop. Один прогон — один
@@ -9,16 +9,17 @@
 
 from __future__ import annotations
 
+import logging
 import uuid
 from collections.abc import AsyncIterator
 from datetime import UTC, datetime
 from typing import Any, Literal
 
-from langchain_core.messages import AIMessage, AIMessageChunk, BaseMessage
+from langchain_core.messages import BaseMessage, HumanMessage
 from pydantic import BaseModel, Field
 
 from contractor_agent.agent.graph import initial_state
-from contractor_agent.agent.runtime import AgentRuntime
+from contractor_agent.agent.runtime import AgentRuntime, RunBusyError
 from contractor_agent.agent.schema import Answer
 
 CONTRACT_VERSION = "1.0"
@@ -57,44 +58,52 @@ async def stream_run(
     }
     answer: Answer | None = None
     try:
-        async for mode, chunk in runtime.graph.astream(
-            initial_state(question), config=config, stream_mode=["messages", "updates"]
-        ):
-            if mode == "messages":
-                message, meta = chunk
-                if meta.get("langgraph_node") != "agent":
-                    continue
-                text = _text(message)
-                if text and not getattr(message, "tool_calls", None):
-                    yield envelope("token", {"text": text})
-            else:
+        async with runtime.run_slot(thread_id):
+            async for chunk in runtime.graph.astream(
+                initial_state(question), config=config, stream_mode="updates"
+            ):
                 for node, update in chunk.items():
-                    if node == "tools":
+                    if not isinstance(update, dict):
+                        continue
+                    if node in ("tools", "evidence"):
                         for call in update.get("trace") or []:
                             yield envelope("tool", call.model_dump())
                     if node in ("validate", "guard") and update.get("answer") is not None:
                         answer = update["answer"]
-        if answer is None:
-            raise RuntimeError("граф завершился без ответа")
-        state = await runtime.graph.aget_state(config)
-        usage = _usage(state.values.get("messages") or [])
-        runtime.record_trace(thread_id, question, state.values, answer)
-        yield envelope("end", {"output": answer.model_dump(mode="json"), "usage": usage})
-    except Exception as e:  # ошибка — событие, а не разрыв потока
-        yield envelope("error", {"type": type(e).__name__, "message": str(e)})
-
-
-def _text(message: BaseMessage) -> str:
-    if not isinstance(message, AIMessage | AIMessageChunk):
-        return ""
-    content = message.content
-    if isinstance(content, str):
-        return content
-    if isinstance(content, list):
-        return "".join(
-            block.get("text", "") if isinstance(block, dict) else str(block) for block in content
+            if answer is None:
+                raise RuntimeError("граф завершился без ответа")
+            state = await runtime.graph.aget_state(config)
+            messages = state.values.get("messages") or []
+            turn_start = next(
+                (
+                    i
+                    for i in range(len(messages) - 1, -1, -1)
+                    if isinstance(messages[i], HumanMessage) and messages[i].content == question
+                ),
+                len(messages),
+            )
+            usage = _usage(messages[turn_start:])
+            runtime.record_trace(thread_id, question, state.values, answer)
+            # Clients may animate this text, but must never see unvalidated reasoning/drafts.
+            if answer.text_md:
+                yield envelope("token", {"text": answer.text_md})
+            yield envelope("end", {"output": answer.model_dump(mode="json"), "usage": usage})
+    except RunBusyError as e:
+        yield envelope("error", {"type": "Busy", "message": str(e)})
+    except TimeoutError:
+        yield envelope(
+            "error",
+            {
+                "type": "Timeout",
+                "message": "Ответ занимает слишком много времени. Попробуйте повторить запрос.",
+            },
         )
-    return ""
+    except Exception:
+        logging.getLogger(__name__).exception("Agent stream failed")
+        yield envelope(
+            "error",
+            {"type": "AgentError", "message": "Не удалось завершить запрос. Попробуйте ещё раз."},
+        )
 
 
 def _usage(messages: list[BaseMessage]) -> dict[str, int]:

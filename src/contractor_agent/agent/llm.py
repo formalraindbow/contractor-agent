@@ -35,8 +35,9 @@ class LLM:
     def name(self) -> str:
         return getattr(self.models[0], "model_name", type(self.models[0]).__name__)
 
-    def with_tools(self, tools: list[Any]) -> Runnable:
-        bound = [m.bind_tools(tools) for m in self.models]
+    def with_tools(self, tools: list[Any], *, tool_choice: str | None = None) -> Runnable:
+        options = {"tool_choice": tool_choice} if tool_choice is not None else {}
+        bound = [m.bind_tools(tools, **options) for m in self.models]
         return bound[0].with_fallbacks(bound[1:]) if len(bound) > 1 else bound[0]
 
     def structured(self, schema: type) -> Runnable:
