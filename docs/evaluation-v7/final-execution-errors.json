@@ -1,0 +1,11 @@
+[
+  {
+    "suite": "regression",
+    "file": "gpt_b1gir8dkimq5j60i6ajf_gpt-oss-120b_latest--holdout-active-company-switch--0.json",
+    "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-120b/latest",
+    "question_id": "holdout-active-company-switch",
+    "question": "Когда он назначен?",
+    "error": "OpenAIAPIError: Error code: 500 - {'error': {'message': 'Internal server error', 'type': 'server_error', 'code': 'server_error'}}",
+    "turn_count": 4
+  }
+]

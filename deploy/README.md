@@ -62,3 +62,13 @@ application restart but not deletion of the VPS or a disk failure.
 For updates, preserve `.env.production`, `state/`, `runs/`, `backups/` and the
 Caddy volumes. Back up sessions, replace source files, then run the same
 `up -d --build` command. Never use `down -v`: it deletes the certificate volumes.
+
+## Automated repository checks
+
+`agent-checks.workflow.yml` is a prepared GitHub Actions workflow for Python 3.12,
+locked dependencies, Ruff, tests without model API calls, and report invariants.
+It contains no model credentials. To activate it, place it at
+`.github/workflows/ci.yml` and push using an account or token allowed to update
+workflows. The current OAuth token was denied the `workflow` scope during the
+v7 update, so this template is not an active CI pipeline. The equivalent checks
+were run locally; activation and a successful GitHub run remain separate steps.

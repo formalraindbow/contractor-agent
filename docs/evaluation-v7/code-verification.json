@@ -1,0 +1,15 @@
+{
+  "application_commit": "d0897855c08d75ba9d494356674ebc9311f9db19",
+  "prompt": "v7",
+  "prompt_fingerprint": "75151edc",
+  "source_hashes_match": true,
+  "unit_tests": {
+    "passed": 417,
+    "failed": 0,
+    "external_deprecation_warnings": 1,
+    "command": "PYTHONPATH=src .venv/bin/python -m pytest -o addopts='--import-mode=importlib' -m 'not live' -q"
+  },
+  "ruff": "passed",
+  "javascript_syntax": "passed",
+  "report_and_chat_css_unchanged": true
+}

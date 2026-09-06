@@ -1,0 +1,72 @@
+{
+  "planned_scenarios": 6,
+  "completed_scenarios": 6,
+  "models": {
+    "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-120b/latest": {
+      "scenarios": 3,
+      "agent_errors": 0,
+      "code_passes": 3,
+      "by_type": {
+        "comparison": {
+          "n": 3,
+          "passed": 3
+        }
+      },
+      "case_duration_p50_s": 27.3,
+      "case_duration_p95_s": 27.6,
+      "successful_turn_duration_p50_s": 4.248,
+      "successful_turn_duration_p95_s": 7.858,
+      "repeat_groups": 1,
+      "planned_case_groups": 1,
+      "groups_all_repeats_pass": 1,
+      "observed_llm_completions": 9,
+      "completions_with_usage": 9,
+      "input_tokens": 37728,
+      "output_tokens": 1387,
+      "failed_llm_callbacks": 0,
+      "judge_coverage": 3,
+      "judge_passes": 1,
+      "semantic_correctness": null
+    },
+    "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-20b/latest": {
+      "scenarios": 3,
+      "agent_errors": 0,
+      "code_passes": 3,
+      "by_type": {
+        "comparison": {
+          "n": 3,
+          "passed": 3
+        }
+      },
+      "case_duration_p50_s": 15.9,
+      "case_duration_p95_s": 21.0,
+      "successful_turn_duration_p50_s": 1.731,
+      "successful_turn_duration_p95_s": 2.189,
+      "repeat_groups": 1,
+      "planned_case_groups": 1,
+      "groups_all_repeats_pass": 1,
+      "observed_llm_completions": 9,
+      "completions_with_usage": 9,
+      "input_tokens": 37728,
+      "output_tokens": 823,
+      "failed_llm_callbacks": 0,
+      "judge_coverage": 3,
+      "judge_passes": 0,
+      "semantic_correctness": null
+    }
+  },
+  "paired_code_checks": {
+    "matched_pairs": 3,
+    "both_pass": 3,
+    "only_first_pass": 0,
+    "only_second_pass": 0,
+    "both_fail": 0
+  },
+  "limitations": [
+    "Diagnostic selection of known cases; not a random sample or unseen holdout.",
+    "Code passes are not semantic correctness; no hallucination rate measured.",
+    "Dialogue turns are saved in full, but legacy checks assess only the last turn.",
+    "SDK retries and failed-request tokens may be unobservable; sums are reported usage.",
+    "Successful-turn latency excludes failed turns; see errors and scenario durations."
+  ]
+}

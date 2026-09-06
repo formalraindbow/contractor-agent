@@ -1,0 +1,2524 @@
+{
+  "created_utc": "2026-09-06T22:53:24.608503+00:00",
+  "git_commit": "d0897855c08d75ba9d494356674ebc9311f9db19",
+  "source_sha256": {
+    "evals/__init__.py": "9d321bd4c8d497f0e046a0ddcdf29c351282b91029523a9bbee607a84bfaeac5",
+    "evals/__main__.py": "c2dcc0f3c52a0193cb78df12d7e95bc8620c8f91719d3ef51e776edc6c8d6118",
+    "evals/canonical.py": "37b59ba1b8efe16ac9d39239a0d7f77d79645a668415d6c4580dd33911f04ca7",
+    "evals/checks.py": "0dc2c799e9024ac31356c626b37a20ac00f4b56702d814318f6c8d115910b367",
+    "evals/gold.py": "f6969c957ef8573f5275a53d6d17851cec312cf256f3337388f3f23c61dcf77b",
+    "evals/gold.yaml": "d9f3e98c616a76790092a0ce6daf725ef13b59a139651f907e58072a672aba92",
+    "evals/judge.py": "10f8cf47d26bbf1850b3cc216f6101317fbedae3c6982f30d2dc9dd18738cd4c",
+    "evals/metrics.py": "bca65a8ca754c945eecb2588a8b850d2290b8ce99bfaaedd4ddb36b7f8e8c9ae",
+    "evals/paired.py": "12a3ba1570630e4c5641192caac0bea18166cba563c7ee9234e7c55df995a49b",
+    "evals/report.py": "acd66190f496f2bb3c12f17d7de232110b458e10e6691835e162e04fd47284f6",
+    "evals/runner.py": "bb9504197566ace9c850dfc3bf79ae1ef8822776dac3bbc0819c47c1549a81f2",
+    "evals/suites/readiness.json": "8fd764a01d4903d80a2e45cec5144d4811b68036f82bd549da0fbf8c135bbbcd",
+    "evals/suites/v7_holdout.yaml": "c665bd2be45e9cc9e94d9d8e38d791e026f4a4fa89d18038f54bac0f847d5ca4",
+    "evals/suites/v7_qualification.yaml": "ee2fe648f082fa8de21549ed1590ceedfa3c8b0c88ca6fee107af01f70cdca6b",
+    "evals/suites/v7_unseen.yaml": "cf79c727306530c5da1d01b18cdc567629daedc90c77a0a69675ae275085aa77",
+    "evals/suites/v7_unseen_corrected.yaml": "cd543543b943e5e17814f59c219e96d1bef03e31cab7dc410bf2597aa29fb8d6",
+    "src/contractor_agent/__init__.py": "89c1151257e11a1efaa2ba419f454fdc855f0d2d824238d0be2e6b84efda2681",
+    "src/contractor_agent/agent/__init__.py": "de99647d9e30988a4202be61dd384d2193893cb17376807391a1b146ff0e6663",
+    "src/contractor_agent/agent/card_answer.py": "1dfb609489dcc6c9a236951ef8b03b0b6809451e483eb10946151c3eb69edb7e",
+    "src/contractor_agent/agent/citations.py": "179e3b8c03ffa669a23885a486c5c41eebd3ae9acaeba2c63d0cbe97c4dd1381",
+    "src/contractor_agent/agent/comparison_answers.py": "30f2a53f48f053d56e3cff0672f7a496c8f91c3210a4b030e66e98e8bf936ced",
+    "src/contractor_agent/agent/decision_answers.py": "2f04ac3355083c1b9fbcf39867c07c4390cc1eaec2343bc0d6cfcb1b1a18660f",
+    "src/contractor_agent/agent/evidence.py": "8fd6b22373482ad598f57b2dc4e4a43653542f7894102d51000146b542b4ff46",
+    "src/contractor_agent/agent/factual_sections.py": "8e82bf8d8ca8ea0e427be296a528727784525134bf5ff31b7180c3a471bfdce7",
+    "src/contractor_agent/agent/financial_answers.py": "a2a48f2cd91a137a473076e0a7f5f8be155bfd387c8d6c2af5093785d8ab3c26",
+    "src/contractor_agent/agent/graph.py": "60496c736f93309c62d09118132272504787ebef85d3a33e356a44b853151238",
+    "src/contractor_agent/agent/llm.py": "89ff5c074e57c9e6466d1c9f5ca0dec960f589829b10dbe8c2e8d0ee432b34cc",
+    "src/contractor_agent/agent/money_guard.py": "2c5839b7db48334a6b8df84bc3fc30473402ff277485ed842ae1fa74584d9b31",
+    "src/contractor_agent/agent/nodes.py": "3cd5e6d25dedb99486fd3ff5a5942b24e2e125cbc52334c1a04a7bebc322212a",
+    "src/contractor_agent/agent/presentation.py": "991b20fccfe9080182d23732d8c29af706ee43c9ba99732193f2cf920a8fab0b",
+    "src/contractor_agent/agent/prompt.py": "d14cde476b4eb07c4385ebfd9609723516ad52774af39840dc43857401ba5597",
+    "src/contractor_agent/agent/question.py": "75b1e1516655abaa9596cbdf689611d635bbd71b1089b4d88507dc07715fa29b",
+    "src/contractor_agent/agent/requests.py": "58e5fb020c4847f257bf4caf234ffa2b63a799c0f9c7b570e2d120fc131cace2",
+    "src/contractor_agent/agent/runtime.py": "a37d27bf15a9b588ffa3b0c6a561e0622b178bd26f13b907824c892beeccb0b1",
+    "src/contractor_agent/agent/schema.py": "ba9d0161553cc98e33d1cffbd0168764c8cb87e629b7203ec65881867e9a755c",
+    "src/contractor_agent/agent/scoped_answers.py": "c10e47d02de36d9696c2624eca339118f39e459f468ec443164ba00ecd01d0b6",
+    "src/contractor_agent/agent/section_answers.py": "0690ee7fb78e5b854c74a97998d5d87caed12eb544cdbe4bc2684133c2e56370",
+    "src/contractor_agent/agent/state.py": "f0cca87f8732c1d6258b773e9953e9f6485d4295860cbb39aa447b4ef912d33f",
+    "src/contractor_agent/agent/stream.py": "23be55858301adfdbb67e72d7701cb8910672758ca964865f9fecd576b1b3d3c",
+    "src/contractor_agent/agent/tools.py": "25682a8317937a4afb2bdeaa71ed9dd138f286e56f6ff4af66d25f7d65685598",
+    "src/contractor_agent/api/__init__.py": "c7203acb4f462b1d4b5cc20aa3b86ab74ec3adea74558ca2bcefd2ba124e07b4",
+    "src/contractor_agent/api/app.py": "d9e0298dfc1fa292345f76d5f675cfa5d87425dc4525673f0c3de375815c7b5d",
+    "src/contractor_agent/api/evidence.py": "797d3c76a944d4f0444f2832890a7fb85f8339b8d8e84cd123bdc831694f838a",
+    "src/contractor_agent/api/server.py": "b7e7ef99ec663158ad4e80d4ad307067cf085f71b609807618b259ee1b436a78",
+    "src/contractor_agent/cli.py": "149acc166570a3842ae13532e730517cf0394309bf82481ce7cb03b8f950c229",
+    "src/contractor_agent/data/__init__.py": "bb5f147b0fe0ae0760dd36bc8ced8baa0796102d32991607d459744fb1a8e197",
+    "src/contractor_agent/data/__main__.py": "181e8222bd6f3a7d44673404ffec362de742b95f6f6666a72c588487150a2429",
+    "src/contractor_agent/data/csv_tree.py": "7489cc6678501f6bf07dcda9dd2335ab4dd21fcd6d81e6f39c04e5b385ede601",
+    "src/contractor_agent/data/index.py": "d46b5aa15be1190062f50a6e4d02bb22a6adfd6ed8351fe3cfc9f8b9a086e252",
+    "src/contractor_agent/data/loader.py": "c9a15501608fb765f1cc04ec474bc5b70ba44734c36d64e1cf2c55c0893b8555",
+    "src/contractor_agent/data/model.py": "9864daa6346f7482b5da83982a7b1378a1d12b879cded785a7e45a78b3c67fea",
+    "src/contractor_agent/data/mongo.py": "03ab62623783a3c54775629855432ee8cc7ee4c29a16edde261fd271797ffb11",
+    "src/contractor_agent/data/paths.py": "f881b2909f86abb16245016c575c3d9adf035150bd72b34e216e6cbf308a4cff",
+    "src/contractor_agent/labels.py": "a3cfc7403fa8eda9f75c726fc9640520be60d73dd0b0ca5ebfbc363fa17f46ca",
+    "src/contractor_agent/mcp_server/__init__.py": "82efa4cd3cff8991b9a0f216044041e08aa470d29da36e7cc2e420994421b8a0",
+    "src/contractor_agent/mcp_server/envelope.py": "f075f3cabe3bc05877b37af7618fbd27b8da397daec4cc6ad60d8f0fc46b24d7",
+    "src/contractor_agent/mcp_server/server.py": "22fdb707cea8f9a0d002b03b15379927107b7c85ee9f5b947b3c49a1a0a31e39",
+    "src/contractor_agent/mcp_server/tools.py": "9697372f0c3b9217a65e5f429b2656a8b9a4f8ac1bc8af6cd2c5146cdc695139",
+    "src/contractor_agent/settings.py": "e6cdfb8c62fe7b54fcc6c2a67b011df56e3652b2280e610419d557715716061a",
+    "src/contractor_agent/signals/__init__.py": "b148bce40c0acdb9d531b6d6c243b941bd90135771e5f29da8a7f421793f52f9",
+    "src/contractor_agent/signals/arbitration.py": "2e3e7f7344720643b820a44484331f5bf4cc0ef6116b741eaa330e7871919db8",
+    "src/contractor_agent/signals/enforcement.py": "df5abac26967714655e8fc8a841276081fb925d973fe9c6510fe9c49c988ba42",
+    "src/contractor_agent/signals/engine.py": "a468b07423bcacbd240c7d1d14add5aba57d2791748af7c1de7426f926b7b610",
+    "src/contractor_agent/signals/finance.py": "1e8414a3c72bfab626fbfdca978eaaefb0666cf90b0615f3bd4bb88d6b2b7cdd",
+    "src/contractor_agent/signals/flags.py": "c0e66c8a3f02ef41059006b1fa858d9c717d6cd3df4ea067ae913107d6097e2c",
+    "src/contractor_agent/signals/model.py": "6ac740d7a28cfa43a33a1d8cf1835257ddc6a576d8d0aedb07e329a26e12c5b1",
+    "src/contractor_agent/signals/registry.py": "3bd8a38f69bb97b18cd8353d3eeee65da69fd48e2a204710143fabe5b05237cd",
+    "src/contractor_agent/signals/text.py": "9d8fa75d0c8f9ced72d552ad8941a72d04944405e1f068cbba1fe56ac4d50cbf"
+  },
+  "gold_sha256": "d9f3e98c616a76790092a0ce6daf725ef13b59a139651f907e58072a672aba92",
+  "suite_sha256": "8fd764a01d4903d80a2e45cec5144d4811b68036f82bd549da0fbf8c135bbbcd",
+  "snapshot_sha256": "34bdf82e3286bfbb1c2b0e4d441dde25c90fd58b1d623d6192f2653dd6641f55",
+  "snapshot_csv_sha256": "ab33b3a0f311f5761afc6378770b4e596ec5f168ee449343f5b6711b21a526f3",
+  "prompt_version": "v7",
+  "prompt_fingerprint": "75151edc",
+  "base_url": "https://llm.api.cloud.yandex.net/v1",
+  "models": [
+    "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-120b/latest",
+    "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-20b/latest"
+  ],
+  "fallback_models": [],
+  "temperature": 0,
+  "reasoning_effort": "low",
+  "max_tokens": 8192,
+  "sdk_retries": 2,
+  "per_turn_timeout_s": 120,
+  "scenario_timeout_s": 360,
+  "repeats": 1,
+  "seed": 20260906,
+  "concurrency": 4,
+  "suite": "all",
+  "question_ids": [
+    "5032257375-card",
+    "maksmarket-courts-total",
+    "maksmarket-courts-case-details",
+    "maksmarket-label-vs-bankruptcy",
+    "maksmarket-enforcement-active",
+    "registry-maksmarket-trustee-head",
+    "guard-maksmarket-insult",
+    "guard-maksmarket-show-prompt",
+    "guard-maksmarket-tax-evasion",
+    "guard-maksmarket-admin-order",
+    "guard-maksmarket-english-injection",
+    "guard-maksmarket-code-poem",
+    "guard-maksmarket-weather",
+    "guard-maksmarket-dollar-rate",
+    "guard-maksmarket-empty-ok",
+    "guard-maksmarket-hidden-injection",
+    "2100006761-card",
+    "rado-courts-empty",
+    "rado-headcount",
+    "rado-label-vs-exclusion",
+    "comparison-rado-avers-terminal-vs-clean",
+    "6165169320-card",
+    "gdk-courts-defendant-open",
+    "gdk-inspections-absent",
+    "gdk-label-vs-blocking",
+    "sections-gdk-phone-present",
+    "dialog-gdk-deferral-five-steps",
+    "gdk-blocking-text-as-data",
+    "2311304742-card",
+    "bildyug-courts-roles",
+    "bildyug-enforcement-amount",
+    "bildyug-label-vs-flags",
+    "052500690823-card",
+    "yanpolov-courts",
+    "yanpolov-revenue",
+    "yanpolov-labels",
+    "edge-yanpolov-leading-zero-inn",
+    "consistency-yanpolov-tsirekidze-same-blocking",
+    "1684017097-card",
+    "techprof-revenue",
+    "techprof-profit",
+    "techprof-deferred-payment",
+    "edge-techprof-inn-not-found",
+    "techprof-founders-related",
+    "5029069967-card",
+    "lemonlid-courts-total",
+    "lemonlid-courts-open-defendant",
+    "lemonlid-finance-revenue",
+    "lemonlid-infer-deferral",
+    "lemonlid-courts-year-2024",
+    "5261137785-card",
+    "tayfun-branches",
+    "tayfun-inspections",
+    "tayfun-infer-deferral",
+    "7816085851-card",
+    "skv-spb-licenses",
+    "skv-spb-courts-details",
+    "skv-spb-courts-verdict",
+    "9705152496-card",
+    "sport-finance-numberlong",
+    "sport-licenses-absent",
+    "sport-label-vs-losses",
+    "2308177290-card",
+    "glavsvyazstroy-courts",
+    "glavsvyazstroy-inspections",
+    "glavsvyazstroy-label-vs-facts",
+    "glavsvyazstroy-dialog-exclusion-date-head",
+    "7722608440-card",
+    "remstroy-m-enforcement",
+    "remstroy-m-court-case-details",
+    "remstroy-m-deferred-payment",
+    "7726411412-card",
+    "gidroterm-courts-defendant-only",
+    "decision-gidroterm-deferral",
+    "166016736408-card",
+    "valiullin-courts-plaintiff-only",
+    "7728380537-card",
+    "electrolid-courts-open-defendant",
+    "electrolid-infer-deferral",
+    "electrolid-courts-outcome-dialog",
+    "decision-electrolid-claim",
+    "dialog-electrolid-topic-return",
+    "7718083574-card",
+    "energospecmontazh-courts-summary-vs-years",
+    "sections-energospetsmontazh-branches",
+    "sections-energospetsmontazh-licenses-expired",
+    "7709331654-card",
+    "uts-tekhnonikol-infer-claims",
+    "enforcement-uts-zero-active-history",
+    "finance-technonikol-big-numbers",
+    "registry-uts-unknown-ok",
+    "registry-uts-bank-recommends",
+    "343703064945-card",
+    "kachurin-courts-ip",
+    "decision-kachurin-deferral-ip",
+    "120705254031-card",
+    "pavlichuk-courts-not-found",
+    "finance-pavlichuk-ip-no-statements",
+    "comparison-pavlichuk-elektrolid-ip-vs-ooo",
+    "6164137887-card",
+    "yuskt-courts-who-sued",
+    "7805327192-card",
+    "enforcement-lzso-active-lower-bound",
+    "8622002583-card",
+    "enforcement-samza-active-vs-assets",
+    "decision-samza-payment-blocking",
+    "comparison-samza-agrofrut-same-verdict-deferral",
+    "7708336868-card",
+    "enforcement-swordcons-finished-not-current",
+    "234701002417-card",
+    "enforcement-golubochka-ip-finished-old",
+    "2364004929-card",
+    "enforcement-region-proekt-two-large",
+    "7720572580-card",
+    "enforcement-premium-oil-active-vs-finished",
+    "7704310756-card",
+    "enforcement-alliance-creditor-refuse",
+    "decision-alliance-tender-rnp",
+    "7708174776-card",
+    "finance-arikor-missing-year",
+    "9706026247-card",
+    "finance-filrosa-stale-no-profit",
+    "6700011489-card",
+    "finance-spl-negative-equity",
+    "5837083280-card",
+    "finance-mta-liquidity-low",
+    "3100037306-card",
+    "finance-klas-liquidity-absent",
+    "9727128465-card",
+    "finance-kvalis-empty-section",
+    "592061218009-card",
+    "registry-muravyeva-high-vs-zsk-green",
+    "5260500727-card",
+    "registry-metallprom-green-vs-invalid-address",
+    "7806627689-card",
+    "registry-fintreid-head-invalid",
+    "registry-fintreid-invalid-regdata-meaning",
+    "1901132406-card",
+    "som-label-unknown-svetofor",
+    "0277985654-card",
+    "sections-ucgn-licenses",
+    "1327036448-card",
+    "sections-td-zhbi-licenses-absent",
+    "td-zhbi-courts-case-details",
+    "comparison-tdzhbi-doska-stankistark-deferral",
+    "3711039473-card",
+    "sections-liderteks-inspections",
+    "dialog-lidertex-recheck",
+    "2466275727-card",
+    "sections-vostsibproekt-procurements",
+    "sections-vostsibproekt-phones-empty",
+    "7714729497-card",
+    "sections-psg-okved-vs-task",
+    "decision-psg-order-okved",
+    "1650051822-card",
+    "refusal-nadezhda-founders",
+    "7103029029-card",
+    "refusal-avers-optimum-pays-on-time",
+    "6732241319-card",
+    "refusal-evt-computers-website",
+    "3662313931-card",
+    "forkar-revenue-2024-before-registration",
+    "5047281765-card",
+    "refusal-technoline-license-number",
+    "7722539108-card",
+    "vista-egrul-extract",
+    "434569986684-card",
+    "refusal-svetlakova-reviews",
+    "7703777097-card",
+    "bigway-other-freshness",
+    "7727763544-card",
+    "renkon-service-licenses-present",
+    "7751352552-card",
+    "stroytech-finance-single-year",
+    "6673210179-card",
+    "decision-energokompleks-tender",
+    "1660266560-card",
+    "decision-agilar-ask-before",
+    "dialog-agilar-second-company-return",
+    "7724398540-card",
+    "dialog-agrofrut-deferral-chain",
+    "9727071240-card",
+    "comparison-four-tsk-translorium-kulyavets-most-check",
+    "comparison-tsk-translorium-omega-score-provocation",
+    "9721159668-card",
+    "dialog-translorium-deferral-chain",
+    "233000064283-card",
+    "7449088645-card",
+    "dialog-kartel-most-contradiction",
+    "consistency-kartel-most-aggro-same-negative-equity",
+    "5027292906-card",
+    "comparison-stroyhoum-teplosnab-fewer-courts",
+    "8602236576-card",
+    "5047218428-card",
+    "6320036399-card",
+    "9718253269-card",
+    "edge-grupp-search-ambiguous",
+    "9731131090-card",
+    "edge-avrora-ogrn-search-enforcement",
+    "edge-avrora-two-inns-one-target",
+    "2345004377-card",
+    "edge-rieltinvestocenka-quoted-name",
+    "3301037680-card",
+    "662700132402-card",
+    "7725497512-card",
+    "consistency-igraplast-art-enforcement-scale-differ",
+    "9201513489-card",
+    "7816746967-card",
+    "consistency-metprominvest-sava-loss-vs-equity-differ",
+    "6731007348-card",
+    "772377037026-card",
+    "kasatkin-infer-why-nothing-found",
+    "9713021306-card",
+    "registry-salman-mass-address",
+    "7720966601-card",
+    "global3-mass-director-young",
+    "6311087260-card",
+    "edge-omega-same-name-ask-inn",
+    "9728039426-card"
+  ],
+  "type_counts": {
+    "card": 77,
+    "answer": 44,
+    "refuse": 31,
+    "infer": 38,
+    "guard": 9,
+    "comparison": 11,
+    "dialog": 9
+  },
+  "planned_scenarios": 438,
+  "job_order": [
+    {
+      "id": "8622002583-card",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-20b/latest"
+    },
+    {
+      "id": "8622002583-card",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-120b/latest"
+    },
+    {
+      "id": "7724398540-card",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-120b/latest"
+    },
+    {
+      "id": "7724398540-card",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-20b/latest"
+    },
+    {
+      "id": "uts-tekhnonikol-infer-claims",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-120b/latest"
+    },
+    {
+      "id": "uts-tekhnonikol-infer-claims",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-20b/latest"
+    },
+    {
+      "id": "electrolid-courts-outcome-dialog",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-20b/latest"
+    },
+    {
+      "id": "electrolid-courts-outcome-dialog",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-120b/latest"
+    },
+    {
+      "id": "dialog-agrofrut-deferral-chain",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-20b/latest"
+    },
+    {
+      "id": "dialog-agrofrut-deferral-chain",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-120b/latest"
+    },
+    {
+      "id": "6320036399-card",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-20b/latest"
+    },
+    {
+      "id": "6320036399-card",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-120b/latest"
+    },
+    {
+      "id": "7103029029-card",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-120b/latest"
+    },
+    {
+      "id": "7103029029-card",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-20b/latest"
+    },
+    {
+      "id": "7708336868-card",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-20b/latest"
+    },
+    {
+      "id": "7708336868-card",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-120b/latest"
+    },
+    {
+      "id": "decision-alliance-tender-rnp",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-120b/latest"
+    },
+    {
+      "id": "decision-alliance-tender-rnp",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-20b/latest"
+    },
+    {
+      "id": "finance-technonikol-big-numbers",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-120b/latest"
+    },
+    {
+      "id": "finance-technonikol-big-numbers",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-20b/latest"
+    },
+    {
+      "id": "energospecmontazh-courts-summary-vs-years",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-120b/latest"
+    },
+    {
+      "id": "energospecmontazh-courts-summary-vs-years",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-20b/latest"
+    },
+    {
+      "id": "remstroy-m-deferred-payment",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-20b/latest"
+    },
+    {
+      "id": "remstroy-m-deferred-payment",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-120b/latest"
+    },
+    {
+      "id": "5047281765-card",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-120b/latest"
+    },
+    {
+      "id": "5047281765-card",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-20b/latest"
+    },
+    {
+      "id": "166016736408-card",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-120b/latest"
+    },
+    {
+      "id": "166016736408-card",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-20b/latest"
+    },
+    {
+      "id": "2100006761-card",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-120b/latest"
+    },
+    {
+      "id": "2100006761-card",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-20b/latest"
+    },
+    {
+      "id": "6673210179-card",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-20b/latest"
+    },
+    {
+      "id": "6673210179-card",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-120b/latest"
+    },
+    {
+      "id": "maksmarket-courts-total",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-120b/latest"
+    },
+    {
+      "id": "maksmarket-courts-total",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-20b/latest"
+    },
+    {
+      "id": "9713021306-card",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-120b/latest"
+    },
+    {
+      "id": "9713021306-card",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-20b/latest"
+    },
+    {
+      "id": "registry-metallprom-green-vs-invalid-address",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-20b/latest"
+    },
+    {
+      "id": "registry-metallprom-green-vs-invalid-address",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-120b/latest"
+    },
+    {
+      "id": "renkon-service-licenses-present",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-20b/latest"
+    },
+    {
+      "id": "renkon-service-licenses-present",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-120b/latest"
+    },
+    {
+      "id": "434569986684-card",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-20b/latest"
+    },
+    {
+      "id": "434569986684-card",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-120b/latest"
+    },
+    {
+      "id": "maksmarket-enforcement-active",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-120b/latest"
+    },
+    {
+      "id": "maksmarket-enforcement-active",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-20b/latest"
+    },
+    {
+      "id": "7709331654-card",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-20b/latest"
+    },
+    {
+      "id": "7709331654-card",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-120b/latest"
+    },
+    {
+      "id": "2308177290-card",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-120b/latest"
+    },
+    {
+      "id": "2308177290-card",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-20b/latest"
+    },
+    {
+      "id": "decision-gidroterm-deferral",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-20b/latest"
+    },
+    {
+      "id": "decision-gidroterm-deferral",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-120b/latest"
+    },
+    {
+      "id": "dialog-agilar-second-company-return",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-20b/latest"
+    },
+    {
+      "id": "dialog-agilar-second-company-return",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-120b/latest"
+    },
+    {
+      "id": "tayfun-infer-deferral",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-20b/latest"
+    },
+    {
+      "id": "tayfun-infer-deferral",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-120b/latest"
+    },
+    {
+      "id": "enforcement-lzso-active-lower-bound",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-120b/latest"
+    },
+    {
+      "id": "enforcement-lzso-active-lower-bound",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-20b/latest"
+    },
+    {
+      "id": "techprof-profit",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-120b/latest"
+    },
+    {
+      "id": "techprof-profit",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-20b/latest"
+    },
+    {
+      "id": "6731007348-card",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-120b/latest"
+    },
+    {
+      "id": "6731007348-card",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-20b/latest"
+    },
+    {
+      "id": "gdk-courts-defendant-open",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-120b/latest"
+    },
+    {
+      "id": "gdk-courts-defendant-open",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-20b/latest"
+    },
+    {
+      "id": "yuskt-courts-who-sued",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-120b/latest"
+    },
+    {
+      "id": "yuskt-courts-who-sued",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-20b/latest"
+    },
+    {
+      "id": "bildyug-label-vs-flags",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-20b/latest"
+    },
+    {
+      "id": "bildyug-label-vs-flags",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-120b/latest"
+    },
+    {
+      "id": "7816085851-card",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-120b/latest"
+    },
+    {
+      "id": "7816085851-card",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-20b/latest"
+    },
+    {
+      "id": "bigway-other-freshness",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-20b/latest"
+    },
+    {
+      "id": "bigway-other-freshness",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-120b/latest"
+    },
+    {
+      "id": "edge-techprof-inn-not-found",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-20b/latest"
+    },
+    {
+      "id": "edge-techprof-inn-not-found",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-120b/latest"
+    },
+    {
+      "id": "dialog-electrolid-topic-return",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-120b/latest"
+    },
+    {
+      "id": "dialog-electrolid-topic-return",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-20b/latest"
+    },
+    {
+      "id": "sport-finance-numberlong",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-20b/latest"
+    },
+    {
+      "id": "sport-finance-numberlong",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-120b/latest"
+    },
+    {
+      "id": "guard-maksmarket-hidden-injection",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-20b/latest"
+    },
+    {
+      "id": "guard-maksmarket-hidden-injection",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-120b/latest"
+    },
+    {
+      "id": "9706026247-card",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-120b/latest"
+    },
+    {
+      "id": "9706026247-card",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-20b/latest"
+    },
+    {
+      "id": "registry-muravyeva-high-vs-zsk-green",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-20b/latest"
+    },
+    {
+      "id": "registry-muravyeva-high-vs-zsk-green",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-120b/latest"
+    },
+    {
+      "id": "refusal-technoline-license-number",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-20b/latest"
+    },
+    {
+      "id": "refusal-technoline-license-number",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-120b/latest"
+    },
+    {
+      "id": "lemonlid-infer-deferral",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-120b/latest"
+    },
+    {
+      "id": "lemonlid-infer-deferral",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-20b/latest"
+    },
+    {
+      "id": "comparison-pavlichuk-elektrolid-ip-vs-ooo",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-20b/latest"
+    },
+    {
+      "id": "comparison-pavlichuk-elektrolid-ip-vs-ooo",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-120b/latest"
+    },
+    {
+      "id": "edge-rieltinvestocenka-quoted-name",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-120b/latest"
+    },
+    {
+      "id": "edge-rieltinvestocenka-quoted-name",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-20b/latest"
+    },
+    {
+      "id": "6164137887-card",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-120b/latest"
+    },
+    {
+      "id": "6164137887-card",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-20b/latest"
+    },
+    {
+      "id": "7816746967-card",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-120b/latest"
+    },
+    {
+      "id": "7816746967-card",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-20b/latest"
+    },
+    {
+      "id": "remstroy-m-enforcement",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-20b/latest"
+    },
+    {
+      "id": "remstroy-m-enforcement",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-120b/latest"
+    },
+    {
+      "id": "decision-kachurin-deferral-ip",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-20b/latest"
+    },
+    {
+      "id": "decision-kachurin-deferral-ip",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-120b/latest"
+    },
+    {
+      "id": "3711039473-card",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-120b/latest"
+    },
+    {
+      "id": "3711039473-card",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-20b/latest"
+    },
+    {
+      "id": "7703777097-card",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-120b/latest"
+    },
+    {
+      "id": "7703777097-card",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-20b/latest"
+    },
+    {
+      "id": "7726411412-card",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-120b/latest"
+    },
+    {
+      "id": "7726411412-card",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-20b/latest"
+    },
+    {
+      "id": "6700011489-card",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-120b/latest"
+    },
+    {
+      "id": "6700011489-card",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-20b/latest"
+    },
+    {
+      "id": "343703064945-card",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-120b/latest"
+    },
+    {
+      "id": "343703064945-card",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-20b/latest"
+    },
+    {
+      "id": "enforcement-premium-oil-active-vs-finished",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-20b/latest"
+    },
+    {
+      "id": "enforcement-premium-oil-active-vs-finished",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-120b/latest"
+    },
+    {
+      "id": "8602236576-card",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-20b/latest"
+    },
+    {
+      "id": "8602236576-card",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-120b/latest"
+    },
+    {
+      "id": "dialog-lidertex-recheck",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-120b/latest"
+    },
+    {
+      "id": "dialog-lidertex-recheck",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-20b/latest"
+    },
+    {
+      "id": "electrolid-courts-open-defendant",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-20b/latest"
+    },
+    {
+      "id": "electrolid-courts-open-defendant",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-120b/latest"
+    },
+    {
+      "id": "9731131090-card",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-120b/latest"
+    },
+    {
+      "id": "9731131090-card",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-20b/latest"
+    },
+    {
+      "id": "7725497512-card",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-20b/latest"
+    },
+    {
+      "id": "7725497512-card",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-120b/latest"
+    },
+    {
+      "id": "rado-courts-empty",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-20b/latest"
+    },
+    {
+      "id": "rado-courts-empty",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-120b/latest"
+    },
+    {
+      "id": "7720966601-card",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-20b/latest"
+    },
+    {
+      "id": "7720966601-card",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-120b/latest"
+    },
+    {
+      "id": "1650051822-card",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-120b/latest"
+    },
+    {
+      "id": "1650051822-card",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-20b/latest"
+    },
+    {
+      "id": "edge-yanpolov-leading-zero-inn",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-20b/latest"
+    },
+    {
+      "id": "edge-yanpolov-leading-zero-inn",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-120b/latest"
+    },
+    {
+      "id": "yanpolov-labels",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-20b/latest"
+    },
+    {
+      "id": "yanpolov-labels",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-120b/latest"
+    },
+    {
+      "id": "glavsvyazstroy-inspections",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-120b/latest"
+    },
+    {
+      "id": "glavsvyazstroy-inspections",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-20b/latest"
+    },
+    {
+      "id": "edge-avrora-two-inns-one-target",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-120b/latest"
+    },
+    {
+      "id": "edge-avrora-two-inns-one-target",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-20b/latest"
+    },
+    {
+      "id": "techprof-deferred-payment",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-20b/latest"
+    },
+    {
+      "id": "techprof-deferred-payment",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-120b/latest"
+    },
+    {
+      "id": "rado-label-vs-exclusion",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-20b/latest"
+    },
+    {
+      "id": "rado-label-vs-exclusion",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-120b/latest"
+    },
+    {
+      "id": "233000064283-card",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-120b/latest"
+    },
+    {
+      "id": "233000064283-card",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-20b/latest"
+    },
+    {
+      "id": "consistency-kartel-most-aggro-same-negative-equity",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-120b/latest"
+    },
+    {
+      "id": "consistency-kartel-most-aggro-same-negative-equity",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-20b/latest"
+    },
+    {
+      "id": "consistency-yanpolov-tsirekidze-same-blocking",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-20b/latest"
+    },
+    {
+      "id": "consistency-yanpolov-tsirekidze-same-blocking",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-120b/latest"
+    },
+    {
+      "id": "gdk-label-vs-blocking",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-120b/latest"
+    },
+    {
+      "id": "gdk-label-vs-blocking",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-20b/latest"
+    },
+    {
+      "id": "gdk-blocking-text-as-data",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-20b/latest"
+    },
+    {
+      "id": "gdk-blocking-text-as-data",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-120b/latest"
+    },
+    {
+      "id": "7751352552-card",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-20b/latest"
+    },
+    {
+      "id": "7751352552-card",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-120b/latest"
+    },
+    {
+      "id": "9728039426-card",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-120b/latest"
+    },
+    {
+      "id": "9728039426-card",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-20b/latest"
+    },
+    {
+      "id": "5260500727-card",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-120b/latest"
+    },
+    {
+      "id": "5260500727-card",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-20b/latest"
+    },
+    {
+      "id": "7722608440-card",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-20b/latest"
+    },
+    {
+      "id": "7722608440-card",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-120b/latest"
+    },
+    {
+      "id": "5837083280-card",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-120b/latest"
+    },
+    {
+      "id": "5837083280-card",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-20b/latest"
+    },
+    {
+      "id": "registry-uts-bank-recommends",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-120b/latest"
+    },
+    {
+      "id": "registry-uts-bank-recommends",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-20b/latest"
+    },
+    {
+      "id": "decision-energokompleks-tender",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-20b/latest"
+    },
+    {
+      "id": "decision-energokompleks-tender",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-120b/latest"
+    },
+    {
+      "id": "yanpolov-courts",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-120b/latest"
+    },
+    {
+      "id": "yanpolov-courts",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-20b/latest"
+    },
+    {
+      "id": "tayfun-branches",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-20b/latest"
+    },
+    {
+      "id": "tayfun-branches",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-120b/latest"
+    },
+    {
+      "id": "edge-grupp-search-ambiguous",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-20b/latest"
+    },
+    {
+      "id": "edge-grupp-search-ambiguous",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-120b/latest"
+    },
+    {
+      "id": "sections-liderteks-inspections",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-120b/latest"
+    },
+    {
+      "id": "sections-liderteks-inspections",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-20b/latest"
+    },
+    {
+      "id": "guard-maksmarket-code-poem",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-20b/latest"
+    },
+    {
+      "id": "guard-maksmarket-code-poem",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-120b/latest"
+    },
+    {
+      "id": "5047218428-card",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-120b/latest"
+    },
+    {
+      "id": "5047218428-card",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-20b/latest"
+    },
+    {
+      "id": "enforcement-region-proekt-two-large",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-120b/latest"
+    },
+    {
+      "id": "enforcement-region-proekt-two-large",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-20b/latest"
+    },
+    {
+      "id": "gidroterm-courts-defendant-only",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-120b/latest"
+    },
+    {
+      "id": "gidroterm-courts-defendant-only",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-20b/latest"
+    },
+    {
+      "id": "7718083574-card",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-120b/latest"
+    },
+    {
+      "id": "7718083574-card",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-20b/latest"
+    },
+    {
+      "id": "3100037306-card",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-120b/latest"
+    },
+    {
+      "id": "3100037306-card",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-20b/latest"
+    },
+    {
+      "id": "remstroy-m-court-case-details",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-20b/latest"
+    },
+    {
+      "id": "remstroy-m-court-case-details",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-120b/latest"
+    },
+    {
+      "id": "finance-klas-liquidity-absent",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-120b/latest"
+    },
+    {
+      "id": "finance-klas-liquidity-absent",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-20b/latest"
+    },
+    {
+      "id": "guard-maksmarket-insult",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-120b/latest"
+    },
+    {
+      "id": "guard-maksmarket-insult",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-20b/latest"
+    },
+    {
+      "id": "enforcement-golubochka-ip-finished-old",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-120b/latest"
+    },
+    {
+      "id": "enforcement-golubochka-ip-finished-old",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-20b/latest"
+    },
+    {
+      "id": "kachurin-courts-ip",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-120b/latest"
+    },
+    {
+      "id": "kachurin-courts-ip",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-20b/latest"
+    },
+    {
+      "id": "refusal-nadezhda-founders",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-120b/latest"
+    },
+    {
+      "id": "refusal-nadezhda-founders",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-20b/latest"
+    },
+    {
+      "id": "052500690823-card",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-20b/latest"
+    },
+    {
+      "id": "052500690823-card",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-120b/latest"
+    },
+    {
+      "id": "9201513489-card",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-20b/latest"
+    },
+    {
+      "id": "9201513489-card",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-120b/latest"
+    },
+    {
+      "id": "9705152496-card",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-20b/latest"
+    },
+    {
+      "id": "9705152496-card",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-120b/latest"
+    },
+    {
+      "id": "guard-maksmarket-tax-evasion",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-20b/latest"
+    },
+    {
+      "id": "guard-maksmarket-tax-evasion",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-120b/latest"
+    },
+    {
+      "id": "skv-spb-courts-details",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-20b/latest"
+    },
+    {
+      "id": "skv-spb-courts-details",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-120b/latest"
+    },
+    {
+      "id": "6732241319-card",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-20b/latest"
+    },
+    {
+      "id": "6732241319-card",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-120b/latest"
+    },
+    {
+      "id": "forkar-revenue-2024-before-registration",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-120b/latest"
+    },
+    {
+      "id": "forkar-revenue-2024-before-registration",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-20b/latest"
+    },
+    {
+      "id": "7722539108-card",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-20b/latest"
+    },
+    {
+      "id": "7722539108-card",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-120b/latest"
+    },
+    {
+      "id": "vista-egrul-extract",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-120b/latest"
+    },
+    {
+      "id": "vista-egrul-extract",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-20b/latest"
+    },
+    {
+      "id": "sections-psg-okved-vs-task",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-20b/latest"
+    },
+    {
+      "id": "sections-psg-okved-vs-task",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-120b/latest"
+    },
+    {
+      "id": "lemonlid-courts-total",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-20b/latest"
+    },
+    {
+      "id": "lemonlid-courts-total",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-120b/latest"
+    },
+    {
+      "id": "7449088645-card",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-20b/latest"
+    },
+    {
+      "id": "7449088645-card",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-120b/latest"
+    },
+    {
+      "id": "7704310756-card",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-20b/latest"
+    },
+    {
+      "id": "7704310756-card",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-120b/latest"
+    },
+    {
+      "id": "dialog-kartel-most-contradiction",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-120b/latest"
+    },
+    {
+      "id": "dialog-kartel-most-contradiction",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-20b/latest"
+    },
+    {
+      "id": "rado-headcount",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-20b/latest"
+    },
+    {
+      "id": "rado-headcount",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-120b/latest"
+    },
+    {
+      "id": "refusal-avers-optimum-pays-on-time",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-120b/latest"
+    },
+    {
+      "id": "refusal-avers-optimum-pays-on-time",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-20b/latest"
+    },
+    {
+      "id": "glavsvyazstroy-courts",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-120b/latest"
+    },
+    {
+      "id": "glavsvyazstroy-courts",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-20b/latest"
+    },
+    {
+      "id": "sections-ucgn-licenses",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-20b/latest"
+    },
+    {
+      "id": "sections-ucgn-licenses",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-120b/latest"
+    },
+    {
+      "id": "decision-electrolid-claim",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-120b/latest"
+    },
+    {
+      "id": "decision-electrolid-claim",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-20b/latest"
+    },
+    {
+      "id": "7727763544-card",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-20b/latest"
+    },
+    {
+      "id": "7727763544-card",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-120b/latest"
+    },
+    {
+      "id": "1660266560-card",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-120b/latest"
+    },
+    {
+      "id": "1660266560-card",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-20b/latest"
+    },
+    {
+      "id": "234701002417-card",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-120b/latest"
+    },
+    {
+      "id": "234701002417-card",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-20b/latest"
+    },
+    {
+      "id": "registry-maksmarket-trustee-head",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-120b/latest"
+    },
+    {
+      "id": "registry-maksmarket-trustee-head",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-20b/latest"
+    },
+    {
+      "id": "sections-energospetsmontazh-branches",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-120b/latest"
+    },
+    {
+      "id": "sections-energospetsmontazh-branches",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-20b/latest"
+    },
+    {
+      "id": "sections-energospetsmontazh-licenses-expired",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-20b/latest"
+    },
+    {
+      "id": "sections-energospetsmontazh-licenses-expired",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-120b/latest"
+    },
+    {
+      "id": "maksmarket-courts-case-details",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-20b/latest"
+    },
+    {
+      "id": "maksmarket-courts-case-details",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-120b/latest"
+    },
+    {
+      "id": "gdk-inspections-absent",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-120b/latest"
+    },
+    {
+      "id": "gdk-inspections-absent",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-20b/latest"
+    },
+    {
+      "id": "3301037680-card",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-120b/latest"
+    },
+    {
+      "id": "3301037680-card",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-20b/latest"
+    },
+    {
+      "id": "1901132406-card",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-20b/latest"
+    },
+    {
+      "id": "1901132406-card",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-120b/latest"
+    },
+    {
+      "id": "registry-fintreid-invalid-regdata-meaning",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-20b/latest"
+    },
+    {
+      "id": "registry-fintreid-invalid-regdata-meaning",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-120b/latest"
+    },
+    {
+      "id": "finance-arikor-missing-year",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-120b/latest"
+    },
+    {
+      "id": "finance-arikor-missing-year",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-20b/latest"
+    },
+    {
+      "id": "comparison-samza-agrofrut-same-verdict-deferral",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-120b/latest"
+    },
+    {
+      "id": "comparison-samza-agrofrut-same-verdict-deferral",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-20b/latest"
+    },
+    {
+      "id": "1684017097-card",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-120b/latest"
+    },
+    {
+      "id": "1684017097-card",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-20b/latest"
+    },
+    {
+      "id": "0277985654-card",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-20b/latest"
+    },
+    {
+      "id": "0277985654-card",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-120b/latest"
+    },
+    {
+      "id": "decision-agilar-ask-before",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-120b/latest"
+    },
+    {
+      "id": "decision-agilar-ask-before",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-20b/latest"
+    },
+    {
+      "id": "refusal-svetlakova-reviews",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-120b/latest"
+    },
+    {
+      "id": "refusal-svetlakova-reviews",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-20b/latest"
+    },
+    {
+      "id": "9718253269-card",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-120b/latest"
+    },
+    {
+      "id": "9718253269-card",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-20b/latest"
+    },
+    {
+      "id": "7708174776-card",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-120b/latest"
+    },
+    {
+      "id": "7708174776-card",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-20b/latest"
+    },
+    {
+      "id": "consistency-metprominvest-sava-loss-vs-equity-differ",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-20b/latest"
+    },
+    {
+      "id": "consistency-metprominvest-sava-loss-vs-equity-differ",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-120b/latest"
+    },
+    {
+      "id": "guard-maksmarket-show-prompt",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-120b/latest"
+    },
+    {
+      "id": "guard-maksmarket-show-prompt",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-20b/latest"
+    },
+    {
+      "id": "comparison-stroyhoum-teplosnab-fewer-courts",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-120b/latest"
+    },
+    {
+      "id": "comparison-stroyhoum-teplosnab-fewer-courts",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-20b/latest"
+    },
+    {
+      "id": "662700132402-card",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-120b/latest"
+    },
+    {
+      "id": "662700132402-card",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-20b/latest"
+    },
+    {
+      "id": "refusal-evt-computers-website",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-120b/latest"
+    },
+    {
+      "id": "refusal-evt-computers-website",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-20b/latest"
+    },
+    {
+      "id": "2466275727-card",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-120b/latest"
+    },
+    {
+      "id": "2466275727-card",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-20b/latest"
+    },
+    {
+      "id": "9721159668-card",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-20b/latest"
+    },
+    {
+      "id": "9721159668-card",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-120b/latest"
+    },
+    {
+      "id": "td-zhbi-courts-case-details",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-120b/latest"
+    },
+    {
+      "id": "td-zhbi-courts-case-details",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-20b/latest"
+    },
+    {
+      "id": "finance-kvalis-empty-section",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-20b/latest"
+    },
+    {
+      "id": "finance-kvalis-empty-section",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-120b/latest"
+    },
+    {
+      "id": "dialog-gdk-deferral-five-steps",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-120b/latest"
+    },
+    {
+      "id": "dialog-gdk-deferral-five-steps",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-20b/latest"
+    },
+    {
+      "id": "592061218009-card",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-20b/latest"
+    },
+    {
+      "id": "592061218009-card",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-120b/latest"
+    },
+    {
+      "id": "6311087260-card",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-20b/latest"
+    },
+    {
+      "id": "6311087260-card",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-120b/latest"
+    },
+    {
+      "id": "2345004377-card",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-120b/latest"
+    },
+    {
+      "id": "2345004377-card",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-20b/latest"
+    },
+    {
+      "id": "2311304742-card",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-120b/latest"
+    },
+    {
+      "id": "2311304742-card",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-20b/latest"
+    },
+    {
+      "id": "6165169320-card",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-120b/latest"
+    },
+    {
+      "id": "6165169320-card",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-20b/latest"
+    },
+    {
+      "id": "yanpolov-revenue",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-20b/latest"
+    },
+    {
+      "id": "yanpolov-revenue",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-120b/latest"
+    },
+    {
+      "id": "global3-mass-director-young",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-120b/latest"
+    },
+    {
+      "id": "global3-mass-director-young",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-20b/latest"
+    },
+    {
+      "id": "enforcement-swordcons-finished-not-current",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-120b/latest"
+    },
+    {
+      "id": "enforcement-swordcons-finished-not-current",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-20b/latest"
+    },
+    {
+      "id": "valiullin-courts-plaintiff-only",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-120b/latest"
+    },
+    {
+      "id": "valiullin-courts-plaintiff-only",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-20b/latest"
+    },
+    {
+      "id": "comparison-tdzhbi-doska-stankistark-deferral",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-120b/latest"
+    },
+    {
+      "id": "comparison-tdzhbi-doska-stankistark-deferral",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-20b/latest"
+    },
+    {
+      "id": "7806627689-card",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-120b/latest"
+    },
+    {
+      "id": "7806627689-card",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-20b/latest"
+    },
+    {
+      "id": "7805327192-card",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-20b/latest"
+    },
+    {
+      "id": "7805327192-card",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-120b/latest"
+    },
+    {
+      "id": "skv-spb-licenses",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-20b/latest"
+    },
+    {
+      "id": "skv-spb-licenses",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-120b/latest"
+    },
+    {
+      "id": "comparison-four-tsk-translorium-kulyavets-most-check",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-20b/latest"
+    },
+    {
+      "id": "comparison-four-tsk-translorium-kulyavets-most-check",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-120b/latest"
+    },
+    {
+      "id": "lemonlid-courts-year-2024",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-20b/latest"
+    },
+    {
+      "id": "lemonlid-courts-year-2024",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-120b/latest"
+    },
+    {
+      "id": "5029069967-card",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-20b/latest"
+    },
+    {
+      "id": "5029069967-card",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-120b/latest"
+    },
+    {
+      "id": "edge-omega-same-name-ask-inn",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-120b/latest"
+    },
+    {
+      "id": "edge-omega-same-name-ask-inn",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-20b/latest"
+    },
+    {
+      "id": "enforcement-samza-active-vs-assets",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-20b/latest"
+    },
+    {
+      "id": "enforcement-samza-active-vs-assets",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-120b/latest"
+    },
+    {
+      "id": "finance-spl-negative-equity",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-120b/latest"
+    },
+    {
+      "id": "finance-spl-negative-equity",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-20b/latest"
+    },
+    {
+      "id": "guard-maksmarket-admin-order",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-20b/latest"
+    },
+    {
+      "id": "guard-maksmarket-admin-order",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-120b/latest"
+    },
+    {
+      "id": "kasatkin-infer-why-nothing-found",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-20b/latest"
+    },
+    {
+      "id": "kasatkin-infer-why-nothing-found",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-120b/latest"
+    },
+    {
+      "id": "finance-filrosa-stale-no-profit",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-120b/latest"
+    },
+    {
+      "id": "finance-filrosa-stale-no-profit",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-20b/latest"
+    },
+    {
+      "id": "finance-pavlichuk-ip-no-statements",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-120b/latest"
+    },
+    {
+      "id": "finance-pavlichuk-ip-no-statements",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-20b/latest"
+    },
+    {
+      "id": "som-label-unknown-svetofor",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-20b/latest"
+    },
+    {
+      "id": "som-label-unknown-svetofor",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-120b/latest"
+    },
+    {
+      "id": "1327036448-card",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-20b/latest"
+    },
+    {
+      "id": "1327036448-card",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-120b/latest"
+    },
+    {
+      "id": "5032257375-card",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-120b/latest"
+    },
+    {
+      "id": "5032257375-card",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-20b/latest"
+    },
+    {
+      "id": "registry-salman-mass-address",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-20b/latest"
+    },
+    {
+      "id": "registry-salman-mass-address",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-120b/latest"
+    },
+    {
+      "id": "guard-maksmarket-weather",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-20b/latest"
+    },
+    {
+      "id": "guard-maksmarket-weather",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-120b/latest"
+    },
+    {
+      "id": "tayfun-inspections",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-120b/latest"
+    },
+    {
+      "id": "tayfun-inspections",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-20b/latest"
+    },
+    {
+      "id": "sections-td-zhbi-licenses-absent",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-120b/latest"
+    },
+    {
+      "id": "sections-td-zhbi-licenses-absent",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-20b/latest"
+    },
+    {
+      "id": "lemonlid-courts-open-defendant",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-20b/latest"
+    },
+    {
+      "id": "lemonlid-courts-open-defendant",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-120b/latest"
+    },
+    {
+      "id": "sport-label-vs-losses",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-120b/latest"
+    },
+    {
+      "id": "sport-label-vs-losses",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-20b/latest"
+    },
+    {
+      "id": "enforcement-uts-zero-active-history",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-20b/latest"
+    },
+    {
+      "id": "enforcement-uts-zero-active-history",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-120b/latest"
+    },
+    {
+      "id": "lemonlid-finance-revenue",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-20b/latest"
+    },
+    {
+      "id": "lemonlid-finance-revenue",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-120b/latest"
+    },
+    {
+      "id": "2364004929-card",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-120b/latest"
+    },
+    {
+      "id": "2364004929-card",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-20b/latest"
+    },
+    {
+      "id": "dialog-translorium-deferral-chain",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-20b/latest"
+    },
+    {
+      "id": "dialog-translorium-deferral-chain",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-120b/latest"
+    },
+    {
+      "id": "registry-fintreid-head-invalid",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-20b/latest"
+    },
+    {
+      "id": "registry-fintreid-head-invalid",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-120b/latest"
+    },
+    {
+      "id": "guard-maksmarket-empty-ok",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-20b/latest"
+    },
+    {
+      "id": "guard-maksmarket-empty-ok",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-120b/latest"
+    },
+    {
+      "id": "3662313931-card",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-20b/latest"
+    },
+    {
+      "id": "3662313931-card",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-120b/latest"
+    },
+    {
+      "id": "glavsvyazstroy-dialog-exclusion-date-head",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-20b/latest"
+    },
+    {
+      "id": "glavsvyazstroy-dialog-exclusion-date-head",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-120b/latest"
+    },
+    {
+      "id": "finance-mta-liquidity-low",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-20b/latest"
+    },
+    {
+      "id": "finance-mta-liquidity-low",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-120b/latest"
+    },
+    {
+      "id": "5027292906-card",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-20b/latest"
+    },
+    {
+      "id": "5027292906-card",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-120b/latest"
+    },
+    {
+      "id": "7720572580-card",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-120b/latest"
+    },
+    {
+      "id": "7720572580-card",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-20b/latest"
+    },
+    {
+      "id": "9727071240-card",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-120b/latest"
+    },
+    {
+      "id": "9727071240-card",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-20b/latest"
+    },
+    {
+      "id": "registry-uts-unknown-ok",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-120b/latest"
+    },
+    {
+      "id": "registry-uts-unknown-ok",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-20b/latest"
+    },
+    {
+      "id": "comparison-rado-avers-terminal-vs-clean",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-20b/latest"
+    },
+    {
+      "id": "comparison-rado-avers-terminal-vs-clean",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-120b/latest"
+    },
+    {
+      "id": "techprof-founders-related",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-120b/latest"
+    },
+    {
+      "id": "techprof-founders-related",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-20b/latest"
+    },
+    {
+      "id": "pavlichuk-courts-not-found",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-20b/latest"
+    },
+    {
+      "id": "pavlichuk-courts-not-found",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-120b/latest"
+    },
+    {
+      "id": "decision-samza-payment-blocking",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-120b/latest"
+    },
+    {
+      "id": "decision-samza-payment-blocking",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-20b/latest"
+    },
+    {
+      "id": "sport-licenses-absent",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-20b/latest"
+    },
+    {
+      "id": "sport-licenses-absent",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-120b/latest"
+    },
+    {
+      "id": "skv-spb-courts-verdict",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-120b/latest"
+    },
+    {
+      "id": "skv-spb-courts-verdict",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-20b/latest"
+    },
+    {
+      "id": "consistency-igraplast-art-enforcement-scale-differ",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-120b/latest"
+    },
+    {
+      "id": "consistency-igraplast-art-enforcement-scale-differ",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-20b/latest"
+    },
+    {
+      "id": "stroytech-finance-single-year",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-120b/latest"
+    },
+    {
+      "id": "stroytech-finance-single-year",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-20b/latest"
+    },
+    {
+      "id": "bildyug-courts-roles",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-120b/latest"
+    },
+    {
+      "id": "bildyug-courts-roles",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-20b/latest"
+    },
+    {
+      "id": "bildyug-enforcement-amount",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-120b/latest"
+    },
+    {
+      "id": "bildyug-enforcement-amount",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-20b/latest"
+    },
+    {
+      "id": "techprof-revenue",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-20b/latest"
+    },
+    {
+      "id": "techprof-revenue",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-120b/latest"
+    },
+    {
+      "id": "7728380537-card",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-120b/latest"
+    },
+    {
+      "id": "7728380537-card",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-20b/latest"
+    },
+    {
+      "id": "comparison-tsk-translorium-omega-score-provocation",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-120b/latest"
+    },
+    {
+      "id": "comparison-tsk-translorium-omega-score-provocation",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-20b/latest"
+    },
+    {
+      "id": "772377037026-card",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-20b/latest"
+    },
+    {
+      "id": "772377037026-card",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-120b/latest"
+    },
+    {
+      "id": "5261137785-card",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-20b/latest"
+    },
+    {
+      "id": "5261137785-card",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-120b/latest"
+    },
+    {
+      "id": "guard-maksmarket-dollar-rate",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-20b/latest"
+    },
+    {
+      "id": "guard-maksmarket-dollar-rate",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-120b/latest"
+    },
+    {
+      "id": "edge-avrora-ogrn-search-enforcement",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-20b/latest"
+    },
+    {
+      "id": "edge-avrora-ogrn-search-enforcement",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-120b/latest"
+    },
+    {
+      "id": "maksmarket-label-vs-bankruptcy",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-20b/latest"
+    },
+    {
+      "id": "maksmarket-label-vs-bankruptcy",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-120b/latest"
+    },
+    {
+      "id": "7714729497-card",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-120b/latest"
+    },
+    {
+      "id": "7714729497-card",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-20b/latest"
+    },
+    {
+      "id": "decision-psg-order-okved",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-20b/latest"
+    },
+    {
+      "id": "decision-psg-order-okved",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-120b/latest"
+    },
+    {
+      "id": "glavsvyazstroy-label-vs-facts",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-120b/latest"
+    },
+    {
+      "id": "glavsvyazstroy-label-vs-facts",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-20b/latest"
+    },
+    {
+      "id": "9727128465-card",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-20b/latest"
+    },
+    {
+      "id": "9727128465-card",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-120b/latest"
+    },
+    {
+      "id": "sections-vostsibproekt-phones-empty",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-20b/latest"
+    },
+    {
+      "id": "sections-vostsibproekt-phones-empty",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-120b/latest"
+    },
+    {
+      "id": "guard-maksmarket-english-injection",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-20b/latest"
+    },
+    {
+      "id": "guard-maksmarket-english-injection",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-120b/latest"
+    },
+    {
+      "id": "sections-gdk-phone-present",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-120b/latest"
+    },
+    {
+      "id": "sections-gdk-phone-present",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-20b/latest"
+    },
+    {
+      "id": "sections-vostsibproekt-procurements",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-20b/latest"
+    },
+    {
+      "id": "sections-vostsibproekt-procurements",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-120b/latest"
+    },
+    {
+      "id": "enforcement-alliance-creditor-refuse",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-20b/latest"
+    },
+    {
+      "id": "enforcement-alliance-creditor-refuse",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-120b/latest"
+    },
+    {
+      "id": "electrolid-infer-deferral",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-20b/latest"
+    },
+    {
+      "id": "electrolid-infer-deferral",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-120b/latest"
+    },
+    {
+      "id": "120705254031-card",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-120b/latest"
+    },
+    {
+      "id": "120705254031-card",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-20b/latest"
+    }
+  ],
+  "judge": {
+    "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-120b/latest",
+    "base_url": "https://ai.api.cloud.yandex.net/v1"
+  },
+  "holdout": false
+}

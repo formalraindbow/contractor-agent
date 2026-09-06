@@ -1,0 +1,1480 @@
+[
+  {
+    "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-20b/latest",
+    "repeat": 2,
+    "question_id": "comparison-stroyhoum-teplosnab-fewer-courts",
+    "answer": {
+      "kind": "comparison",
+      "text_md": "По данным отчётов:\nКоличество дел само по себе не определяет, с кем безопаснее работать. Ниже отдельно показаны иски к компании и её собственные требования.\n\n### ООО «СТРОЙХОУМ» · ИНН 5027292906\nПо данным отчёта: нужна дополнительная проверка.\nСветофор банка: зелёный. ЗСК: зелёный.\n### Арбитражные дела\nВсего в сводке за всё время: 22 дела.\n\n**Иски к компании — ответчик**\n- В производстве: 1 дело; сумма требований — 332 584 ₽.\n- Обжалуются: 1 дело; сумма требований — 2 564 614 ₽.\n- Завершены: 3 дела; сумма требований — 1 824 972 ₽.\n\n**Иски компании — истец**\n- В производстве: 3 дела; сумма требований — 3 902 393 ₽.\n- Завершены: 13 дел; сумма требований — 24 105 286 ₽.\nВсего дел в отчёте 22, по ролям и статусам разнесены 21: 1 дело без деталей.\n\nЗавершённые дела не являются текущими претензиями. Отдельного перечня сторон и предметов споров в отчёте нет.\n\n### ООО «ТЕПЛОСНАБКОМПЛЕКТ» · ИНН 8602236576\nПо данным отчёта: можно работать.\nСветофор банка: зелёный. ЗСК: зелёный.\n### Арбитражные дела\nВсего в сводке за всё время: 46 дел.\n\n**Иски к компании — ответчик**\n- Завершены: 3 дела; сумма требований — 28 790 201 ₽.\n\n**Иски компании — истец**\n- Обжалуются: 1 дело; сумма требований — 207 769 ₽.\n- Завершены: 41 дело; сумма требований — 63 763 459 ₽.\nВсего дел в отчёте 46, по ролям и статусам разнесены 45: 1 дело без деталей.\n\nЗавершённые дела не являются текущими претензиями. Отдельного перечня сторон и предметов споров в отчёте нет.",
+      "card": null,
+      "cards": [
+        {
+          "inn": "5027292906",
+          "name": "ООО «СТРОЙХОУМ»",
+          "labels": {
+            "riskLevel": "зелёный",
+            "zskRiskLevel": "зелёный"
+          },
+          "verdict": "check",
+          "terminal": false,
+          "attention": [
+            {
+              "claim": "2 открытых арбитражных дела (1 в производстве, 1 обжалуется), где компания — ответчик, на сумму 2,9 млн ₽; это 19,8 % чистых активов (капитал и резервы) на конец 2025 года (14,6 млн ₽).",
+              "severity": "moderate",
+              "source_path": "report.arbitrationByStatus.defandantArbitration.defandantArbitrationPending.dpCount",
+              "code": "arbitration_defendant_open",
+              "source_paths": [
+                "report.arbitrationByStatus.defandantArbitration.defandantArbitrationPending.dpCount",
+                "report.arbitrationByStatus.defandantArbitration.defandantArbitrationPending.dpAmount",
+                "report.arbitrationByStatus.defandantArbitration.defandantArbitrationAppealed.daCount",
+                "report.arbitrationByStatus.defandantArbitration.defandantArbitrationAppealed.daAmount",
+                "report.finReports[0].liabilities.capitals",
+                "report.reputationalRisks.negative[1].code"
+              ]
+            },
+            {
+              "claim": "3 завершённых арбитражных дела, где компания была ответчиком, на сумму 1,8 млн ₽; к текущим претензиям не относятся.",
+              "severity": "info",
+              "source_path": "report.arbitrationByStatus.defandantArbitration.defandantArbitrationFinished.dfCount",
+              "code": "arbitration_defendant_finished",
+              "source_paths": [
+                "report.arbitrationByStatus.defandantArbitration.defandantArbitrationFinished.dfCount",
+                "report.arbitrationByStatus.defandantArbitration.defandantArbitrationFinished.dfAmount",
+                "report.reputationalRisks.negative[1].code"
+              ]
+            },
+            {
+              "claim": "Всего дел в отчёте 22, по ролям и статусам разнесены 21: 1 дело без деталей.",
+              "severity": "info",
+              "source_path": "report.arbitrationByStatus.commonCount",
+              "code": "arbitration_mismatch_roles",
+              "source_paths": [
+                "report.arbitrationByStatus.defandantArbitration",
+                "report.arbitrationByStatus.plaintiffArbitration"
+              ]
+            },
+            {
+              "claim": "3 завершённых исполнительных производства на сумму 2,6 млн ₽ за 2024–2026 годы, 1 — за последний год; к действующим долгам не относятся.",
+              "severity": "info",
+              "source_path": "report.executionProceedings",
+              "code": "enforcement_finished",
+              "source_paths": [
+                "report.executionProceedings[2]",
+                "report.executionProceedings[1]",
+                "report.executionProceedings[0]"
+              ]
+            },
+            {
+              "claim": "Оборотные активы 68,9 млн ₽ против краткосрочных обязательств 91,8 млн ₽ на конец 2025 года: покрытие 0,75.",
+              "severity": "info",
+              "source_path": "report.finReports[0]",
+              "code": "fin_low_liquidity",
+              "source_paths": [
+                "report.finReports[0].assets.currentAssets.total",
+                "report.finReports[0].liabilities.shortTermLiabilities.total"
+              ]
+            },
+            {
+              "claim": "В отчёте отмечено большое количество кодов ОКВЭД. Само по себе это не подтверждает нарушения или неисполнение обязательств.",
+              "severity": "info",
+              "source_path": "report.reputationalRisks.negative[0].code",
+              "code": "flag_massOkved",
+              "source_paths": [
+                "report.reputationalRisks.negative[0].name"
+              ]
+            }
+          ],
+          "ask_before": [
+            "Документы о текущем состоянии открытых арбитражных требований к компании."
+          ],
+          "gaps": [
+            "В отчёте нет сведений о численности сотрудников — оценить по этому критерию нельзя."
+          ],
+          "report_date": "2026-08-28"
+        },
+        {
+          "inn": "8602236576",
+          "name": "ООО «ТЕПЛОСНАБКОМПЛЕКТ»",
+          "labels": {
+            "riskLevel": "зелёный",
+            "zskRiskLevel": "зелёный"
+          },
+          "verdict": "ok",
+          "terminal": false,
+          "attention": [
+            {
+              "claim": "3 завершённых арбитражных дела, где компания была ответчиком, на сумму 28,8 млн ₽; признак банка по этому пункту положительный; к текущим претензиям не относятся.",
+              "severity": "info",
+              "source_path": "report.arbitrationByStatus.defandantArbitration.defandantArbitrationFinished.dfCount",
+              "code": "arbitration_defendant_finished",
+              "source_paths": [
+                "report.arbitrationByStatus.defandantArbitration.defandantArbitrationFinished.dfCount",
+                "report.arbitrationByStatus.defandantArbitration.defandantArbitrationFinished.dfAmount",
+                "report.reputationalRisks.positive[8].code"
+              ]
+            },
+            {
+              "claim": "Всего дел в отчёте 46, по ролям и статусам разнесены 45: 1 дело без деталей.",
+              "severity": "info",
+              "source_path": "report.arbitrationByStatus.commonCount",
+              "code": "arbitration_mismatch_roles",
+              "source_paths": [
+                "report.arbitrationByStatus.defandantArbitration",
+                "report.arbitrationByStatus.plaintiffArbitration"
+              ]
+            },
+            {
+              "claim": "5 завершённых исполнительных производств на сумму не менее 500 ₽ (у 4 из 5 сумма не указана) за 2017–2020 годы; к действующим долгам не относятся.",
+              "severity": "info",
+              "source_path": "report.executionProceedings",
+              "code": "enforcement_finished",
+              "source_paths": [
+                "report.executionProceedings[0]",
+                "report.executionProceedings[1]",
+                "report.executionProceedings[2]",
+                "report.executionProceedings[4]",
+                "report.executionProceedings[3]"
+              ]
+            }
+          ],
+          "ask_before": [],
+          "gaps": [
+            "В отчёте нет сведений о численности сотрудников — оценить по этому критерию нельзя."
+          ],
+          "report_date": "2026-08-20"
+        }
+      ],
+      "citations": [
+        {
+          "claim": "Всего в сводке за всё время: 22 дела.",
+          "source_path": "report.arbitrationByStatus.commonCount",
+          "inn": "5027292906"
+        },
+        {
+          "claim": "В производстве: 1 дело; сумма требований — 332 584 ₽.",
+          "source_path": "report.arbitrationByStatus.defandantArbitration.defandantArbitrationPending",
+          "inn": "5027292906"
+        },
+        {
+          "claim": "Обжалуются: 1 дело; сумма требований — 2 564 614 ₽.",
+          "source_path": "report.arbitrationByStatus.defandantArbitration.defandantArbitrationAppealed",
+          "inn": "5027292906"
+        },
+        {
+          "claim": "Завершены: 3 дела; сумма требований — 1 824 972 ₽.",
+          "source_path": "report.arbitrationByStatus.defandantArbitration.defandantArbitrationFinished",
+          "inn": "5027292906"
+        },
+        {
+          "claim": "В производстве: 3 дела; сумма требований — 3 902 393 ₽.",
+          "source_path": "report.arbitrationByStatus.plaintiffArbitration.plaintiffArbitrationPending",
+          "inn": "5027292906"
+        },
+        {
+          "claim": "Завершены: 13 дел; сумма требований — 24 105 286 ₽.",
+          "source_path": "report.arbitrationByStatus.plaintiffArbitration.plaintiffArbitrationFinished",
+          "inn": "5027292906"
+        },
+        {
+          "claim": "Всего дел в отчёте 22, по ролям и статусам разнесены 21: 1 дело без деталей.",
+          "source_path": "report.arbitrationByStatus.commonCount",
+          "inn": "5027292906"
+        },
+        {
+          "claim": "Светофор: зелёный",
+          "source_path": "report.baseInfo.riskLevel",
+          "inn": "5027292906"
+        },
+        {
+          "claim": "ЗСК: зелёный",
+          "source_path": "report.zskRiskLevel",
+          "inn": "5027292906"
+        },
+        {
+          "claim": "Всего в сводке за всё время: 46 дел.",
+          "source_path": "report.arbitrationByStatus.commonCount",
+          "inn": "8602236576"
+        },
+        {
+          "claim": "Завершены: 3 дела; сумма требований — 28 790 201 ₽.",
+          "source_path": "report.arbitrationByStatus.defandantArbitration.defandantArbitrationFinished",
+          "inn": "8602236576"
+        },
+        {
+          "claim": "Обжалуются: 1 дело; сумма требований — 207 769 ₽.",
+          "source_path": "report.arbitrationByStatus.plaintiffArbitration.plaintiffArbitrationAppealed",
+          "inn": "8602236576"
+        },
+        {
+          "claim": "Завершены: 41 дело; сумма требований — 63 763 459 ₽.",
+          "source_path": "report.arbitrationByStatus.plaintiffArbitration.plaintiffArbitrationFinished",
+          "inn": "8602236576"
+        },
+        {
+          "claim": "Всего дел в отчёте 46, по ролям и статусам разнесены 45: 1 дело без деталей.",
+          "source_path": "report.arbitrationByStatus.commonCount",
+          "inn": "8602236576"
+        },
+        {
+          "claim": "Светофор: зелёный",
+          "source_path": "report.baseInfo.riskLevel",
+          "inn": "8602236576"
+        },
+        {
+          "claim": "ЗСК: зелёный",
+          "source_path": "report.zskRiskLevel",
+          "inn": "8602236576"
+        }
+      ],
+      "invalid_citations": [],
+      "report_dates": {
+        "5027292906": "2026-08-28",
+        "8602236576": "2026-08-20"
+      }
+    },
+    "checks_passed": true,
+    "check_failures": [],
+    "judge": {
+      "score": 2,
+      "failures": [],
+      "deductions": [
+        "courts_without_role_period_field",
+        "no_report_date"
+      ],
+      "invented_facts": [],
+      "comment": "Ответ содержит все критические факты (число дел 22 vs 46, выводы «нужна дополнительная проверка» и «можно работать»). Однако в тексте указано общее количество дел без указания роли и периода («Всего в сводке за всё время: 22 дела», «46 дел»), что согласно правилу §5 приводит к штрафу −2. Кроме того, в ответе отсутствует дата отчёта, что даёт штраф −1. Других нарушений не обнаружено."
+    },
+    "error": null
+  },
+  {
+    "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-120b/latest",
+    "repeat": 2,
+    "question_id": "comparison-stroyhoum-teplosnab-fewer-courts",
+    "answer": {
+      "kind": "comparison",
+      "text_md": "По данным отчётов:\nКоличество дел само по себе не определяет, с кем безопаснее работать. Ниже отдельно показаны иски к компании и её собственные требования.\n\n### ООО «СТРОЙХОУМ» · ИНН 5027292906\nПо данным отчёта: нужна дополнительная проверка.\nСветофор банка: зелёный. ЗСК: зелёный.\n### Арбитражные дела\nВсего в сводке за всё время: 22 дела.\n\n**Иски к компании — ответчик**\n- В производстве: 1 дело; сумма требований — 332 584 ₽.\n- Обжалуются: 1 дело; сумма требований — 2 564 614 ₽.\n- Завершены: 3 дела; сумма требований — 1 824 972 ₽.\n\n**Иски компании — истец**\n- В производстве: 3 дела; сумма требований — 3 902 393 ₽.\n- Завершены: 13 дел; сумма требований — 24 105 286 ₽.\nВсего дел в отчёте 22, по ролям и статусам разнесены 21: 1 дело без деталей.\n\nЗавершённые дела не являются текущими претензиями. Отдельного перечня сторон и предметов споров в отчёте нет.\n\n### ООО «ТЕПЛОСНАБКОМПЛЕКТ» · ИНН 8602236576\nПо данным отчёта: можно работать.\nСветофор банка: зелёный. ЗСК: зелёный.\n### Арбитражные дела\nВсего в сводке за всё время: 46 дел.\n\n**Иски к компании — ответчик**\n- Завершены: 3 дела; сумма требований — 28 790 201 ₽.\n\n**Иски компании — истец**\n- Обжалуются: 1 дело; сумма требований — 207 769 ₽.\n- Завершены: 41 дело; сумма требований — 63 763 459 ₽.\nВсего дел в отчёте 46, по ролям и статусам разнесены 45: 1 дело без деталей.\n\nЗавершённые дела не являются текущими претензиями. Отдельного перечня сторон и предметов споров в отчёте нет.",
+      "card": null,
+      "cards": [
+        {
+          "inn": "5027292906",
+          "name": "ООО «СТРОЙХОУМ»",
+          "labels": {
+            "riskLevel": "зелёный",
+            "zskRiskLevel": "зелёный"
+          },
+          "verdict": "check",
+          "terminal": false,
+          "attention": [
+            {
+              "claim": "2 открытых арбитражных дела (1 в производстве, 1 обжалуется), где компания — ответчик, на сумму 2,9 млн ₽; это 19,8 % чистых активов (капитал и резервы) на конец 2025 года (14,6 млн ₽).",
+              "severity": "moderate",
+              "source_path": "report.arbitrationByStatus.defandantArbitration.defandantArbitrationPending.dpCount",
+              "code": "arbitration_defendant_open",
+              "source_paths": [
+                "report.arbitrationByStatus.defandantArbitration.defandantArbitrationPending.dpCount",
+                "report.arbitrationByStatus.defandantArbitration.defandantArbitrationPending.dpAmount",
+                "report.arbitrationByStatus.defandantArbitration.defandantArbitrationAppealed.daCount",
+                "report.arbitrationByStatus.defandantArbitration.defandantArbitrationAppealed.daAmount",
+                "report.finReports[0].liabilities.capitals",
+                "report.reputationalRisks.negative[1].code"
+              ]
+            },
+            {
+              "claim": "3 завершённых арбитражных дела, где компания была ответчиком, на сумму 1,8 млн ₽; к текущим претензиям не относятся.",
+              "severity": "info",
+              "source_path": "report.arbitrationByStatus.defandantArbitration.defandantArbitrationFinished.dfCount",
+              "code": "arbitration_defendant_finished",
+              "source_paths": [
+                "report.arbitrationByStatus.defandantArbitration.defandantArbitrationFinished.dfCount",
+                "report.arbitrationByStatus.defandantArbitration.defandantArbitrationFinished.dfAmount",
+                "report.reputationalRisks.negative[1].code"
+              ]
+            },
+            {
+              "claim": "Всего дел в отчёте 22, по ролям и статусам разнесены 21: 1 дело без деталей.",
+              "severity": "info",
+              "source_path": "report.arbitrationByStatus.commonCount",
+              "code": "arbitration_mismatch_roles",
+              "source_paths": [
+                "report.arbitrationByStatus.defandantArbitration",
+                "report.arbitrationByStatus.plaintiffArbitration"
+              ]
+            },
+            {
+              "claim": "3 завершённых исполнительных производства на сумму 2,6 млн ₽ за 2024–2026 годы, 1 — за последний год; к действующим долгам не относятся.",
+              "severity": "info",
+              "source_path": "report.executionProceedings",
+              "code": "enforcement_finished",
+              "source_paths": [
+                "report.executionProceedings[2]",
+                "report.executionProceedings[1]",
+                "report.executionProceedings[0]"
+              ]
+            },
+            {
+              "claim": "Оборотные активы 68,9 млн ₽ против краткосрочных обязательств 91,8 млн ₽ на конец 2025 года: покрытие 0,75.",
+              "severity": "info",
+              "source_path": "report.finReports[0]",
+              "code": "fin_low_liquidity",
+              "source_paths": [
+                "report.finReports[0].assets.currentAssets.total",
+                "report.finReports[0].liabilities.shortTermLiabilities.total"
+              ]
+            },
+            {
+              "claim": "В отчёте отмечено большое количество кодов ОКВЭД. Само по себе это не подтверждает нарушения или неисполнение обязательств.",
+              "severity": "info",
+              "source_path": "report.reputationalRisks.negative[0].code",
+              "code": "flag_massOkved",
+              "source_paths": [
+                "report.reputationalRisks.negative[0].name"
+              ]
+            }
+          ],
+          "ask_before": [
+            "Документы о текущем состоянии открытых арбитражных требований к компании."
+          ],
+          "gaps": [
+            "В отчёте нет сведений о численности сотрудников — оценить по этому критерию нельзя."
+          ],
+          "report_date": "2026-08-28"
+        },
+        {
+          "inn": "8602236576",
+          "name": "ООО «ТЕПЛОСНАБКОМПЛЕКТ»",
+          "labels": {
+            "riskLevel": "зелёный",
+            "zskRiskLevel": "зелёный"
+          },
+          "verdict": "ok",
+          "terminal": false,
+          "attention": [
+            {
+              "claim": "3 завершённых арбитражных дела, где компания была ответчиком, на сумму 28,8 млн ₽; признак банка по этому пункту положительный; к текущим претензиям не относятся.",
+              "severity": "info",
+              "source_path": "report.arbitrationByStatus.defandantArbitration.defandantArbitrationFinished.dfCount",
+              "code": "arbitration_defendant_finished",
+              "source_paths": [
+                "report.arbitrationByStatus.defandantArbitration.defandantArbitrationFinished.dfCount",
+                "report.arbitrationByStatus.defandantArbitration.defandantArbitrationFinished.dfAmount",
+                "report.reputationalRisks.positive[8].code"
+              ]
+            },
+            {
+              "claim": "Всего дел в отчёте 46, по ролям и статусам разнесены 45: 1 дело без деталей.",
+              "severity": "info",
+              "source_path": "report.arbitrationByStatus.commonCount",
+              "code": "arbitration_mismatch_roles",
+              "source_paths": [
+                "report.arbitrationByStatus.defandantArbitration",
+                "report.arbitrationByStatus.plaintiffArbitration"
+              ]
+            },
+            {
+              "claim": "5 завершённых исполнительных производств на сумму не менее 500 ₽ (у 4 из 5 сумма не указана) за 2017–2020 годы; к действующим долгам не относятся.",
+              "severity": "info",
+              "source_path": "report.executionProceedings",
+              "code": "enforcement_finished",
+              "source_paths": [
+                "report.executionProceedings[0]",
+                "report.executionProceedings[1]",
+                "report.executionProceedings[2]",
+                "report.executionProceedings[4]",
+                "report.executionProceedings[3]"
+              ]
+            }
+          ],
+          "ask_before": [],
+          "gaps": [
+            "В отчёте нет сведений о численности сотрудников — оценить по этому критерию нельзя."
+          ],
+          "report_date": "2026-08-20"
+        }
+      ],
+      "citations": [
+        {
+          "claim": "Всего в сводке за всё время: 22 дела.",
+          "source_path": "report.arbitrationByStatus.commonCount",
+          "inn": "5027292906"
+        },
+        {
+          "claim": "В производстве: 1 дело; сумма требований — 332 584 ₽.",
+          "source_path": "report.arbitrationByStatus.defandantArbitration.defandantArbitrationPending",
+          "inn": "5027292906"
+        },
+        {
+          "claim": "Обжалуются: 1 дело; сумма требований — 2 564 614 ₽.",
+          "source_path": "report.arbitrationByStatus.defandantArbitration.defandantArbitrationAppealed",
+          "inn": "5027292906"
+        },
+        {
+          "claim": "Завершены: 3 дела; сумма требований — 1 824 972 ₽.",
+          "source_path": "report.arbitrationByStatus.defandantArbitration.defandantArbitrationFinished",
+          "inn": "5027292906"
+        },
+        {
+          "claim": "В производстве: 3 дела; сумма требований — 3 902 393 ₽.",
+          "source_path": "report.arbitrationByStatus.plaintiffArbitration.plaintiffArbitrationPending",
+          "inn": "5027292906"
+        },
+        {
+          "claim": "Завершены: 13 дел; сумма требований — 24 105 286 ₽.",
+          "source_path": "report.arbitrationByStatus.plaintiffArbitration.plaintiffArbitrationFinished",
+          "inn": "5027292906"
+        },
+        {
+          "claim": "Всего дел в отчёте 22, по ролям и статусам разнесены 21: 1 дело без деталей.",
+          "source_path": "report.arbitrationByStatus.commonCount",
+          "inn": "5027292906"
+        },
+        {
+          "claim": "Светофор: зелёный",
+          "source_path": "report.baseInfo.riskLevel",
+          "inn": "5027292906"
+        },
+        {
+          "claim": "ЗСК: зелёный",
+          "source_path": "report.zskRiskLevel",
+          "inn": "5027292906"
+        },
+        {
+          "claim": "Всего в сводке за всё время: 46 дел.",
+          "source_path": "report.arbitrationByStatus.commonCount",
+          "inn": "8602236576"
+        },
+        {
+          "claim": "Завершены: 3 дела; сумма требований — 28 790 201 ₽.",
+          "source_path": "report.arbitrationByStatus.defandantArbitration.defandantArbitrationFinished",
+          "inn": "8602236576"
+        },
+        {
+          "claim": "Обжалуются: 1 дело; сумма требований — 207 769 ₽.",
+          "source_path": "report.arbitrationByStatus.plaintiffArbitration.plaintiffArbitrationAppealed",
+          "inn": "8602236576"
+        },
+        {
+          "claim": "Завершены: 41 дело; сумма требований — 63 763 459 ₽.",
+          "source_path": "report.arbitrationByStatus.plaintiffArbitration.plaintiffArbitrationFinished",
+          "inn": "8602236576"
+        },
+        {
+          "claim": "Всего дел в отчёте 46, по ролям и статусам разнесены 45: 1 дело без деталей.",
+          "source_path": "report.arbitrationByStatus.commonCount",
+          "inn": "8602236576"
+        },
+        {
+          "claim": "Светофор: зелёный",
+          "source_path": "report.baseInfo.riskLevel",
+          "inn": "8602236576"
+        },
+        {
+          "claim": "ЗСК: зелёный",
+          "source_path": "report.zskRiskLevel",
+          "inn": "8602236576"
+        }
+      ],
+      "invalid_citations": [],
+      "report_dates": {
+        "5027292906": "2026-08-28",
+        "8602236576": "2026-08-20"
+      }
+    },
+    "checks_passed": true,
+    "check_failures": [],
+    "judge": {
+      "score": 5,
+      "failures": [],
+      "deductions": [],
+      "invented_facts": [],
+      "comment": "Ответ полностью покрывает требуемую информацию: указаны общие количества дел (22 и 46), приведены роли и статусы дел, даны выводы «нужна дополнительная проверка» для Стройхом и «можно работать» для Теплоснабкомплект, что отвечает на вопрос о том, у кого меньше судов и с кем безопаснее работать. Нет пропущенных критических фактов, вымышленных данных, нарушений формата и лишних оценок. Поэтому оценка 5."
+    },
+    "error": null
+  },
+  {
+    "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-120b/latest",
+    "repeat": 0,
+    "question_id": "comparison-stroyhoum-teplosnab-fewer-courts",
+    "answer": {
+      "kind": "comparison",
+      "text_md": "По данным отчётов:\nКоличество дел само по себе не определяет, с кем безопаснее работать. Ниже отдельно показаны иски к компании и её собственные требования.\n\n### ООО «СТРОЙХОУМ» · ИНН 5027292906\nПо данным отчёта: нужна дополнительная проверка.\nСветофор банка: зелёный. ЗСК: зелёный.\n### Арбитражные дела\nВсего в сводке за всё время: 22 дела.\n\n**Иски к компании — ответчик**\n- В производстве: 1 дело; сумма требований — 332 584 ₽.\n- Обжалуются: 1 дело; сумма требований — 2 564 614 ₽.\n- Завершены: 3 дела; сумма требований — 1 824 972 ₽.\n\n**Иски компании — истец**\n- В производстве: 3 дела; сумма требований — 3 902 393 ₽.\n- Завершены: 13 дел; сумма требований — 24 105 286 ₽.\nВсего дел в отчёте 22, по ролям и статусам разнесены 21: 1 дело без деталей.\n\nЗавершённые дела не являются текущими претензиями. Отдельного перечня сторон и предметов споров в отчёте нет.\n\n### ООО «ТЕПЛОСНАБКОМПЛЕКТ» · ИНН 8602236576\nПо данным отчёта: можно работать.\nСветофор банка: зелёный. ЗСК: зелёный.\n### Арбитражные дела\nВсего в сводке за всё время: 46 дел.\n\n**Иски к компании — ответчик**\n- Завершены: 3 дела; сумма требований — 28 790 201 ₽.\n\n**Иски компании — истец**\n- Обжалуются: 1 дело; сумма требований — 207 769 ₽.\n- Завершены: 41 дело; сумма требований — 63 763 459 ₽.\nВсего дел в отчёте 46, по ролям и статусам разнесены 45: 1 дело без деталей.\n\nЗавершённые дела не являются текущими претензиями. Отдельного перечня сторон и предметов споров в отчёте нет.",
+      "card": null,
+      "cards": [
+        {
+          "inn": "5027292906",
+          "name": "ООО «СТРОЙХОУМ»",
+          "labels": {
+            "riskLevel": "зелёный",
+            "zskRiskLevel": "зелёный"
+          },
+          "verdict": "check",
+          "terminal": false,
+          "attention": [
+            {
+              "claim": "2 открытых арбитражных дела (1 в производстве, 1 обжалуется), где компания — ответчик, на сумму 2,9 млн ₽; это 19,8 % чистых активов (капитал и резервы) на конец 2025 года (14,6 млн ₽).",
+              "severity": "moderate",
+              "source_path": "report.arbitrationByStatus.defandantArbitration.defandantArbitrationPending.dpCount",
+              "code": "arbitration_defendant_open",
+              "source_paths": [
+                "report.arbitrationByStatus.defandantArbitration.defandantArbitrationPending.dpCount",
+                "report.arbitrationByStatus.defandantArbitration.defandantArbitrationPending.dpAmount",
+                "report.arbitrationByStatus.defandantArbitration.defandantArbitrationAppealed.daCount",
+                "report.arbitrationByStatus.defandantArbitration.defandantArbitrationAppealed.daAmount",
+                "report.finReports[0].liabilities.capitals",
+                "report.reputationalRisks.negative[1].code"
+              ]
+            },
+            {
+              "claim": "3 завершённых арбитражных дела, где компания была ответчиком, на сумму 1,8 млн ₽; к текущим претензиям не относятся.",
+              "severity": "info",
+              "source_path": "report.arbitrationByStatus.defandantArbitration.defandantArbitrationFinished.dfCount",
+              "code": "arbitration_defendant_finished",
+              "source_paths": [
+                "report.arbitrationByStatus.defandantArbitration.defandantArbitrationFinished.dfCount",
+                "report.arbitrationByStatus.defandantArbitration.defandantArbitrationFinished.dfAmount",
+                "report.reputationalRisks.negative[1].code"
+              ]
+            },
+            {
+              "claim": "Всего дел в отчёте 22, по ролям и статусам разнесены 21: 1 дело без деталей.",
+              "severity": "info",
+              "source_path": "report.arbitrationByStatus.commonCount",
+              "code": "arbitration_mismatch_roles",
+              "source_paths": [
+                "report.arbitrationByStatus.defandantArbitration",
+                "report.arbitrationByStatus.plaintiffArbitration"
+              ]
+            },
+            {
+              "claim": "3 завершённых исполнительных производства на сумму 2,6 млн ₽ за 2024–2026 годы, 1 — за последний год; к действующим долгам не относятся.",
+              "severity": "info",
+              "source_path": "report.executionProceedings",
+              "code": "enforcement_finished",
+              "source_paths": [
+                "report.executionProceedings[2]",
+                "report.executionProceedings[1]",
+                "report.executionProceedings[0]"
+              ]
+            },
+            {
+              "claim": "Оборотные активы 68,9 млн ₽ против краткосрочных обязательств 91,8 млн ₽ на конец 2025 года: покрытие 0,75.",
+              "severity": "info",
+              "source_path": "report.finReports[0]",
+              "code": "fin_low_liquidity",
+              "source_paths": [
+                "report.finReports[0].assets.currentAssets.total",
+                "report.finReports[0].liabilities.shortTermLiabilities.total"
+              ]
+            },
+            {
+              "claim": "В отчёте отмечено большое количество кодов ОКВЭД. Само по себе это не подтверждает нарушения или неисполнение обязательств.",
+              "severity": "info",
+              "source_path": "report.reputationalRisks.negative[0].code",
+              "code": "flag_massOkved",
+              "source_paths": [
+                "report.reputationalRisks.negative[0].name"
+              ]
+            }
+          ],
+          "ask_before": [
+            "Документы о текущем состоянии открытых арбитражных требований к компании."
+          ],
+          "gaps": [
+            "В отчёте нет сведений о численности сотрудников — оценить по этому критерию нельзя."
+          ],
+          "report_date": "2026-08-28"
+        },
+        {
+          "inn": "8602236576",
+          "name": "ООО «ТЕПЛОСНАБКОМПЛЕКТ»",
+          "labels": {
+            "riskLevel": "зелёный",
+            "zskRiskLevel": "зелёный"
+          },
+          "verdict": "ok",
+          "terminal": false,
+          "attention": [
+            {
+              "claim": "3 завершённых арбитражных дела, где компания была ответчиком, на сумму 28,8 млн ₽; признак банка по этому пункту положительный; к текущим претензиям не относятся.",
+              "severity": "info",
+              "source_path": "report.arbitrationByStatus.defandantArbitration.defandantArbitrationFinished.dfCount",
+              "code": "arbitration_defendant_finished",
+              "source_paths": [
+                "report.arbitrationByStatus.defandantArbitration.defandantArbitrationFinished.dfCount",
+                "report.arbitrationByStatus.defandantArbitration.defandantArbitrationFinished.dfAmount",
+                "report.reputationalRisks.positive[8].code"
+              ]
+            },
+            {
+              "claim": "Всего дел в отчёте 46, по ролям и статусам разнесены 45: 1 дело без деталей.",
+              "severity": "info",
+              "source_path": "report.arbitrationByStatus.commonCount",
+              "code": "arbitration_mismatch_roles",
+              "source_paths": [
+                "report.arbitrationByStatus.defandantArbitration",
+                "report.arbitrationByStatus.plaintiffArbitration"
+              ]
+            },
+            {
+              "claim": "5 завершённых исполнительных производств на сумму не менее 500 ₽ (у 4 из 5 сумма не указана) за 2017–2020 годы; к действующим долгам не относятся.",
+              "severity": "info",
+              "source_path": "report.executionProceedings",
+              "code": "enforcement_finished",
+              "source_paths": [
+                "report.executionProceedings[0]",
+                "report.executionProceedings[1]",
+                "report.executionProceedings[2]",
+                "report.executionProceedings[4]",
+                "report.executionProceedings[3]"
+              ]
+            }
+          ],
+          "ask_before": [],
+          "gaps": [
+            "В отчёте нет сведений о численности сотрудников — оценить по этому критерию нельзя."
+          ],
+          "report_date": "2026-08-20"
+        }
+      ],
+      "citations": [
+        {
+          "claim": "Всего в сводке за всё время: 22 дела.",
+          "source_path": "report.arbitrationByStatus.commonCount",
+          "inn": "5027292906"
+        },
+        {
+          "claim": "В производстве: 1 дело; сумма требований — 332 584 ₽.",
+          "source_path": "report.arbitrationByStatus.defandantArbitration.defandantArbitrationPending",
+          "inn": "5027292906"
+        },
+        {
+          "claim": "Обжалуются: 1 дело; сумма требований — 2 564 614 ₽.",
+          "source_path": "report.arbitrationByStatus.defandantArbitration.defandantArbitrationAppealed",
+          "inn": "5027292906"
+        },
+        {
+          "claim": "Завершены: 3 дела; сумма требований — 1 824 972 ₽.",
+          "source_path": "report.arbitrationByStatus.defandantArbitration.defandantArbitrationFinished",
+          "inn": "5027292906"
+        },
+        {
+          "claim": "В производстве: 3 дела; сумма требований — 3 902 393 ₽.",
+          "source_path": "report.arbitrationByStatus.plaintiffArbitration.plaintiffArbitrationPending",
+          "inn": "5027292906"
+        },
+        {
+          "claim": "Завершены: 13 дел; сумма требований — 24 105 286 ₽.",
+          "source_path": "report.arbitrationByStatus.plaintiffArbitration.plaintiffArbitrationFinished",
+          "inn": "5027292906"
+        },
+        {
+          "claim": "Всего дел в отчёте 22, по ролям и статусам разнесены 21: 1 дело без деталей.",
+          "source_path": "report.arbitrationByStatus.commonCount",
+          "inn": "5027292906"
+        },
+        {
+          "claim": "Светофор: зелёный",
+          "source_path": "report.baseInfo.riskLevel",
+          "inn": "5027292906"
+        },
+        {
+          "claim": "ЗСК: зелёный",
+          "source_path": "report.zskRiskLevel",
+          "inn": "5027292906"
+        },
+        {
+          "claim": "Всего в сводке за всё время: 46 дел.",
+          "source_path": "report.arbitrationByStatus.commonCount",
+          "inn": "8602236576"
+        },
+        {
+          "claim": "Завершены: 3 дела; сумма требований — 28 790 201 ₽.",
+          "source_path": "report.arbitrationByStatus.defandantArbitration.defandantArbitrationFinished",
+          "inn": "8602236576"
+        },
+        {
+          "claim": "Обжалуются: 1 дело; сумма требований — 207 769 ₽.",
+          "source_path": "report.arbitrationByStatus.plaintiffArbitration.plaintiffArbitrationAppealed",
+          "inn": "8602236576"
+        },
+        {
+          "claim": "Завершены: 41 дело; сумма требований — 63 763 459 ₽.",
+          "source_path": "report.arbitrationByStatus.plaintiffArbitration.plaintiffArbitrationFinished",
+          "inn": "8602236576"
+        },
+        {
+          "claim": "Всего дел в отчёте 46, по ролям и статусам разнесены 45: 1 дело без деталей.",
+          "source_path": "report.arbitrationByStatus.commonCount",
+          "inn": "8602236576"
+        },
+        {
+          "claim": "Светофор: зелёный",
+          "source_path": "report.baseInfo.riskLevel",
+          "inn": "8602236576"
+        },
+        {
+          "claim": "ЗСК: зелёный",
+          "source_path": "report.zskRiskLevel",
+          "inn": "8602236576"
+        }
+      ],
+      "invalid_citations": [],
+      "report_dates": {
+        "5027292906": "2026-08-28",
+        "8602236576": "2026-08-20"
+      }
+    },
+    "checks_passed": true,
+    "check_failures": [],
+    "judge": {
+      "score": 2,
+      "failures": [],
+      "deductions": [
+        "courts_without_role_period_field",
+        "no_report_date"
+      ],
+      "invented_facts": [],
+      "comment": "Ответ содержит требуемые критические факты (общее число дел и выводы «нужна дополнительная проверка» / «можно работать»), но нарушает два правила: указаны числа дел без указания роли/статуса (22 и 46 дел) – штраф −2, и в тексте не указана дата отчёта – штраф −1. Других ошибок нет."
+    },
+    "error": null
+  },
+  {
+    "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-120b/latest",
+    "repeat": 1,
+    "question_id": "comparison-stroyhoum-teplosnab-fewer-courts",
+    "answer": {
+      "kind": "comparison",
+      "text_md": "По данным отчётов:\nКоличество дел само по себе не определяет, с кем безопаснее работать. Ниже отдельно показаны иски к компании и её собственные требования.\n\n### ООО «СТРОЙХОУМ» · ИНН 5027292906\nПо данным отчёта: нужна дополнительная проверка.\nСветофор банка: зелёный. ЗСК: зелёный.\n### Арбитражные дела\nВсего в сводке за всё время: 22 дела.\n\n**Иски к компании — ответчик**\n- В производстве: 1 дело; сумма требований — 332 584 ₽.\n- Обжалуются: 1 дело; сумма требований — 2 564 614 ₽.\n- Завершены: 3 дела; сумма требований — 1 824 972 ₽.\n\n**Иски компании — истец**\n- В производстве: 3 дела; сумма требований — 3 902 393 ₽.\n- Завершены: 13 дел; сумма требований — 24 105 286 ₽.\nВсего дел в отчёте 22, по ролям и статусам разнесены 21: 1 дело без деталей.\n\nЗавершённые дела не являются текущими претензиями. Отдельного перечня сторон и предметов споров в отчёте нет.\n\n### ООО «ТЕПЛОСНАБКОМПЛЕКТ» · ИНН 8602236576\nПо данным отчёта: можно работать.\nСветофор банка: зелёный. ЗСК: зелёный.\n### Арбитражные дела\nВсего в сводке за всё время: 46 дел.\n\n**Иски к компании — ответчик**\n- Завершены: 3 дела; сумма требований — 28 790 201 ₽.\n\n**Иски компании — истец**\n- Обжалуются: 1 дело; сумма требований — 207 769 ₽.\n- Завершены: 41 дело; сумма требований — 63 763 459 ₽.\nВсего дел в отчёте 46, по ролям и статусам разнесены 45: 1 дело без деталей.\n\nЗавершённые дела не являются текущими претензиями. Отдельного перечня сторон и предметов споров в отчёте нет.",
+      "card": null,
+      "cards": [
+        {
+          "inn": "5027292906",
+          "name": "ООО «СТРОЙХОУМ»",
+          "labels": {
+            "riskLevel": "зелёный",
+            "zskRiskLevel": "зелёный"
+          },
+          "verdict": "check",
+          "terminal": false,
+          "attention": [
+            {
+              "claim": "2 открытых арбитражных дела (1 в производстве, 1 обжалуется), где компания — ответчик, на сумму 2,9 млн ₽; это 19,8 % чистых активов (капитал и резервы) на конец 2025 года (14,6 млн ₽).",
+              "severity": "moderate",
+              "source_path": "report.arbitrationByStatus.defandantArbitration.defandantArbitrationPending.dpCount",
+              "code": "arbitration_defendant_open",
+              "source_paths": [
+                "report.arbitrationByStatus.defandantArbitration.defandantArbitrationPending.dpCount",
+                "report.arbitrationByStatus.defandantArbitration.defandantArbitrationPending.dpAmount",
+                "report.arbitrationByStatus.defandantArbitration.defandantArbitrationAppealed.daCount",
+                "report.arbitrationByStatus.defandantArbitration.defandantArbitrationAppealed.daAmount",
+                "report.finReports[0].liabilities.capitals",
+                "report.reputationalRisks.negative[1].code"
+              ]
+            },
+            {
+              "claim": "3 завершённых арбитражных дела, где компания была ответчиком, на сумму 1,8 млн ₽; к текущим претензиям не относятся.",
+              "severity": "info",
+              "source_path": "report.arbitrationByStatus.defandantArbitration.defandantArbitrationFinished.dfCount",
+              "code": "arbitration_defendant_finished",
+              "source_paths": [
+                "report.arbitrationByStatus.defandantArbitration.defandantArbitrationFinished.dfCount",
+                "report.arbitrationByStatus.defandantArbitration.defandantArbitrationFinished.dfAmount",
+                "report.reputationalRisks.negative[1].code"
+              ]
+            },
+            {
+              "claim": "Всего дел в отчёте 22, по ролям и статусам разнесены 21: 1 дело без деталей.",
+              "severity": "info",
+              "source_path": "report.arbitrationByStatus.commonCount",
+              "code": "arbitration_mismatch_roles",
+              "source_paths": [
+                "report.arbitrationByStatus.defandantArbitration",
+                "report.arbitrationByStatus.plaintiffArbitration"
+              ]
+            },
+            {
+              "claim": "3 завершённых исполнительных производства на сумму 2,6 млн ₽ за 2024–2026 годы, 1 — за последний год; к действующим долгам не относятся.",
+              "severity": "info",
+              "source_path": "report.executionProceedings",
+              "code": "enforcement_finished",
+              "source_paths": [
+                "report.executionProceedings[2]",
+                "report.executionProceedings[1]",
+                "report.executionProceedings[0]"
+              ]
+            },
+            {
+              "claim": "Оборотные активы 68,9 млн ₽ против краткосрочных обязательств 91,8 млн ₽ на конец 2025 года: покрытие 0,75.",
+              "severity": "info",
+              "source_path": "report.finReports[0]",
+              "code": "fin_low_liquidity",
+              "source_paths": [
+                "report.finReports[0].assets.currentAssets.total",
+                "report.finReports[0].liabilities.shortTermLiabilities.total"
+              ]
+            },
+            {
+              "claim": "В отчёте отмечено большое количество кодов ОКВЭД. Само по себе это не подтверждает нарушения или неисполнение обязательств.",
+              "severity": "info",
+              "source_path": "report.reputationalRisks.negative[0].code",
+              "code": "flag_massOkved",
+              "source_paths": [
+                "report.reputationalRisks.negative[0].name"
+              ]
+            }
+          ],
+          "ask_before": [
+            "Документы о текущем состоянии открытых арбитражных требований к компании."
+          ],
+          "gaps": [
+            "В отчёте нет сведений о численности сотрудников — оценить по этому критерию нельзя."
+          ],
+          "report_date": "2026-08-28"
+        },
+        {
+          "inn": "8602236576",
+          "name": "ООО «ТЕПЛОСНАБКОМПЛЕКТ»",
+          "labels": {
+            "riskLevel": "зелёный",
+            "zskRiskLevel": "зелёный"
+          },
+          "verdict": "ok",
+          "terminal": false,
+          "attention": [
+            {
+              "claim": "3 завершённых арбитражных дела, где компания была ответчиком, на сумму 28,8 млн ₽; признак банка по этому пункту положительный; к текущим претензиям не относятся.",
+              "severity": "info",
+              "source_path": "report.arbitrationByStatus.defandantArbitration.defandantArbitrationFinished.dfCount",
+              "code": "arbitration_defendant_finished",
+              "source_paths": [
+                "report.arbitrationByStatus.defandantArbitration.defandantArbitrationFinished.dfCount",
+                "report.arbitrationByStatus.defandantArbitration.defandantArbitrationFinished.dfAmount",
+                "report.reputationalRisks.positive[8].code"
+              ]
+            },
+            {
+              "claim": "Всего дел в отчёте 46, по ролям и статусам разнесены 45: 1 дело без деталей.",
+              "severity": "info",
+              "source_path": "report.arbitrationByStatus.commonCount",
+              "code": "arbitration_mismatch_roles",
+              "source_paths": [
+                "report.arbitrationByStatus.defandantArbitration",
+                "report.arbitrationByStatus.plaintiffArbitration"
+              ]
+            },
+            {
+              "claim": "5 завершённых исполнительных производств на сумму не менее 500 ₽ (у 4 из 5 сумма не указана) за 2017–2020 годы; к действующим долгам не относятся.",
+              "severity": "info",
+              "source_path": "report.executionProceedings",
+              "code": "enforcement_finished",
+              "source_paths": [
+                "report.executionProceedings[0]",
+                "report.executionProceedings[1]",
+                "report.executionProceedings[2]",
+                "report.executionProceedings[4]",
+                "report.executionProceedings[3]"
+              ]
+            }
+          ],
+          "ask_before": [],
+          "gaps": [
+            "В отчёте нет сведений о численности сотрудников — оценить по этому критерию нельзя."
+          ],
+          "report_date": "2026-08-20"
+        }
+      ],
+      "citations": [
+        {
+          "claim": "Всего в сводке за всё время: 22 дела.",
+          "source_path": "report.arbitrationByStatus.commonCount",
+          "inn": "5027292906"
+        },
+        {
+          "claim": "В производстве: 1 дело; сумма требований — 332 584 ₽.",
+          "source_path": "report.arbitrationByStatus.defandantArbitration.defandantArbitrationPending",
+          "inn": "5027292906"
+        },
+        {
+          "claim": "Обжалуются: 1 дело; сумма требований — 2 564 614 ₽.",
+          "source_path": "report.arbitrationByStatus.defandantArbitration.defandantArbitrationAppealed",
+          "inn": "5027292906"
+        },
+        {
+          "claim": "Завершены: 3 дела; сумма требований — 1 824 972 ₽.",
+          "source_path": "report.arbitrationByStatus.defandantArbitration.defandantArbitrationFinished",
+          "inn": "5027292906"
+        },
+        {
+          "claim": "В производстве: 3 дела; сумма требований — 3 902 393 ₽.",
+          "source_path": "report.arbitrationByStatus.plaintiffArbitration.plaintiffArbitrationPending",
+          "inn": "5027292906"
+        },
+        {
+          "claim": "Завершены: 13 дел; сумма требований — 24 105 286 ₽.",
+          "source_path": "report.arbitrationByStatus.plaintiffArbitration.plaintiffArbitrationFinished",
+          "inn": "5027292906"
+        },
+        {
+          "claim": "Всего дел в отчёте 22, по ролям и статусам разнесены 21: 1 дело без деталей.",
+          "source_path": "report.arbitrationByStatus.commonCount",
+          "inn": "5027292906"
+        },
+        {
+          "claim": "Светофор: зелёный",
+          "source_path": "report.baseInfo.riskLevel",
+          "inn": "5027292906"
+        },
+        {
+          "claim": "ЗСК: зелёный",
+          "source_path": "report.zskRiskLevel",
+          "inn": "5027292906"
+        },
+        {
+          "claim": "Всего в сводке за всё время: 46 дел.",
+          "source_path": "report.arbitrationByStatus.commonCount",
+          "inn": "8602236576"
+        },
+        {
+          "claim": "Завершены: 3 дела; сумма требований — 28 790 201 ₽.",
+          "source_path": "report.arbitrationByStatus.defandantArbitration.defandantArbitrationFinished",
+          "inn": "8602236576"
+        },
+        {
+          "claim": "Обжалуются: 1 дело; сумма требований — 207 769 ₽.",
+          "source_path": "report.arbitrationByStatus.plaintiffArbitration.plaintiffArbitrationAppealed",
+          "inn": "8602236576"
+        },
+        {
+          "claim": "Завершены: 41 дело; сумма требований — 63 763 459 ₽.",
+          "source_path": "report.arbitrationByStatus.plaintiffArbitration.plaintiffArbitrationFinished",
+          "inn": "8602236576"
+        },
+        {
+          "claim": "Всего дел в отчёте 46, по ролям и статусам разнесены 45: 1 дело без деталей.",
+          "source_path": "report.arbitrationByStatus.commonCount",
+          "inn": "8602236576"
+        },
+        {
+          "claim": "Светофор: зелёный",
+          "source_path": "report.baseInfo.riskLevel",
+          "inn": "8602236576"
+        },
+        {
+          "claim": "ЗСК: зелёный",
+          "source_path": "report.zskRiskLevel",
+          "inn": "8602236576"
+        }
+      ],
+      "invalid_citations": [],
+      "report_dates": {
+        "5027292906": "2026-08-28",
+        "8602236576": "2026-08-20"
+      }
+    },
+    "checks_passed": true,
+    "check_failures": [],
+    "judge": {
+      "score": 2,
+      "failures": [],
+      "deductions": [
+        "courts_without_role_period_field",
+        "no_report_date"
+      ],
+      "invented_facts": [],
+      "comment": "Ответ содержит требуемые данные: общее количество дел (22 vs 46) и выводы «нужна дополнительная проверка» и «можно работать», что соответствует эталону. Однако в тексте указано число дел без указания роли и без статуса/периода (например, «Всего в сводке за всё время: 22 дела»), что приводит к штрафу −2 по правилу courts_without_role_period_field. Кроме того, в ответе отсутствует дата отчёта, что даёт штраф −1 по правилу no_report_date. Других нарушений не обнаружено."
+    },
+    "error": null
+  },
+  {
+    "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-20b/latest",
+    "repeat": 1,
+    "question_id": "comparison-stroyhoum-teplosnab-fewer-courts",
+    "answer": {
+      "kind": "comparison",
+      "text_md": "По данным отчётов:\nКоличество дел само по себе не определяет, с кем безопаснее работать. Ниже отдельно показаны иски к компании и её собственные требования.\n\n### ООО «СТРОЙХОУМ» · ИНН 5027292906\nПо данным отчёта: нужна дополнительная проверка.\nСветофор банка: зелёный. ЗСК: зелёный.\n### Арбитражные дела\nВсего в сводке за всё время: 22 дела.\n\n**Иски к компании — ответчик**\n- В производстве: 1 дело; сумма требований — 332 584 ₽.\n- Обжалуются: 1 дело; сумма требований — 2 564 614 ₽.\n- Завершены: 3 дела; сумма требований — 1 824 972 ₽.\n\n**Иски компании — истец**\n- В производстве: 3 дела; сумма требований — 3 902 393 ₽.\n- Завершены: 13 дел; сумма требований — 24 105 286 ₽.\nВсего дел в отчёте 22, по ролям и статусам разнесены 21: 1 дело без деталей.\n\nЗавершённые дела не являются текущими претензиями. Отдельного перечня сторон и предметов споров в отчёте нет.\n\n### ООО «ТЕПЛОСНАБКОМПЛЕКТ» · ИНН 8602236576\nПо данным отчёта: можно работать.\nСветофор банка: зелёный. ЗСК: зелёный.\n### Арбитражные дела\nВсего в сводке за всё время: 46 дел.\n\n**Иски к компании — ответчик**\n- Завершены: 3 дела; сумма требований — 28 790 201 ₽.\n\n**Иски компании — истец**\n- Обжалуются: 1 дело; сумма требований — 207 769 ₽.\n- Завершены: 41 дело; сумма требований — 63 763 459 ₽.\nВсего дел в отчёте 46, по ролям и статусам разнесены 45: 1 дело без деталей.\n\nЗавершённые дела не являются текущими претензиями. Отдельного перечня сторон и предметов споров в отчёте нет.",
+      "card": null,
+      "cards": [
+        {
+          "inn": "5027292906",
+          "name": "ООО «СТРОЙХОУМ»",
+          "labels": {
+            "riskLevel": "зелёный",
+            "zskRiskLevel": "зелёный"
+          },
+          "verdict": "check",
+          "terminal": false,
+          "attention": [
+            {
+              "claim": "2 открытых арбитражных дела (1 в производстве, 1 обжалуется), где компания — ответчик, на сумму 2,9 млн ₽; это 19,8 % чистых активов (капитал и резервы) на конец 2025 года (14,6 млн ₽).",
+              "severity": "moderate",
+              "source_path": "report.arbitrationByStatus.defandantArbitration.defandantArbitrationPending.dpCount",
+              "code": "arbitration_defendant_open",
+              "source_paths": [
+                "report.arbitrationByStatus.defandantArbitration.defandantArbitrationPending.dpCount",
+                "report.arbitrationByStatus.defandantArbitration.defandantArbitrationPending.dpAmount",
+                "report.arbitrationByStatus.defandantArbitration.defandantArbitrationAppealed.daCount",
+                "report.arbitrationByStatus.defandantArbitration.defandantArbitrationAppealed.daAmount",
+                "report.finReports[0].liabilities.capitals",
+                "report.reputationalRisks.negative[1].code"
+              ]
+            },
+            {
+              "claim": "3 завершённых арбитражных дела, где компания была ответчиком, на сумму 1,8 млн ₽; к текущим претензиям не относятся.",
+              "severity": "info",
+              "source_path": "report.arbitrationByStatus.defandantArbitration.defandantArbitrationFinished.dfCount",
+              "code": "arbitration_defendant_finished",
+              "source_paths": [
+                "report.arbitrationByStatus.defandantArbitration.defandantArbitrationFinished.dfCount",
+                "report.arbitrationByStatus.defandantArbitration.defandantArbitrationFinished.dfAmount",
+                "report.reputationalRisks.negative[1].code"
+              ]
+            },
+            {
+              "claim": "Всего дел в отчёте 22, по ролям и статусам разнесены 21: 1 дело без деталей.",
+              "severity": "info",
+              "source_path": "report.arbitrationByStatus.commonCount",
+              "code": "arbitration_mismatch_roles",
+              "source_paths": [
+                "report.arbitrationByStatus.defandantArbitration",
+                "report.arbitrationByStatus.plaintiffArbitration"
+              ]
+            },
+            {
+              "claim": "3 завершённых исполнительных производства на сумму 2,6 млн ₽ за 2024–2026 годы, 1 — за последний год; к действующим долгам не относятся.",
+              "severity": "info",
+              "source_path": "report.executionProceedings",
+              "code": "enforcement_finished",
+              "source_paths": [
+                "report.executionProceedings[2]",
+                "report.executionProceedings[1]",
+                "report.executionProceedings[0]"
+              ]
+            },
+            {
+              "claim": "Оборотные активы 68,9 млн ₽ против краткосрочных обязательств 91,8 млн ₽ на конец 2025 года: покрытие 0,75.",
+              "severity": "info",
+              "source_path": "report.finReports[0]",
+              "code": "fin_low_liquidity",
+              "source_paths": [
+                "report.finReports[0].assets.currentAssets.total",
+                "report.finReports[0].liabilities.shortTermLiabilities.total"
+              ]
+            },
+            {
+              "claim": "В отчёте отмечено большое количество кодов ОКВЭД. Само по себе это не подтверждает нарушения или неисполнение обязательств.",
+              "severity": "info",
+              "source_path": "report.reputationalRisks.negative[0].code",
+              "code": "flag_massOkved",
+              "source_paths": [
+                "report.reputationalRisks.negative[0].name"
+              ]
+            }
+          ],
+          "ask_before": [
+            "Документы о текущем состоянии открытых арбитражных требований к компании."
+          ],
+          "gaps": [
+            "В отчёте нет сведений о численности сотрудников — оценить по этому критерию нельзя."
+          ],
+          "report_date": "2026-08-28"
+        },
+        {
+          "inn": "8602236576",
+          "name": "ООО «ТЕПЛОСНАБКОМПЛЕКТ»",
+          "labels": {
+            "riskLevel": "зелёный",
+            "zskRiskLevel": "зелёный"
+          },
+          "verdict": "ok",
+          "terminal": false,
+          "attention": [
+            {
+              "claim": "3 завершённых арбитражных дела, где компания была ответчиком, на сумму 28,8 млн ₽; признак банка по этому пункту положительный; к текущим претензиям не относятся.",
+              "severity": "info",
+              "source_path": "report.arbitrationByStatus.defandantArbitration.defandantArbitrationFinished.dfCount",
+              "code": "arbitration_defendant_finished",
+              "source_paths": [
+                "report.arbitrationByStatus.defandantArbitration.defandantArbitrationFinished.dfCount",
+                "report.arbitrationByStatus.defandantArbitration.defandantArbitrationFinished.dfAmount",
+                "report.reputationalRisks.positive[8].code"
+              ]
+            },
+            {
+              "claim": "Всего дел в отчёте 46, по ролям и статусам разнесены 45: 1 дело без деталей.",
+              "severity": "info",
+              "source_path": "report.arbitrationByStatus.commonCount",
+              "code": "arbitration_mismatch_roles",
+              "source_paths": [
+                "report.arbitrationByStatus.defandantArbitration",
+                "report.arbitrationByStatus.plaintiffArbitration"
+              ]
+            },
+            {
+              "claim": "5 завершённых исполнительных производств на сумму не менее 500 ₽ (у 4 из 5 сумма не указана) за 2017–2020 годы; к действующим долгам не относятся.",
+              "severity": "info",
+              "source_path": "report.executionProceedings",
+              "code": "enforcement_finished",
+              "source_paths": [
+                "report.executionProceedings[0]",
+                "report.executionProceedings[1]",
+                "report.executionProceedings[2]",
+                "report.executionProceedings[4]",
+                "report.executionProceedings[3]"
+              ]
+            }
+          ],
+          "ask_before": [],
+          "gaps": [
+            "В отчёте нет сведений о численности сотрудников — оценить по этому критерию нельзя."
+          ],
+          "report_date": "2026-08-20"
+        }
+      ],
+      "citations": [
+        {
+          "claim": "Всего в сводке за всё время: 22 дела.",
+          "source_path": "report.arbitrationByStatus.commonCount",
+          "inn": "5027292906"
+        },
+        {
+          "claim": "В производстве: 1 дело; сумма требований — 332 584 ₽.",
+          "source_path": "report.arbitrationByStatus.defandantArbitration.defandantArbitrationPending",
+          "inn": "5027292906"
+        },
+        {
+          "claim": "Обжалуются: 1 дело; сумма требований — 2 564 614 ₽.",
+          "source_path": "report.arbitrationByStatus.defandantArbitration.defandantArbitrationAppealed",
+          "inn": "5027292906"
+        },
+        {
+          "claim": "Завершены: 3 дела; сумма требований — 1 824 972 ₽.",
+          "source_path": "report.arbitrationByStatus.defandantArbitration.defandantArbitrationFinished",
+          "inn": "5027292906"
+        },
+        {
+          "claim": "В производстве: 3 дела; сумма требований — 3 902 393 ₽.",
+          "source_path": "report.arbitrationByStatus.plaintiffArbitration.plaintiffArbitrationPending",
+          "inn": "5027292906"
+        },
+        {
+          "claim": "Завершены: 13 дел; сумма требований — 24 105 286 ₽.",
+          "source_path": "report.arbitrationByStatus.plaintiffArbitration.plaintiffArbitrationFinished",
+          "inn": "5027292906"
+        },
+        {
+          "claim": "Всего дел в отчёте 22, по ролям и статусам разнесены 21: 1 дело без деталей.",
+          "source_path": "report.arbitrationByStatus.commonCount",
+          "inn": "5027292906"
+        },
+        {
+          "claim": "Светофор: зелёный",
+          "source_path": "report.baseInfo.riskLevel",
+          "inn": "5027292906"
+        },
+        {
+          "claim": "ЗСК: зелёный",
+          "source_path": "report.zskRiskLevel",
+          "inn": "5027292906"
+        },
+        {
+          "claim": "Всего в сводке за всё время: 46 дел.",
+          "source_path": "report.arbitrationByStatus.commonCount",
+          "inn": "8602236576"
+        },
+        {
+          "claim": "Завершены: 3 дела; сумма требований — 28 790 201 ₽.",
+          "source_path": "report.arbitrationByStatus.defandantArbitration.defandantArbitrationFinished",
+          "inn": "8602236576"
+        },
+        {
+          "claim": "Обжалуются: 1 дело; сумма требований — 207 769 ₽.",
+          "source_path": "report.arbitrationByStatus.plaintiffArbitration.plaintiffArbitrationAppealed",
+          "inn": "8602236576"
+        },
+        {
+          "claim": "Завершены: 41 дело; сумма требований — 63 763 459 ₽.",
+          "source_path": "report.arbitrationByStatus.plaintiffArbitration.plaintiffArbitrationFinished",
+          "inn": "8602236576"
+        },
+        {
+          "claim": "Всего дел в отчёте 46, по ролям и статусам разнесены 45: 1 дело без деталей.",
+          "source_path": "report.arbitrationByStatus.commonCount",
+          "inn": "8602236576"
+        },
+        {
+          "claim": "Светофор: зелёный",
+          "source_path": "report.baseInfo.riskLevel",
+          "inn": "8602236576"
+        },
+        {
+          "claim": "ЗСК: зелёный",
+          "source_path": "report.zskRiskLevel",
+          "inn": "8602236576"
+        }
+      ],
+      "invalid_citations": [],
+      "report_dates": {
+        "5027292906": "2026-08-28",
+        "8602236576": "2026-08-20"
+      }
+    },
+    "checks_passed": true,
+    "check_failures": [],
+    "judge": {
+      "score": 3,
+      "failures": [],
+      "deductions": [
+        "courts_without_role_period_field"
+      ],
+      "invented_facts": [],
+      "comment": "Ответ содержит все критические факты: количество арбитражных дел (22 vs 46) и выводы «нужна дополнительная проверка» и «можно работать», поэтому провалов нет. Однако в тексте указано общее число дел без указания роли (истец/ответчик) и без статуса/периода («Всего в сводке за всё время: 22 дела», «Всего в сводке за всё время: 46 дел»). По правилу это приводит к штрафу −2. Других нарушений не обнаружено."
+    },
+    "error": null
+  },
+  {
+    "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-20b/latest",
+    "repeat": 0,
+    "question_id": "comparison-stroyhoum-teplosnab-fewer-courts",
+    "answer": {
+      "kind": "comparison",
+      "text_md": "По данным отчётов:\nКоличество дел само по себе не определяет, с кем безопаснее работать. Ниже отдельно показаны иски к компании и её собственные требования.\n\n### ООО «СТРОЙХОУМ» · ИНН 5027292906\nПо данным отчёта: нужна дополнительная проверка.\nСветофор банка: зелёный. ЗСК: зелёный.\n### Арбитражные дела\nВсего в сводке за всё время: 22 дела.\n\n**Иски к компании — ответчик**\n- В производстве: 1 дело; сумма требований — 332 584 ₽.\n- Обжалуются: 1 дело; сумма требований — 2 564 614 ₽.\n- Завершены: 3 дела; сумма требований — 1 824 972 ₽.\n\n**Иски компании — истец**\n- В производстве: 3 дела; сумма требований — 3 902 393 ₽.\n- Завершены: 13 дел; сумма требований — 24 105 286 ₽.\nВсего дел в отчёте 22, по ролям и статусам разнесены 21: 1 дело без деталей.\n\nЗавершённые дела не являются текущими претензиями. Отдельного перечня сторон и предметов споров в отчёте нет.\n\n### ООО «ТЕПЛОСНАБКОМПЛЕКТ» · ИНН 8602236576\nПо данным отчёта: можно работать.\nСветофор банка: зелёный. ЗСК: зелёный.\n### Арбитражные дела\nВсего в сводке за всё время: 46 дел.\n\n**Иски к компании — ответчик**\n- Завершены: 3 дела; сумма требований — 28 790 201 ₽.\n\n**Иски компании — истец**\n- Обжалуются: 1 дело; сумма требований — 207 769 ₽.\n- Завершены: 41 дело; сумма требований — 63 763 459 ₽.\nВсего дел в отчёте 46, по ролям и статусам разнесены 45: 1 дело без деталей.\n\nЗавершённые дела не являются текущими претензиями. Отдельного перечня сторон и предметов споров в отчёте нет.",
+      "card": null,
+      "cards": [
+        {
+          "inn": "5027292906",
+          "name": "ООО «СТРОЙХОУМ»",
+          "labels": {
+            "riskLevel": "зелёный",
+            "zskRiskLevel": "зелёный"
+          },
+          "verdict": "check",
+          "terminal": false,
+          "attention": [
+            {
+              "claim": "2 открытых арбитражных дела (1 в производстве, 1 обжалуется), где компания — ответчик, на сумму 2,9 млн ₽; это 19,8 % чистых активов (капитал и резервы) на конец 2025 года (14,6 млн ₽).",
+              "severity": "moderate",
+              "source_path": "report.arbitrationByStatus.defandantArbitration.defandantArbitrationPending.dpCount",
+              "code": "arbitration_defendant_open",
+              "source_paths": [
+                "report.arbitrationByStatus.defandantArbitration.defandantArbitrationPending.dpCount",
+                "report.arbitrationByStatus.defandantArbitration.defandantArbitrationPending.dpAmount",
+                "report.arbitrationByStatus.defandantArbitration.defandantArbitrationAppealed.daCount",
+                "report.arbitrationByStatus.defandantArbitration.defandantArbitrationAppealed.daAmount",
+                "report.finReports[0].liabilities.capitals",
+                "report.reputationalRisks.negative[1].code"
+              ]
+            },
+            {
+              "claim": "3 завершённых арбитражных дела, где компания была ответчиком, на сумму 1,8 млн ₽; к текущим претензиям не относятся.",
+              "severity": "info",
+              "source_path": "report.arbitrationByStatus.defandantArbitration.defandantArbitrationFinished.dfCount",
+              "code": "arbitration_defendant_finished",
+              "source_paths": [
+                "report.arbitrationByStatus.defandantArbitration.defandantArbitrationFinished.dfCount",
+                "report.arbitrationByStatus.defandantArbitration.defandantArbitrationFinished.dfAmount",
+                "report.reputationalRisks.negative[1].code"
+              ]
+            },
+            {
+              "claim": "Всего дел в отчёте 22, по ролям и статусам разнесены 21: 1 дело без деталей.",
+              "severity": "info",
+              "source_path": "report.arbitrationByStatus.commonCount",
+              "code": "arbitration_mismatch_roles",
+              "source_paths": [
+                "report.arbitrationByStatus.defandantArbitration",
+                "report.arbitrationByStatus.plaintiffArbitration"
+              ]
+            },
+            {
+              "claim": "3 завершённых исполнительных производства на сумму 2,6 млн ₽ за 2024–2026 годы, 1 — за последний год; к действующим долгам не относятся.",
+              "severity": "info",
+              "source_path": "report.executionProceedings",
+              "code": "enforcement_finished",
+              "source_paths": [
+                "report.executionProceedings[2]",
+                "report.executionProceedings[1]",
+                "report.executionProceedings[0]"
+              ]
+            },
+            {
+              "claim": "Оборотные активы 68,9 млн ₽ против краткосрочных обязательств 91,8 млн ₽ на конец 2025 года: покрытие 0,75.",
+              "severity": "info",
+              "source_path": "report.finReports[0]",
+              "code": "fin_low_liquidity",
+              "source_paths": [
+                "report.finReports[0].assets.currentAssets.total",
+                "report.finReports[0].liabilities.shortTermLiabilities.total"
+              ]
+            },
+            {
+              "claim": "В отчёте отмечено большое количество кодов ОКВЭД. Само по себе это не подтверждает нарушения или неисполнение обязательств.",
+              "severity": "info",
+              "source_path": "report.reputationalRisks.negative[0].code",
+              "code": "flag_massOkved",
+              "source_paths": [
+                "report.reputationalRisks.negative[0].name"
+              ]
+            }
+          ],
+          "ask_before": [
+            "Документы о текущем состоянии открытых арбитражных требований к компании."
+          ],
+          "gaps": [
+            "В отчёте нет сведений о численности сотрудников — оценить по этому критерию нельзя."
+          ],
+          "report_date": "2026-08-28"
+        },
+        {
+          "inn": "8602236576",
+          "name": "ООО «ТЕПЛОСНАБКОМПЛЕКТ»",
+          "labels": {
+            "riskLevel": "зелёный",
+            "zskRiskLevel": "зелёный"
+          },
+          "verdict": "ok",
+          "terminal": false,
+          "attention": [
+            {
+              "claim": "3 завершённых арбитражных дела, где компания была ответчиком, на сумму 28,8 млн ₽; признак банка по этому пункту положительный; к текущим претензиям не относятся.",
+              "severity": "info",
+              "source_path": "report.arbitrationByStatus.defandantArbitration.defandantArbitrationFinished.dfCount",
+              "code": "arbitration_defendant_finished",
+              "source_paths": [
+                "report.arbitrationByStatus.defandantArbitration.defandantArbitrationFinished.dfCount",
+                "report.arbitrationByStatus.defandantArbitration.defandantArbitrationFinished.dfAmount",
+                "report.reputationalRisks.positive[8].code"
+              ]
+            },
+            {
+              "claim": "Всего дел в отчёте 46, по ролям и статусам разнесены 45: 1 дело без деталей.",
+              "severity": "info",
+              "source_path": "report.arbitrationByStatus.commonCount",
+              "code": "arbitration_mismatch_roles",
+              "source_paths": [
+                "report.arbitrationByStatus.defandantArbitration",
+                "report.arbitrationByStatus.plaintiffArbitration"
+              ]
+            },
+            {
+              "claim": "5 завершённых исполнительных производств на сумму не менее 500 ₽ (у 4 из 5 сумма не указана) за 2017–2020 годы; к действующим долгам не относятся.",
+              "severity": "info",
+              "source_path": "report.executionProceedings",
+              "code": "enforcement_finished",
+              "source_paths": [
+                "report.executionProceedings[0]",
+                "report.executionProceedings[1]",
+                "report.executionProceedings[2]",
+                "report.executionProceedings[4]",
+                "report.executionProceedings[3]"
+              ]
+            }
+          ],
+          "ask_before": [],
+          "gaps": [
+            "В отчёте нет сведений о численности сотрудников — оценить по этому критерию нельзя."
+          ],
+          "report_date": "2026-08-20"
+        }
+      ],
+      "citations": [
+        {
+          "claim": "Всего в сводке за всё время: 22 дела.",
+          "source_path": "report.arbitrationByStatus.commonCount",
+          "inn": "5027292906"
+        },
+        {
+          "claim": "В производстве: 1 дело; сумма требований — 332 584 ₽.",
+          "source_path": "report.arbitrationByStatus.defandantArbitration.defandantArbitrationPending",
+          "inn": "5027292906"
+        },
+        {
+          "claim": "Обжалуются: 1 дело; сумма требований — 2 564 614 ₽.",
+          "source_path": "report.arbitrationByStatus.defandantArbitration.defandantArbitrationAppealed",
+          "inn": "5027292906"
+        },
+        {
+          "claim": "Завершены: 3 дела; сумма требований — 1 824 972 ₽.",
+          "source_path": "report.arbitrationByStatus.defandantArbitration.defandantArbitrationFinished",
+          "inn": "5027292906"
+        },
+        {
+          "claim": "В производстве: 3 дела; сумма требований — 3 902 393 ₽.",
+          "source_path": "report.arbitrationByStatus.plaintiffArbitration.plaintiffArbitrationPending",
+          "inn": "5027292906"
+        },
+        {
+          "claim": "Завершены: 13 дел; сумма требований — 24 105 286 ₽.",
+          "source_path": "report.arbitrationByStatus.plaintiffArbitration.plaintiffArbitrationFinished",
+          "inn": "5027292906"
+        },
+        {
+          "claim": "Всего дел в отчёте 22, по ролям и статусам разнесены 21: 1 дело без деталей.",
+          "source_path": "report.arbitrationByStatus.commonCount",
+          "inn": "5027292906"
+        },
+        {
+          "claim": "Светофор: зелёный",
+          "source_path": "report.baseInfo.riskLevel",
+          "inn": "5027292906"
+        },
+        {
+          "claim": "ЗСК: зелёный",
+          "source_path": "report.zskRiskLevel",
+          "inn": "5027292906"
+        },
+        {
+          "claim": "Всего в сводке за всё время: 46 дел.",
+          "source_path": "report.arbitrationByStatus.commonCount",
+          "inn": "8602236576"
+        },
+        {
+          "claim": "Завершены: 3 дела; сумма требований — 28 790 201 ₽.",
+          "source_path": "report.arbitrationByStatus.defandantArbitration.defandantArbitrationFinished",
+          "inn": "8602236576"
+        },
+        {
+          "claim": "Обжалуются: 1 дело; сумма требований — 207 769 ₽.",
+          "source_path": "report.arbitrationByStatus.plaintiffArbitration.plaintiffArbitrationAppealed",
+          "inn": "8602236576"
+        },
+        {
+          "claim": "Завершены: 41 дело; сумма требований — 63 763 459 ₽.",
+          "source_path": "report.arbitrationByStatus.plaintiffArbitration.plaintiffArbitrationFinished",
+          "inn": "8602236576"
+        },
+        {
+          "claim": "Всего дел в отчёте 46, по ролям и статусам разнесены 45: 1 дело без деталей.",
+          "source_path": "report.arbitrationByStatus.commonCount",
+          "inn": "8602236576"
+        },
+        {
+          "claim": "Светофор: зелёный",
+          "source_path": "report.baseInfo.riskLevel",
+          "inn": "8602236576"
+        },
+        {
+          "claim": "ЗСК: зелёный",
+          "source_path": "report.zskRiskLevel",
+          "inn": "8602236576"
+        }
+      ],
+      "invalid_citations": [],
+      "report_dates": {
+        "5027292906": "2026-08-28",
+        "8602236576": "2026-08-20"
+      }
+    },
+    "checks_passed": true,
+    "check_failures": [],
+    "judge": {
+      "score": 2,
+      "failures": [],
+      "deductions": [
+        "courts_without_role_period_field",
+        "no_report_date"
+      ],
+      "invented_facts": [],
+      "comment": "Ответ содержит требуемые критические факты (число дел 22 vs 46, выводы «нужна дополнительная проверка» и «можно работать»), но нарушает правило §5: в тексте указано общее количество дел без указания роли/статуса, что приводит к штрафу ‑2. Кроме того, в ответе отсутствуют даты отчётов, за что снимается ещё ‑1 балл. Других нарушений не обнаружено."
+    },
+    "error": null
+  }
+]

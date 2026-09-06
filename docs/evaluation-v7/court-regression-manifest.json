@@ -1,0 +1,140 @@
+{
+  "created_utc": "2026-09-06T22:53:24.571338+00:00",
+  "git_commit": "d0897855c08d75ba9d494356674ebc9311f9db19",
+  "source_sha256": {
+    "evals/__init__.py": "9d321bd4c8d497f0e046a0ddcdf29c351282b91029523a9bbee607a84bfaeac5",
+    "evals/__main__.py": "c2dcc0f3c52a0193cb78df12d7e95bc8620c8f91719d3ef51e776edc6c8d6118",
+    "evals/canonical.py": "37b59ba1b8efe16ac9d39239a0d7f77d79645a668415d6c4580dd33911f04ca7",
+    "evals/checks.py": "0dc2c799e9024ac31356c626b37a20ac00f4b56702d814318f6c8d115910b367",
+    "evals/gold.py": "f6969c957ef8573f5275a53d6d17851cec312cf256f3337388f3f23c61dcf77b",
+    "evals/gold.yaml": "d9f3e98c616a76790092a0ce6daf725ef13b59a139651f907e58072a672aba92",
+    "evals/judge.py": "10f8cf47d26bbf1850b3cc216f6101317fbedae3c6982f30d2dc9dd18738cd4c",
+    "evals/metrics.py": "bca65a8ca754c945eecb2588a8b850d2290b8ce99bfaaedd4ddb36b7f8e8c9ae",
+    "evals/paired.py": "12a3ba1570630e4c5641192caac0bea18166cba563c7ee9234e7c55df995a49b",
+    "evals/report.py": "acd66190f496f2bb3c12f17d7de232110b458e10e6691835e162e04fd47284f6",
+    "evals/runner.py": "bb9504197566ace9c850dfc3bf79ae1ef8822776dac3bbc0819c47c1549a81f2",
+    "evals/suites/readiness.json": "8fd764a01d4903d80a2e45cec5144d4811b68036f82bd549da0fbf8c135bbbcd",
+    "evals/suites/v7_holdout.yaml": "c665bd2be45e9cc9e94d9d8e38d791e026f4a4fa89d18038f54bac0f847d5ca4",
+    "evals/suites/v7_qualification.yaml": "ee2fe648f082fa8de21549ed1590ceedfa3c8b0c88ca6fee107af01f70cdca6b",
+    "evals/suites/v7_unseen.yaml": "cf79c727306530c5da1d01b18cdc567629daedc90c77a0a69675ae275085aa77",
+    "evals/suites/v7_unseen_corrected.yaml": "cd543543b943e5e17814f59c219e96d1bef03e31cab7dc410bf2597aa29fb8d6",
+    "src/contractor_agent/__init__.py": "89c1151257e11a1efaa2ba419f454fdc855f0d2d824238d0be2e6b84efda2681",
+    "src/contractor_agent/agent/__init__.py": "de99647d9e30988a4202be61dd384d2193893cb17376807391a1b146ff0e6663",
+    "src/contractor_agent/agent/card_answer.py": "1dfb609489dcc6c9a236951ef8b03b0b6809451e483eb10946151c3eb69edb7e",
+    "src/contractor_agent/agent/citations.py": "179e3b8c03ffa669a23885a486c5c41eebd3ae9acaeba2c63d0cbe97c4dd1381",
+    "src/contractor_agent/agent/comparison_answers.py": "30f2a53f48f053d56e3cff0672f7a496c8f91c3210a4b030e66e98e8bf936ced",
+    "src/contractor_agent/agent/decision_answers.py": "2f04ac3355083c1b9fbcf39867c07c4390cc1eaec2343bc0d6cfcb1b1a18660f",
+    "src/contractor_agent/agent/evidence.py": "8fd6b22373482ad598f57b2dc4e4a43653542f7894102d51000146b542b4ff46",
+    "src/contractor_agent/agent/factual_sections.py": "8e82bf8d8ca8ea0e427be296a528727784525134bf5ff31b7180c3a471bfdce7",
+    "src/contractor_agent/agent/financial_answers.py": "a2a48f2cd91a137a473076e0a7f5f8be155bfd387c8d6c2af5093785d8ab3c26",
+    "src/contractor_agent/agent/graph.py": "60496c736f93309c62d09118132272504787ebef85d3a33e356a44b853151238",
+    "src/contractor_agent/agent/llm.py": "89ff5c074e57c9e6466d1c9f5ca0dec960f589829b10dbe8c2e8d0ee432b34cc",
+    "src/contractor_agent/agent/money_guard.py": "2c5839b7db48334a6b8df84bc3fc30473402ff277485ed842ae1fa74584d9b31",
+    "src/contractor_agent/agent/nodes.py": "3cd5e6d25dedb99486fd3ff5a5942b24e2e125cbc52334c1a04a7bebc322212a",
+    "src/contractor_agent/agent/presentation.py": "991b20fccfe9080182d23732d8c29af706ee43c9ba99732193f2cf920a8fab0b",
+    "src/contractor_agent/agent/prompt.py": "d14cde476b4eb07c4385ebfd9609723516ad52774af39840dc43857401ba5597",
+    "src/contractor_agent/agent/question.py": "75b1e1516655abaa9596cbdf689611d635bbd71b1089b4d88507dc07715fa29b",
+    "src/contractor_agent/agent/requests.py": "58e5fb020c4847f257bf4caf234ffa2b63a799c0f9c7b570e2d120fc131cace2",
+    "src/contractor_agent/agent/runtime.py": "a37d27bf15a9b588ffa3b0c6a561e0622b178bd26f13b907824c892beeccb0b1",
+    "src/contractor_agent/agent/schema.py": "ba9d0161553cc98e33d1cffbd0168764c8cb87e629b7203ec65881867e9a755c",
+    "src/contractor_agent/agent/scoped_answers.py": "c10e47d02de36d9696c2624eca339118f39e459f468ec443164ba00ecd01d0b6",
+    "src/contractor_agent/agent/section_answers.py": "0690ee7fb78e5b854c74a97998d5d87caed12eb544cdbe4bc2684133c2e56370",
+    "src/contractor_agent/agent/state.py": "f0cca87f8732c1d6258b773e9953e9f6485d4295860cbb39aa447b4ef912d33f",
+    "src/contractor_agent/agent/stream.py": "23be55858301adfdbb67e72d7701cb8910672758ca964865f9fecd576b1b3d3c",
+    "src/contractor_agent/agent/tools.py": "25682a8317937a4afb2bdeaa71ed9dd138f286e56f6ff4af66d25f7d65685598",
+    "src/contractor_agent/api/__init__.py": "c7203acb4f462b1d4b5cc20aa3b86ab74ec3adea74558ca2bcefd2ba124e07b4",
+    "src/contractor_agent/api/app.py": "d9e0298dfc1fa292345f76d5f675cfa5d87425dc4525673f0c3de375815c7b5d",
+    "src/contractor_agent/api/evidence.py": "797d3c76a944d4f0444f2832890a7fb85f8339b8d8e84cd123bdc831694f838a",
+    "src/contractor_agent/api/server.py": "b7e7ef99ec663158ad4e80d4ad307067cf085f71b609807618b259ee1b436a78",
+    "src/contractor_agent/cli.py": "149acc166570a3842ae13532e730517cf0394309bf82481ce7cb03b8f950c229",
+    "src/contractor_agent/data/__init__.py": "bb5f147b0fe0ae0760dd36bc8ced8baa0796102d32991607d459744fb1a8e197",
+    "src/contractor_agent/data/__main__.py": "181e8222bd6f3a7d44673404ffec362de742b95f6f6666a72c588487150a2429",
+    "src/contractor_agent/data/csv_tree.py": "7489cc6678501f6bf07dcda9dd2335ab4dd21fcd6d81e6f39c04e5b385ede601",
+    "src/contractor_agent/data/index.py": "d46b5aa15be1190062f50a6e4d02bb22a6adfd6ed8351fe3cfc9f8b9a086e252",
+    "src/contractor_agent/data/loader.py": "c9a15501608fb765f1cc04ec474bc5b70ba44734c36d64e1cf2c55c0893b8555",
+    "src/contractor_agent/data/model.py": "9864daa6346f7482b5da83982a7b1378a1d12b879cded785a7e45a78b3c67fea",
+    "src/contractor_agent/data/mongo.py": "03ab62623783a3c54775629855432ee8cc7ee4c29a16edde261fd271797ffb11",
+    "src/contractor_agent/data/paths.py": "f881b2909f86abb16245016c575c3d9adf035150bd72b34e216e6cbf308a4cff",
+    "src/contractor_agent/labels.py": "a3cfc7403fa8eda9f75c726fc9640520be60d73dd0b0ca5ebfbc363fa17f46ca",
+    "src/contractor_agent/mcp_server/__init__.py": "82efa4cd3cff8991b9a0f216044041e08aa470d29da36e7cc2e420994421b8a0",
+    "src/contractor_agent/mcp_server/envelope.py": "f075f3cabe3bc05877b37af7618fbd27b8da397daec4cc6ad60d8f0fc46b24d7",
+    "src/contractor_agent/mcp_server/server.py": "22fdb707cea8f9a0d002b03b15379927107b7c85ee9f5b947b3c49a1a0a31e39",
+    "src/contractor_agent/mcp_server/tools.py": "9697372f0c3b9217a65e5f429b2656a8b9a4f8ac1bc8af6cd2c5146cdc695139",
+    "src/contractor_agent/settings.py": "e6cdfb8c62fe7b54fcc6c2a67b011df56e3652b2280e610419d557715716061a",
+    "src/contractor_agent/signals/__init__.py": "b148bce40c0acdb9d531b6d6c243b941bd90135771e5f29da8a7f421793f52f9",
+    "src/contractor_agent/signals/arbitration.py": "2e3e7f7344720643b820a44484331f5bf4cc0ef6116b741eaa330e7871919db8",
+    "src/contractor_agent/signals/enforcement.py": "df5abac26967714655e8fc8a841276081fb925d973fe9c6510fe9c49c988ba42",
+    "src/contractor_agent/signals/engine.py": "a468b07423bcacbd240c7d1d14add5aba57d2791748af7c1de7426f926b7b610",
+    "src/contractor_agent/signals/finance.py": "1e8414a3c72bfab626fbfdca978eaaefb0666cf90b0615f3bd4bb88d6b2b7cdd",
+    "src/contractor_agent/signals/flags.py": "c0e66c8a3f02ef41059006b1fa858d9c717d6cd3df4ea067ae913107d6097e2c",
+    "src/contractor_agent/signals/model.py": "6ac740d7a28cfa43a33a1d8cf1835257ddc6a576d8d0aedb07e329a26e12c5b1",
+    "src/contractor_agent/signals/registry.py": "3bd8a38f69bb97b18cd8353d3eeee65da69fd48e2a204710143fabe5b05237cd",
+    "src/contractor_agent/signals/text.py": "9d8fa75d0c8f9ced72d552ad8941a72d04944405e1f068cbba1fe56ac4d50cbf"
+  },
+  "gold_sha256": "d9f3e98c616a76790092a0ce6daf725ef13b59a139651f907e58072a672aba92",
+  "suite_sha256": "8fd764a01d4903d80a2e45cec5144d4811b68036f82bd549da0fbf8c135bbbcd",
+  "snapshot_sha256": "34bdf82e3286bfbb1c2b0e4d441dde25c90fd58b1d623d6192f2653dd6641f55",
+  "snapshot_csv_sha256": "ab33b3a0f311f5761afc6378770b4e596ec5f168ee449343f5b6711b21a526f3",
+  "prompt_version": "v7",
+  "prompt_fingerprint": "75151edc",
+  "base_url": "https://llm.api.cloud.yandex.net/v1",
+  "models": [
+    "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-120b/latest",
+    "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-20b/latest"
+  ],
+  "fallback_models": [],
+  "temperature": 0,
+  "reasoning_effort": "low",
+  "max_tokens": 8192,
+  "sdk_retries": 2,
+  "per_turn_timeout_s": 120,
+  "scenario_timeout_s": 360,
+  "repeats": 3,
+  "seed": 20260906,
+  "concurrency": 2,
+  "suite": "all",
+  "question_ids": [
+    "comparison-stroyhoum-teplosnab-fewer-courts"
+  ],
+  "type_counts": {
+    "comparison": 1
+  },
+  "planned_scenarios": 6,
+  "job_order": [
+    {
+      "id": "comparison-stroyhoum-teplosnab-fewer-courts",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-120b/latest"
+    },
+    {
+      "id": "comparison-stroyhoum-teplosnab-fewer-courts",
+      "repeat": 0,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-20b/latest"
+    },
+    {
+      "id": "comparison-stroyhoum-teplosnab-fewer-courts",
+      "repeat": 1,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-120b/latest"
+    },
+    {
+      "id": "comparison-stroyhoum-teplosnab-fewer-courts",
+      "repeat": 1,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-20b/latest"
+    },
+    {
+      "id": "comparison-stroyhoum-teplosnab-fewer-courts",
+      "repeat": 2,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-120b/latest"
+    },
+    {
+      "id": "comparison-stroyhoum-teplosnab-fewer-courts",
+      "repeat": 2,
+      "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-20b/latest"
+    }
+  ],
+  "judge": {
+    "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-120b/latest",
+    "base_url": "https://ai.api.cloud.yandex.net/v1"
+  },
+  "holdout": false
+}

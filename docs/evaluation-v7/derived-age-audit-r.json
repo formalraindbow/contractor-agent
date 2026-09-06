@@ -1,0 +1,104 @@
+[
+  {
+    "candidate": "R",
+    "case": "final-unseen-v7-07",
+    "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-120b/latest",
+    "repeat": 0,
+    "answer": "Дата регистрации: 10.12.2025.\nВозраст на дату отчёта: меньше года (8 полных месяцев).\nНоль полных лет означает, что с регистрации ещё не прошёл год.\n\nОтчёт от 13.08.2026.",
+    "judge": {
+      "score": 0,
+      "failures": [
+        "invented_fact"
+      ],
+      "deductions": [],
+      "invented_facts": [
+        "8 полных месяцев (точное количество месяцев не указано в отчёте)"
+      ],
+      "comment": "В ответе указано число «8 полных месяцев», которого нет в данных инструмента и в эталоне. Это считается вымышленным фактом, поэтому оценка 0 независимо от остальных пунктов."
+    },
+    "source_summary": {
+      "inn": "234803704704",
+      "ogrn": "325237500539706",
+      "kpp": null,
+      "short_name": "ИП БУСОВ Д.А.",
+      "full_name": "БУСОВ ДМИТРИЙ АЛЕКСАНДРОВИЧ",
+      "sole_proprietor": true,
+      "address": null,
+      "registered": "2025-12-10",
+      "age_years": 0,
+      "company_size": null,
+      "staff": null,
+      "email": null,
+      "website": null,
+      "status": "CURRENT",
+      "status_reason": null,
+      "labels": {
+        "svetofor": "зелёный",
+        "svetofor_raw": "LOW",
+        "svetofor_path": "report.baseInfo.riskLevel",
+        "zsk": "зелёный",
+        "zsk_path": "report.zskRiskLevel"
+      },
+      "main_activity": {
+        "code": "43.21",
+        "description": "Производство электромонтажных работ"
+      },
+      "other_activities_count": 8,
+      "report_limits": {
+        "as_of": "2026-08-13",
+        "unavailable": [
+          "История фактических оплат поставщикам и просрочек по счетам",
+          "Домашний адрес руководителя или учредителя",
+          "Свежая выписка ЕГРЮЛ и состояние реестров в реальном времени",
+          "Результат будущего банковского перевода или судебного спора",
+          "Стороны и предметы отдельных арбитражных дел"
+        ]
+      },
+      "head": null,
+      "sections": {
+        "baseInfo": "present",
+        "status": "present",
+        "zskRiskLevel": "present",
+        "kindsOfActivityInfo": "present",
+        "reputationalRisks": "present",
+        "arbitrationByStatus": "empty",
+        "executionProceedings": "empty",
+        "procurements": "empty",
+        "phones": "empty",
+        "foundersInfo": "absent",
+        "taxSystem": "absent",
+        "finReports": "absent",
+        "relatedCompanies": "present",
+        "arbitrationCases": "absent",
+        "inspections": "absent",
+        "coefficient": "absent",
+        "licenses": "absent",
+        "branchesInfo": "absent"
+      },
+      "paths": {
+        "registered": "report.baseInfo.registrationInfo.registrationDate",
+        "age_years": "report.baseInfo.registrationInfo.yearsFromRegistration",
+        "company_size": "report.baseInfo.companySize",
+        "staff": "report.baseInfo.staff",
+        "email": "report.baseInfo.email",
+        "website": "report.baseInfo.website",
+        "address": "report.baseInfo.address",
+        "status": "report.status.status",
+        "status_reason": "report.status.reasonName",
+        "main_activity": "report.kindsOfActivityInfo.mainKindOfActivity",
+        "other_activities": "report.kindsOfActivityInfo.otherKindsOfActivity",
+        "head": "report.foundersInfo.authPerson",
+        "svetofor": "report.baseInfo.riskLevel",
+        "zsk": "report.zskRiskLevel"
+      },
+      "counts": {
+        "execution_proceedings": 0,
+        "licenses": 0,
+        "inspections": 0,
+        "related_companies": 1,
+        "negative_flags": 0
+      }
+    },
+    "analysis": "10.12.2025 to 13.08.2026 is 8 completed calendar months. Derived from dates, not an invented source field. Judge score unchanged."
+  }
+]

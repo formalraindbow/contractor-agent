@@ -1,0 +1,15 @@
+{
+  "created_utc": "2026-09-06T22:18:24.754945+00:00",
+  "application_commit": "43110804ed64945abc0096745aa45f6319a13f62",
+  "gold_sha256": "80294961d0fbdd34bd0dad207e139f03df6a38702075ab48a7eb079b6bd61c08",
+  "questions": 12,
+  "companies": [
+    "615513451530",
+    "780216530635",
+    "501207152100",
+    "5244026965",
+    "9701166515",
+    "616205958623"
+  ],
+  "purpose": "Fresh questions after freezing application code. Not bank-expert acceptance; same author and snapshot. Do not tune the application on this run."
+}

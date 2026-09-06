@@ -1,0 +1,53 @@
+{
+  "reason": "Overlapping benchmark processes exceeded the shared provider limit of 10 concurrent generation sessions. Incomplete attempts were preserved. Final S repeats restarted in new directories with 4+3+1=8 total benchmark concurrency.",
+  "attempts": [
+    {
+      "folder": "runs/v7-audit/candidate-r/full",
+      "completed": 362,
+      "planned": 438,
+      "errors": [
+        {
+          "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-120b/latest",
+          "question_id": "dialog-translorium-deferral-chain",
+          "error": "OpenAIRateLimitError: Error code: 429 - {'error': {'message': 'rpc error: code = ResourceExhausted desc = ai.textGenerationCompletionSessionsCount.count gauge quota limit exceed: allowed 10 requests', 'type': 'insufficient_quota', 'code': 'insufficient_quota'}}"
+        }
+      ]
+    },
+    {
+      "folder": "runs/v7-audit/candidate-r/regression",
+      "completed": 441,
+      "planned": 528,
+      "errors": [
+        {
+          "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-120b/latest",
+          "question_id": "unseen-v7-11",
+          "error": "OpenAIRateLimitError: Error code: 429 - {'error': {'message': 'rpc error: code = ResourceExhausted desc = ai.textGenerationCompletionSessionsCount.count gauge quota limit exceed: allowed 10 requests', 'type': 'insufficient_quota', 'code': 'insufficient_quota'}}"
+        }
+      ]
+    },
+    {
+      "folder": "runs/v7-audit/candidate-s/regression-quota-interrupted",
+      "completed": 6,
+      "planned": 528,
+      "errors": [
+        {
+          "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-20b/latest",
+          "question_id": "unseen-v7-14",
+          "error": "OpenAIRateLimitError: Error code: 429 - {'error': {'message': 'rpc error: code = ResourceExhausted desc = ai.textGenerationCompletionSessionsCount.count gauge quota limit exceed: allowed 10 requests', 'type': 'insufficient_quota', 'code': 'insufficient_quota'}}"
+        }
+      ]
+    },
+    {
+      "folder": "runs/v7-audit/candidate-s/locked-quota-interrupted",
+      "completed": 4,
+      "planned": 72,
+      "errors": [
+        {
+          "model": "gpt://b1gir8dkimq5j60i6ajf/gpt-oss-120b/latest",
+          "question_id": "locked-v7-12",
+          "error": "OpenAIRateLimitError: Error code: 429 - {'error': {'message': 'rpc error: code = ResourceExhausted desc = ai.textGenerationCompletionSessionsCount.count gauge quota limit exceed: allowed 10 requests', 'type': 'insufficient_quota', 'code': 'insufficient_quota'}}"
+        }
+      ]
+    }
+  ]
+}
