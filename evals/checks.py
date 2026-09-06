@@ -46,12 +46,16 @@ ROLE_SYNONYMS = {  # роль в суде словами предпринима�
 }
 
 
+_DASHES = str.maketrans({"\u2011": "-", "\u2010": "-", "\u2012": "-", "\u2013": "-", "\u00a0": " "})
+
+
 def _has(text: str, needle: str) -> bool:
-    """Подстрока без учёта регистра; варианты через « | »; пробелы любые."""
-    lowered = re.sub(r"\s+", " ", text.casefold())
+    """Подстрока без учёта регистра; варианты через « | »; пробелы любые; типографские
+    дефисы и неразрывные пробелы (модель пишет «299‑44‑28») считаются обычными."""
+    lowered = re.sub(r"\s+", " ", text.translate(_DASHES).casefold())
     needle = ROLE_SYNONYMS.get(needle.strip().casefold(), needle)
     return any(
-        re.sub(r"\s+", " ", v.strip().casefold()) in lowered
+        re.sub(r"\s+", " ", v.strip().translate(_DASHES).casefold()) in lowered
         for v in needle.split(" | ")
         if v.strip()
     )
