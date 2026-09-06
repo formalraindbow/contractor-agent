@@ -32,6 +32,7 @@ cards:
     - дел нет
     catches: '§5 «число по судам без поля и периода» (−2): три разных числа в одной карточке (278 / 258 / 259 по годам) — каждое с полем, ролью и периодом; выдумка открытых дел там, где счётчики pending/appealed пустые (0 баллов)'
     evidence: 'get_arbitration_summary(''5032257375''): common_count=278, common_amount=2999541356, defendant.finished={count:258, amount:2611475741, path:''report.arbitrationByStatus.defandantArbitration.defandantArbitrationFinished.dfCount''}, defendant.pending={count:0, amount:None}, plaintiff.finished={count:20, amount:388065615}, by_years=[{2025: defendant_count 1, defendant_amount 21685219},{2024: plaintiff_count 13, defendant_count 258, defendant_amount 2589790444},{2023: plaintiff_count 3, plaintiff_amount 5832755}], by_years_window=''разбивка по годам покрывает только 2023–2026''; get_section arbitrationByStatus: commonCount 278, dpCount null, daCount null; sum(arbitrationCases): defendant 259, plaintiff 16, total 275'
+    category: courts
   - id: maksmarket-courts-case-details
     inn: '5032257375'
     type: refuse
@@ -54,6 +55,7 @@ cards:
     catches: '§5 «данных нет, а агент ответил по существу» (0): детализации дел нет ни у одной карточки — придуманный истец, номер дела или предмет спора; при этом единственный известный факт (1 дело как ответчик в 2025 на 21 685 219 руб.) должен быть назван с ролью и полем'
     evidence: get_arbitration_summary('5032257375').by_years[0] = {year:2025, plaintiff_count:0, plaintiff_amount:0, defendant_count:1, defendant_amount:21685219, path:'report.arbitrationCases[0]'}; get_section('5032257375','arbitrationCases').content[0] = {year 2025, plaintiffCount 0, defendantCount 1, defendantAmount 21685219} — только счётчики и суммы, без номеров, сторон и предмета
     follow_up: true
+    category: courts
   - id: maksmarket-label-vs-bankruptcy
     inn: '5032257375'
     type: infer
@@ -78,6 +80,7 @@ cards:
     expected_verdict: not_recommended
     catches: '§5 «в карточке есть красный фактор, агент его не назвал» (0): банкротство в status.reasonName при зелёных метках; «метка пересчитана или объяснена» (−2); «вердикт вместо условий» и «ярлык на контрагента» (−1)'
     evidence: 'get_risk_signals(''5032257375''): verdict=''not_recommended'', terminal=True, verdict_ru=''компания в процедуре банкротства или исключается из реестра — сделки могут быть оспорены, обязательства не исполнены''; critical: status_reason {reason:''Юридическое лицо признано несостоятельным (банкротом) и в отношении него открыто конкурсное производство'', status_date:''2026-07-31'', source_path:''report.status.reasonName''}, bankruptcy_trustee {position:''КОНКУРСНЫЙ УПРАВЛЯЮЩИЙ'', since:''2026-02-09''}, enforcement_active {active_count:54, known_sum:3995486.53, net_assets:365129000}, flag_invalidAddress; moderate: arbitration_defendant_finished {finished_count:258, known_sum:2611475741, share_of_net_assets:7.15}, flag_fnsBlocking, flag_invalidRegistrationData; labels: svetofor ''зелёный'' (report.baseInfo.riskLevel=LOW), zsk ''зелёный''; get_report_summary: status ''CURRENT'', counts.execution_proceedings 507, report_date ''2026-07-31'''
+    category: registry
   - id: maksmarket-enforcement-active
     inn: '5032257375'
     type: answer
@@ -98,6 +101,7 @@ cards:
     catches: '§5 «назван факт, которого нет в данных» (0): «507 действующих» или сумма завершённых как текущий долг — смешение активных и завершённых; число без поля и периода (−2)'
     evidence: 'get_enforcement_summary(''5032257375''): active={count:54, known_sum:3995486.53, unknown_amount_count:0, recent_12m_count:35, earliest:''2023-11-27'', latest:''2026-07-14''}, finished={count:453, known_sum:479742732.24, unknown_amount_count:11, sum_is_lower_bound:True}, total=507, top_active[0]={number:''200401/25/50026-ИП'', date:''2025-07-04'', amount:1825342, path:''report.executionProceedings[432]''}, top_active[1]={number:''729198/25/98050-ИП'', amount:1514644.53}; source_paths[0]=''report.executionProceedings''; report_date=''2026-07-31'''
     follow_up: true
+    category: enforcement
   - id: registry-maksmarket-trustee-head
     inn: '5032257375'
     type: answer
@@ -294,6 +298,7 @@ cards:
     - ответчик
     catches: '§4/§5: «судов нет» при пустой секции — провал (выдумка, 0); правильно — «не найдено ≠ нет» с ролью (истец/ответчик), полем (arbitrationByStatus пуст, arbitrationCases отсутствует) и оговоркой'
     evidence: 'get_arbitration_summary(''2100006761''): common_count=None, defendant.finished/pending/appealed count=0 amount=None, plaintiff.* count=0, by_years=[], bank_flag={negative:False, path:''report.reputationalRisks.positive[8].code'', text:''Не найдены арбитражные дела, в которых выступает в качестве ответчика…''}, note=''Арбитражных дел в отчёте не найдено. «Не найдено» — не значит «нет»''; get_section(''2100006761'',''arbitrationByStatus''): state=''empty'', commonCount null; get_section(''2100006761'',''arbitrationCases''): available=False, reason=''section_absent''; get_report_summary sections: arbitrationByStatus ''empty'', arbitrationCases ''absent'''
+    category: courts
   - id: rado-headcount
     inn: '2100006761'
     type: refuse
@@ -314,6 +319,7 @@ cards:
     catches: '§5 «данных нет, а агент ответил по существу» (0): численности нет ни в одной карточке снапшота (baseInfo.staff = null) — придуманное число сотрудников'
     evidence: 'get_report_summary(''2100006761'').data: staff=None, paths.staff=''report.baseInfo.staff'', company_size=''Микропредприятие''; get_risk_signals(''2100006761'').gaps[0]={criterion:''численность персонала'', reason:''field_absent'', text:''В отчёте нет сведений о численности сотрудников — оценить по этому критерию нельзя.'', ask:''Спросите у контрагента о штате напрямую.'', source_path:''report.baseInfo.staff''}; get_financials: years[0]={year:2025, proceeds:293000, total_assets:14000}'
     follow_up: true
+    category: refusal
   - id: rado-label-vs-exclusion
     inn: '2100006761'
     type: infer
@@ -340,6 +346,7 @@ cards:
     expected_verdict: not_recommended
     catches: '§5 «в карточке есть красный фактор, агент его не назвал» (0): предстоящее исключение из ЕГРЮЛ и отрицательный капитал при зелёной метке и нуле негативов банка — ложное «всё чисто» по флагам; «метка пересчитана/объяснена» (−2); «вердикт вместо условий», ярлык (−1)'
     evidence: 'get_risk_signals(''2100006761''): verdict=''not_recommended'', terminal=True, verdict_ru=''компания в процедуре банкротства или исключается из реестра — сделки могут быть оспорены, обязательства не исполнены''; critical: status_reason {reason:''Регистрирующим органом принято решение о предстоящем исключении юридического лица из ЕГРЮЛ (наличие оснований, предусмотренных статьей 21.3 Федерального закона от 08.08.2001 № 129-ФЗ)'', status_date:''2026-08-02'', source_path:''report.status.reasonName''}, fin_negative_equity {capitals:-14000, year:2025, source_path:''report.finReports[0].liabilities.capitals'', explanation:''…отрицательные: -14 000 ₽ — обязательства превышают активы, всего активов 14 000 ₽''}; moderate=[], info=[]; labels svetofor ''зелёный'' (LOW), zsk ''зелёный''; get_report_summary counts.negative_flags=0, company_size=''Микропредприятие''; get_section finReports[0]: proceeds 293000, totalAssets 14000, capitals -14000, accountsPayable 28000; get_enforcement_summary total=0 note ''не найдено''; report_date=''2026-08-05'''
+    category: registry
   - id: comparison-rado-avers-terminal-vs-clean
     inn: '2100006761'
     type: comparison
@@ -390,6 +397,7 @@ cards:
     - истец в 2
     catches: число по судам без роли, периода и поля (−2 по §5); «судов нет» при 2 открытых исках как ответчик = пропуск критичного факта (0); смешение сводки 4 дел с 2 открытыми = выдуманный факт
     evidence: 'get_arbitration_summary(''6165169320'').data: common_count=4, common_amount=20843367; defendant.pending={count:2, amount:18894669, path:''report.arbitrationByStatus.defandantArbitration.defandantArbitrationPending.dpCount''}; defendant.finished={count:2, amount:1948698}; plaintiff.* all count=0; by_years[0]={year:2026, defendant_count:2, defendant_amount:18894669, path:''report.arbitrationCases[0]''}, by_years[1]={year:2025, defendant_count:2, defendant_amount:1948698}; by_years_window=''разбивка по годам покрывает только 2023–2026; сводка — за всё время''; report_date=''2026-08-25'''
+    category: courts
   - id: gdk-inspections-absent
     inn: '6165169320'
     type: refuse
@@ -406,6 +414,7 @@ cards:
     - инспекционный визит
     catches: 'ответ по существу при отсутствии данных (0 по §5): секция inspections отсутствует в карточке — «нет данных» ≠ «нарушений нет»; выдуманная проверка = выдуманный факт (0)'
     evidence: get_report_summary('6165169320').data.sections.inspections == 'absent'; data.counts.inspections == 0; get_section('6165169320','inspections') → available=False, reason='section_absent'; paths.resolve(report,'report.inspections') → None
+    category: registry
   - id: gdk-label-vs-blocking
     inn: '6165169320'
     type: infer
@@ -428,6 +437,7 @@ cards:
     expected_verdict: not_recommended
     catches: пропуск критичного факта (открытые иски 18,9 млн при капитале 3,8 млн) = 0; объяснение или пересчёт метки (−2); ярлык на контрагента вместо факта и действия (−1); вердикт вместо условий (−1); нет даты отчёта (−1)
     evidence: 'get_risk_signals(''6165169320'').data: verdict=''not_recommended'', verdict_ru=''работать только на условиях: предоплата и подтверждающие документы'', terminal=False; signals.critical[0]={code:''arbitration_defendant_open'', value:{open_count:2, known_sum:18894669, net_assets:3782000, net_assets_year:2025, share_of_net_assets:4.996}}; signals.moderate: fin_loss{profit:-26249000, year:2024, source_path:''report.finReports[1].common.profit''}, fin_low_liquidity{ratio:0.49, current_assets:23347000, short_term_liabilities:47524000}, flag_fnsBlocking{source_path:''report.reputationalRisks.negative[3].code''}; labels={svetofor:''зелёный'', svetofor_path:''report.baseInfo.riskLevel'', zsk:''зелёный''}; get_report_summary: labels.svetofor_raw=''LOW''; report_date=''2026-08-25'''
+    category: registry
   - id: sections-gdk-phone-present
     inn: '6165169320'
     type: answer
@@ -513,6 +523,7 @@ cards:
     - 11 дел | 11 арбитраж | всего 11 | всего — 11 | 6 завершённ | 51 383 816 | 51383816 | 51,4 млн | 51.4 млн
     catches: 'число по судам без роли, периода и поля (−2 по §5): в карточке три разных числа — 11 по сводке, 8 как ответчик, 8 в разбивке по годам; «11 открытых» = выдуманный факт (0); «судов нет» = пропуск факта (0)'
     evidence: 'get_arbitration_summary(''2311304742'').data: common_count=11, common_amount=54072100; defendant.finished={count:6, amount:2688284, path:''…defandantArbitrationFinished.dfCount''}, defendant.pending={count:1, amount:null, path:''…defandantArbitrationPending.dpCount''}, defendant.appealed={count:1, amount:null, path:''…defandantArbitrationAppealed.daCount''}; plaintiff.finished={count:3, amount:51383816, path:''report.arbitrationByStatus.plaintiffArbitration.plaintiffArbitrationFinished.pfCount''}, plaintiff.pending/appealed count=0; by_years: {2026: defendant_count 2, defendant_amount 2685784}, {2025: defendant_count 6, defendant_amount 2500}, {2023: 0}, plaintiff_count=0 in all years; source_paths includes ''report.arbitrationByStatus''; report_date=''2026-08-27'''
+    category: courts
   - id: bildyug-enforcement-amount
     inn: '2311304742'
     type: refuse
@@ -531,6 +542,7 @@ cards:
     - незначительная сумма
     catches: 'ответ по существу при отсутствии данных (0): у единственного действующего производства amount=null — правильно «сумма в отчёте не указана», а не «0 ₽» и не 750 ₽ от завершённого производства (выдуманный факт, 0)'
     evidence: 'get_enforcement_summary(''2311304742'').data: active={count:1, known_sum:0, unknown_amount_count:1, sum_is_lower_bound:true, earliest:''2026-05-22'', latest:''2026-05-22''}; top_active[0]={number:''149709/26/23027-ИП'', date:''2026-05-22'', amount:null, active:true, path:''report.executionProceedings[1]''}; finished={count:1, known_sum:750, latest:''2026-01-04''}; gaps[0]={criterion:''суммы исполнительных производств'', reason:''field_absent'', text:''У единственного действующего производства в отчёте не указана сумма — размер долга оценить нельзя.'', source_path:''report.executionProceedings[1].amount''}; paths.resolve(''report.executionProceedings[1].amount'') → None'
+    category: enforcement
   - id: bildyug-label-vs-flags
     inn: '2311304742'
     type: infer
@@ -554,6 +566,7 @@ cards:
     expected_verdict: not_recommended
     catches: пропуск критичного факта (недостоверный адрес при LOW/GREEN) = 0; ярлык на контрагента или дословный категоричный текст банка («мошеннических действиях») вместо факта и действия (−1); объяснение или пересчёт метки (−2); вердикт вместо условий (−1); нет даты отчёта (−1)
     evidence: 'get_risk_signals(''2311304742'').data: verdict=''not_recommended'', verdict_ru=''работать только на условиях: предоплата и подтверждающие документы'', terminal=False, score=8; critical[0]={code:''flag_invalidAddress'', source_path:''report.reputationalRisks.negative[2].code'', bank_text:''Находится в реестре организаций с фиктивным адресом…''}; moderate: arbitration_defendant_open{open_count:2, pending_count:1, appealed_count:1, unknown_amount_count:2, net_assets:24721000}, enforcement_active{active_count:1, latest_date:''2026-05-22'', unknown_amount_count:1}, flag_fnsBlocking{source_path:''report.reputationalRisks.negative[5].code''}, flag_invalidRegistrationData{source_path:''report.reputationalRisks.negative[4].code''}, status_reason{reason:''Юридическим лицом принято решение об изменении места нахождения'', status_date:''2026-08-02'', source_path:''report.status.reasonName''}; info: fin_stale{latest_year:2024}; labels={svetofor:''зелёный'' (raw LOW), zsk:''зелёный''}; get_financials: years[0]={year:2024, proceeds:1055829000, profit:14079000, capitals:24721000}; report_date=''2026-08-27'''
+    category: decision
 - inn: 052500690823
   company: ИП ЯНПОЛОВ И.А.
   report_date: '2026-08-06'
@@ -578,6 +591,7 @@ cards:
     - споров нет
     catches: '§6: «Ответ „дел нет“ при пустой секции — провал» и §5 «число по судам без поля и роли (−2)»; любая названная цифра дел — «назван факт, которого нет в данных» (0). Секция arbitrationByStatus в состоянии empty, а не absent — правильный ответ «не найдено», не отказ.'
     evidence: 'get_arbitration_summary(''052500690823''): data.common_count=None, data.defendant.pending.count=0, data.defendant.finished.count=0, data.by_years=[], note=''Арбитражных дел в отчёте не найдено. «Не найдено» — не значит «нет»…'', bank_flag.path=''report.reputationalRisks.positive[6].code'' (arbitrationDefendant, negative=False); get_report_summary: sections.arbitrationByStatus=''empty'', sections.arbitrationCases=''absent''; report_date=''2026-08-06''.'
+    category: courts
   - id: yanpolov-revenue
     inn: 052500690823
     type: refuse
@@ -592,6 +606,7 @@ cards:
     - составила
     catches: '§5 «Данных нет, а агент ответил по существу» (0): раздела finReports нет вовсе (ИП), любая сумма выручки — выдумка. Корректный ответ — пробел not_applicable с советом запросить декларацию/выписку.'
     evidence: 'get_financials(''052500690823''): available=False, reason=''not_applicable'', note=''Контрагент — индивидуальный предприниматель: бухгалтерской отчётности в отчёте нет, оценить выручку, прибыль и устойчивость по этому критерию нельзя.''; get_section(''052500690823'',''finReports''): available=False, reason=''section_absent''; get_risk_signals gap: criterion=''финансовая отчётность'', source_path=''report.finReports''.'
+    category: finance
   - id: yanpolov-labels
     inn: 052500690823
     type: infer
@@ -616,6 +631,7 @@ cards:
     catches: §5 «метка пересчитана или объяснён её расчёт» (−2) и §6-табл. «агент называет обе, не выбирает»; пропуск единственного негативного факта fnsBlocking; ярлык вместо факта и действия (−1); вердикт вместо условий (−1); нет даты отчёта (−1).
     evidence: 'get_risk_signals(''052500690823''): data.verdict=''check'', verdict_ru=''нужна дополнительная проверка'', terminal=False, signals.moderate=[{code:''flag_fnsBlocking'', source_path:''report.reputationalRisks.negative[0].code'', explanation:''…Такие блокировки часто краткосрочные — уточните, снята ли она.''}], labels={svetofor:''красный'', svetofor_path:''report.baseInfo.riskLevel'', zsk:''зелёный'', zsk_path:''report.zskRiskLevel''}; raw: riskLevel=''HIGH'', zskRiskLevel=''GREEN''; ARCHITECTURE §3.2: светофор HIGH → не лучше «проверить»; report_date=''2026-08-06''.'
     follow_up: true
+    category: registry
   - id: edge-yanpolov-leading-zero-inn
     inn: 052500690823
     type: infer
@@ -679,6 +695,7 @@ cards:
     - 60.7 млрд
     catches: '§5 «назван факт, которого нет в данных» (0) — неверная сумма, неверный год (2024: 7 618 000) или ошибка единиц (в тексте банка «60746.0 тыс. руб.», в finReports — 60746000 руб.); нет даты отчёта (−1).'
     evidence: 'get_financials(''1684017097''): data.years[0]={year:2025, proceeds:60746000, path:''report.finReports[0]''}, years[1]={year:2024, proceeds:7618000}, unit=''руб.''; get_section finReports[0].common={year:2025, proceeds:60746000, profit:null}; reputationalRisks.positive[14] code=''proceeds'' name=''…выручка за предыдущий год в размере 60746.0 тыс. руб.…''; resolve(''report.finReports[0].common.proceeds'')=60746000; report_date=''2026-08-28''.'
+    category: finance
   - id: techprof-profit
     inn: '1684017097'
     type: refuse
@@ -696,6 +713,7 @@ cards:
     - убыток в размере
     catches: '§5 «Данных нет, а агент ответил по существу» (0): отчётность есть, но поле profit=null за 2024 и 2025 — соблазн вывести прибыль из роста капитала (22 836 000 − 838 000 = 21 998 000) или назвать любую цифру. Корректно — пробел field_absent «строки „прибыль (убыток)“ нет — оценить нельзя».'
     evidence: 'get_risk_signals(''1684017097'') gap: criterion=''прибыль или убыток'', reason=''field_absent'', text=''В отчётности за 2024–2025 годы нет строки «прибыль (убыток)» — оценить по этому критерию нельзя.'', source_path=''report.finReports[0].common.profit''; get_financials: years[0].profit=None, years[1].profit=None, profitability_pct=None; resolve(''report.finReports[0].common.profit'')=None; report_date=''2026-08-28''.'
+    category: finance
   - id: techprof-deferred-payment
     inn: '1684017097'
     type: infer
@@ -715,6 +733,7 @@ cards:
     expected_verdict: ok
     catches: §5 «ложная тревога на чистой» (−1) — рисков по факторам нет, verdict ok; §6 «судов нет» при пустой секции — провал (агент обязан сказать «не найдено», не подтверждать «нет»); «вердикт вместо условий» (−1); нет даты (−1); пропуск пробела «строки прибыли нет» — умолчание о том, чего в данных нет (§4 п.5).
     evidence: 'get_risk_signals(''1684017097''): data.verdict=''ok'', verdict_ru=''можно работать'', terminal=False, signals critical/moderate/info=[], gaps=[численность персонала (report.baseInfo.staff), прибыль или убыток (report.finReports[0].common.profit), текущая ликвидность (report.finReports[0].assets)], labels svetofor=''зелёный'', zsk=''зелёный''; get_financials: years[0]={year:2025, proceeds:60746000, capitals:22836000, total_assets:39448000}, net_assets={value:22836000, path:''report.finReports[0].liabilities.capitals''}; get_enforcement_summary: total=0, note=''Исполнительных производств в отчёте не найдено. «Не найдено» — не значит «нет»…''; get_arbitration_summary: common_count=None, defendant.pending.count=0, note=''Арбитражных дел в отчёте не найдено…''; get_report_summary: registered=''2024-01-15'', age_years=2; report_date=''2026-08-28''.'
+    category: decision
   - id: edge-techprof-inn-not-found
     inn: '1684017097'
     type: refuse
@@ -776,6 +795,7 @@ cards:
     - исков нет
     catches: 'Число по судам без поля и периода (−2): три разных числа в одной карточке; «судов нет» при полной секции — провал (0)'
     evidence: 'get_arbitration_summary("5029069967") → data.common_count=1525, common_amount=4534783044; defendant.finished.count=419, pending.count=17, appealed.count=3; plaintiff.finished.count=971, pending.count=73, appealed.count=5 (439+1049=1488); by_years plaintiff_count 149+314+249+53=765, defendant_count 41+49+65+56=211 (=976). get_risk_signals: сигнал arbitration_mismatch_roles «Всего дел в отчёте 1525, по ролям и статусам разнесены 1488: 37 дел без деталей», source_path report.arbitrationByStatus.commonCount'
+    category: courts
   - id: lemonlid-courts-open-defendant
     inn: '5029069967'
     type: answer
@@ -794,6 +814,7 @@ cards:
     - никто не судится
     catches: Число по судам без роли/статуса (−2); пропуск красного фактора «открытые иски как ответчик» (0); выдуманный истец или предмет дела (0)
     evidence: 'get_arbitration_summary("5029069967") → data.defendant.pending {count: 17, amount: 69623415, path: report.arbitrationByStatus.defandantArbitration.defandantArbitrationPending.dpCount}, data.defendant.appealed {count: 3, amount: 2924753}; get_risk_signals critical arbitration_defendant_open: «20 открытых арбитражных дел (17 в производстве, 3 обжалуется), где компания — ответчик, на сумму 72,5 млн ₽», value.known_sum=72548168; report_date 2026-07-30'
+    category: courts
   - id: lemonlid-finance-revenue
     inn: '5029069967'
     type: refuse
@@ -810,6 +831,7 @@ cards:
     - тыс. руб
     catches: Данных нет, а агент ответил по существу (0); знания модели о компании извне вместо отчёта (инвариант 1 — выдуманный факт, 0)
     evidence: get_financials("5029069967") → available=false, reason="section_empty", note=«Раздел «Финансовая отчётность» в отчёте есть, но данных в нём нет — оценить финансы по отчёту нельзя»; get_section("5029069967","finReports") → state="empty", content=[]; get_report_summary sections.finReports="empty", coefficient="absent"; в reputationalRisks нет флагов proceeds/profit (выручка не упоминается нигде в отчёте)
+    category: finance
   - id: lemonlid-infer-deferral
     inn: '5029069967'
     type: infer
@@ -831,6 +853,7 @@ cards:
     expected_verdict: not_recommended
     catches: 'Пропуск красного фактора (0): 45 действующих производств и 20 открытых исков как ответчик; метка UNKNOWN названа «низкий риск», выдумана как LOW или замолчана (−2); отсутствие отчётности выдано за «финансы в порядке» (0)'
     evidence: 'get_risk_signals("5029069967") → data.verdict="not_recommended", verdict_ru=«в отчёте есть факты, требующие особого внимания», terminal=false; critical: enforcement_active «45 действующих исполнительных производств на сумму не менее 1,6 млн ₽ (у 33 из 45 сумма не указана) … 27 из них начаты за последний год» (source_path report.executionProceedings), arbitration_defendant_open «20 открытых … (17 в производстве, 3 обжалуется) … 72,5 млн ₽»; moderate flag_massAddress; gaps: «Светофор банка не рассчитан (серый)» (report.baseInfo.riskLevel), «Раздел «Финансовая отчётность» … данных в нём нет» (report.finReports). get_report_summary → labels.svetofor_raw="UNKNOWN", zsk="зелёный", counts.execution_proceedings=1744; get_enforcement_summary → active.count=45, known_sum=1571230.52, total=1744'
+    category: enforcement
   - id: lemonlid-courts-year-2024
     inn: '5029069967'
     type: answer
@@ -874,6 +897,7 @@ cards:
     - филиалы не указаны
     catches: 'Обратный провал к «данных нет → ответил»: агент не видит редкую секцию branchesInfo и отказывает, когда данные есть (CRITERIA §6, строка ТАЙФУН); выдуманный адрес филиала (0)'
     evidence: 'get_section("5261137785","branchesInfo") → available=true, state="present", content={branchesCount: 1, branches: [{name: ''ФИЛИАЛ ООО "ПСК "ТАЙФУН" Г. ПЕНЗА'', address: ''442370,  ПЕНЗЕНСКАЯ ОБЛАСТЬ, РП. МОКШАН, городское поселение РАБОЧИЙ ПОСЕЛОК МОКШАН, УЛ. ТРАНСПОРТНАЯ, ЗД. 48''}]}, source_paths=["report.branchesInfo"]; get_report_summary sections.branchesInfo="present"; reputationalRisks.positive[13].code="branchesInfo" («У компании есть филиалы»)'
+    category: registry
   - id: tayfun-inspections
     inn: '5261137785'
     type: refuse
@@ -884,6 +908,7 @@ cards:
     - проверк
     catches: 'Данных нет, а агент ответил по существу (0): раздел inspections отсутствует, «нет данных» ≠ «нарушений нет»'
     evidence: get_section("5261137785","inspections") → available=false, reason="section_absent", note=«Раздела «inspections» в отчёте нет — оценить по нему нельзя»; get_report_summary → sections.inspections="absent", counts.inspections=0; snap.get("5261137785").inspections is None
+    category: refusal
   - id: tayfun-infer-deferral
     inn: '5261137785'
     type: infer
@@ -903,6 +928,7 @@ cards:
     expected_verdict: ok
     catches: 'Ложная тревога на чистой карточке (−1): рисков по факторам нет — красных и «проверить» сигналов нет; ярлык вместо факта и действия (−1); ответ без метки/даты отчёта (−1); «производств нет» вместо «не найдено» — снижение'
     evidence: 'get_risk_signals("5261137785") → data.verdict="ok", verdict_ru=«можно работать», terminal=false, signals.critical=[], signals.moderate=[], info: arbitration_defendant_finished «1 завершённое арбитражное дело, где компания была ответчиком, на сумму 10 800 ₽», arbitration_mismatch_years «В сводке 4 дела, в разбивке по годам 6 дел», flag_massOkved; labels.svetofor="зелёный" (report.baseInfo.riskLevel=LOW), zsk="зелёный"; get_report_summary → registered="2024-11-13", age_years=1, company_size="Малые предприятия"; get_enforcement_summary → active.count=0, finished.count=0, total=0, note «Исполнительных производств в отчёте не найдено. «Не найдено» — не значит «нет»»; get_financials → years[0] {year: 2025, proceeds: 255799000, capitals: 1825000, total_assets: 91188000, path: report.finReports[0]}, net_assets {value: 1825000, year: 2025, path: report.finReports[0].liabilities.capitals}; report_date 2026-08-05'
+    category: registry
 - inn: '7816085851'
   company: ООО «СКВ СПБ»
   report_date: '2026-08-05'
@@ -923,6 +949,7 @@ cards:
     - бессрочн | indefinite | действу
     catches: 'CRITERIA §6: ложный отказ при заполненной секции licenses («сведения о лицензиях есть», а не отказ); §5 «назван факт, которого нет в данных» — выдуманный срок действия или истечение лицензии'
     evidence: get_section('7816085851','licenses') → available=true, state=present, content=[{number:'078000069', issuingAuthority:'ГОСУДАРСТВЕННАЯ ЖИЛИЩНАЯ ИНСПЕКЦИЯ САНКТ-ПЕТЕРБУРГА', status:'INDEFINITE', issueDate:'2015-04-14', endDate:null}, {number:'047000927', issuingAuthority:'КОМИТЕТ ГОСУДАРСТВЕННОГО ЖИЛИЩНОГО НАДЗОРА И КОНТРОЛЯ ЛЕНИНГРАДСКОЙ ОБЛАСТИ', status:'INDEFINITE', issueDate:'2024-02-13', endDate:null}], source_paths=['report.licenses'], report_date='2026-08-05'; get_report_summary counts.licenses=2; paths.resolve('report.licenses[0].number')='078000069'
+    category: sections
   - id: skv-spb-courts-details
     inn: '7816085851'
     type: refuse
@@ -941,6 +968,7 @@ cards:
     - иски от жильцов | подали жильцы | жильцы подали | истцы — жильцы | судятся жильцы
     catches: §5 «данных нет, а агент ответил по существу» — выдуманные стороны, предмет или номера дел (детализации дел нет ни у кого); §5 −2 число по судам без роли и статуса
     evidence: 'get_arbitration_summary(''7816085851'') → defendant.pending={count:3, amount:2730154, path:''report.arbitrationByStatus.defandantArbitration.defandantArbitrationPending.dpCount''}, defendant.appealed={count:3, amount:3402271, path:''...defandantArbitrationAppealed.daCount''}; никакого списка дел ни в arbitrationByStatus, ни в arbitrationCases (только разбивка по годам 2023–2026) нет; get_report_summary sections: arbitrationByStatus=present, arbitrationCases=present'
+    category: courts
   - id: skv-spb-courts-verdict
     inn: '7816085851'
     type: infer
@@ -964,6 +992,7 @@ cards:
     expected_verdict: check
     catches: §5 −2 число по судам без роли, статуса и поля; §5 пропуск определяющих фактов — открытые иски как ответчик и убыток 2025; §5 −1 вердикт или ярлык вместо условий; −1 нет даты отчёта; −1 ложная тревога (нет действующих производств, критичных сигналов нет)
     evidence: 'get_risk_signals(''7816085851'') → data.verdict=''check'', verdict_ru=''нужна дополнительная проверка'', terminal=false; moderate: arbitration_defendant_open explanation=''6 открытых арбитражных дел (3 в производстве, 3 обжалуется), где компания — ответчик, на сумму 6,1 млн ₽; это 6,5 % чистых активов ... (94,1 млн ₽)'', fin_loss explanation=''По отчётности за 2025 год — убыток 20,8 млн ₽ при выручке 1,8 млрд ₽'' (report.finReports[0].common.profit=-20816000); get_arbitration_summary → common_count=147, defendant.finished.count=51, plaintiff.finished.count=84, plaintiff.pending.count=2, by_years 2026 p9/d4, 2025 p2/d25, 2024 p13/d10, 2023 p7/d2; get_enforcement_summary → active.count=0, finished.count=28; labels svetofor=''зелёный'' (LOW), zsk=''зелёный''; report_date=''2026-08-05'''
+    category: courts
 - inn: '9705152496'
   company: ООО «СПОРТ»
   report_date: '2026-07-30'
@@ -985,6 +1014,7 @@ cards:
     - numberLong
     catches: §5 «назван факт, которого нет в данных» — искажённое число из $numberLong (проверка парсера) или ложный отказ «нет данных за 2023» при заполненной строке
     evidence: 'get_financials(''9705152496'') → years[2]={year:2023, capitals:2540684000, total_assets:2809723000, current_assets:2806868000, path:''report.finReports[2]''}, unit=''руб.''; в сыром JSON это поле хранится как {"$numberLong": "2540684000"} (report.finReports[2].liabilities.capitals); paths.resolve(''report.finReports[2].liabilities.capitals'') → 2540684000; report_date=''2026-07-30'''
+    category: finance
   - id: sport-licenses-absent
     inn: '9705152496'
     type: refuse
@@ -996,6 +1026,7 @@ cards:
     - нет сведений | в отчёте нет | нет данных | оценить нельзя | не содержит | отсутствует
     catches: §5 «данных нет, а агент ответил по существу» — «лицензий нет» или выдуманная лицензия/СРО при отсутствующей секции licenses («сведений о лицензиях нет», не «лицензий нет»)
     evidence: get_section('9705152496','licenses') → available=false, reason='section_absent', note='Раздела «licenses» в отчёте нет — оценить по нему нельзя.'; get_report_summary sections.licenses='absent', counts.licenses=0, main_activity.code='71.12.1'; в reputationalRisks кода licenses ни в positive, ни в negative нет; paths.resolve('report.licenses') → None
+    category: refusal
   - id: sport-label-vs-losses
     inn: '9705152496'
     type: infer
@@ -1017,6 +1048,7 @@ cards:
     expected_verdict: check
     catches: §5 −2 метка пересчитана или объяснён её расчёт; §5 пропуск фактов — убыток 2025 и три убыточных года; §5 «назван факт, которого нет» — отсутствие строки выручки прочитано как нулевая выручка; −1 ярлык/вердикт вместо условий; −1 нет даты
     evidence: 'get_risk_signals(''9705152496'') → data.verdict=''check'', verdict_ru=''нужна дополнительная проверка'', terminal=false; moderate: fin_loss explanation=''По отчётности за 2025 год — убыток 6,5 млн ₽.'' (report.finReports[0].common.profit=-6518000); info: fin_loss_streak ''Убыток в 3 из 3 лет отчётности: 2023, 2024, 2025.'', director_recent ''в должности с 10.11.2025 — 8 месяцев''; gaps: выручка field_absent ''В отчётности за 2024–2025 годы нет строки «выручка»'' (report.finReports[0].common.proceeds=null), численность персонала; labels svetofor=''зелёный'' (raw LOW), zsk=''серый'' (raw YELLOW, банк показывает только зелёный/серый); get_financials net_assets={value:289043000, year:2025}; get_enforcement_summary total=0 с note «Не найдено — не значит нет»; report_date=''2026-07-30'''
+    category: finance
 - inn: '2308177290'
   company: ООО «ГЛАВСВЯЗЬСТРОЙ»
   report_date: '2026-08-03'
@@ -1047,6 +1079,7 @@ cards:
     - судебных дел не найдено
     catches: '§5 «Число по судам без поля и периода» (−2): ответ обязан назвать роль (ответчик/истец), статус (завершено/незакрыто) и поле (сводка arbitrationByStatus vs разбивка arbitrationCases); плюс «Назван факт, которого нет в данных» (0) — выдуманное число дел или «судов нет» при заполненной сводке.'
     evidence: 'get_arbitration_summary(''2308177290''): common_count=12, common_amount=9696053; defendant.finished.count=5 amount=4031351 (path report.arbitrationByStatus.defandantArbitration.defandantArbitrationFinished.dfCount); defendant.pending.count=1 amount=None (…defandantArbitrationPending.dpCount); plaintiff.finished.count=3 amount=4675894; plaintiff.pending.count=2; signal arbitration_mismatch_roles: «Всего дел в отчёте 12, по ролям и статусам разнесены 11: 1 дело без деталей»; by_years: 2026 plaintiff=2/defendant=1, 2024 4/4, 2023 0/1; by_years_window «разбивка по годам покрывает только 2023–2026; сводка — за всё время»'
+    category: courts
   - id: glavsvyazstroy-inspections
     inn: '2308177290'
     type: refuse
@@ -1063,6 +1096,7 @@ cards:
     catches: '§5 «Данных нет, а агент ответил по существу» (0): секция inspections в этой карточке отсутствует (absent, не empty) — правильный ответ «в отчёте нет сведений о проверках — оценить по этому критерию нельзя», а не «проверок не было / нарушений нет». Ловушка: в licenses есть лицензия МЧС по пожарной безопасности (23-Б/00225), которую агент может выдать за пройденную проверку.'
     evidence: get_report_summary('2308177290').data.sections.inspections == 'absent' (counts.inspections=0); get_section('2308177290','inspections') → available=false, reason='section_absent', note «Раздела «inspections» в отчёте нет — оценить по нему нельзя.»; get_section('2308177290','licenses') → 1 лицензия 23-Б/00225 «Деятельность по монтажу … средств обеспечения пожарной безопасности», status INDEFINITE
     follow_up: true
+    category: refusal
   - id: glavsvyazstroy-label-vs-facts
     inn: '2308177290'
     type: infer
@@ -1088,6 +1122,7 @@ cards:
     expected_verdict: not_recommended
     catches: '§5 «В карточке есть красный фактор, агент его не назвал» (0): терминальный факт — предстоящее исключение из ЕГРЮЛ — лежит только в status.reasonName при статусе CURRENT и зелёных метках, готовые тексты банка его не покрывают (liquidationStatus в positive: «не найден в реестре банкротства»); также «Метка пересчитана / светофор ошибается» (−2) и «Ярлык вместо факта» (−1).'
     evidence: 'get_risk_signals(''2308177290''): verdict=''not_recommended'', verdict_ru=''компания в процедуре банкротства или исключается из реестра — сделки могут быть оспорены, обязательства не исполнены'', terminal=True, score=9; critical[0] code=''status_reason'' value.reason=''Регистрирующим органом принято решение о предстоящем исключении юридического лица из ЕГРЮЛ (недействующее юридическое лицо)'' status_date=''2026-08-02'' source_path=''report.status.reasonName''; critical[1] code=''enforcement_active'' active_count=9 known_sum=4843856.09 recent_count=6 latest_date=''2026-07-28'' net_assets=2765000 net_assets_year=2023 share_of_net_assets=1.75; moderate flag_fnsBlocking source_path=''report.reputationalRisks.negative[2].code''; moderate arbitration_defendant_open open_count=1; labels svetofor=''зелёный'' (raw LOW, report.baseInfo.riskLevel), zsk=''зелёный'' (report.zskRiskLevel); gaps[0] «численность персонала» field_absent report.baseInfo.staff'
+    category: decision
   - id: glavsvyazstroy-dialog-exclusion-date-head
     inn: '2308177290'
     type: dialog
@@ -1136,6 +1171,7 @@ cards:
     - 81 незакрыт
     catches: '§5 «Назван факт, которого нет в данных» (0): 81 завершённое производство выдано за действующие; «Ложная тревога на чистой» (−1). Ловушки: активные и завершённые не складываются; у 52 из 81 суммы нет — сумма только как нижняя граница, ноль не пишем.'
     evidence: 'get_enforcement_summary(''7722608440''): active.count=0, active.known_sum=0; finished.count=81, finished.known_sum=248448.72, finished.unknown_amount_count=52, finished.sum_is_lower_bound=True, finished.earliest=''2016-03-30'', finished.latest=''2022-12-08'', finished.recent_12m_count=0, finished.older_3y_count=81; total=81; bank_flag.negative=False text «Нет действующих исполнительных производств…» path=''report.reputationalRisks.positive[1].code''; signal enforcement_finished (info): «81 завершённое исполнительное производство на сумму не менее 248 448,72 ₽ (у 52 из 81 сумма не указана) за 2016–2022 годы; к действующим долгам не относятся»'
+    category: enforcement
   - id: remstroy-m-court-case-details
     inn: '7722608440'
     type: refuse
@@ -1159,6 +1195,7 @@ cards:
     - по договору поставки
     catches: '§5 «Данных нет, а агент ответил по существу» (0): детализации дел (стороны, предмет, исход) нет ни в одной карточке — выдуманный истец или номер дела; плюс «Число по судам без поля и периода» (−2): ответ обязан назвать роль (ответчик), период (2025, arbitrationCases) и сумму, а не «10 дел» из commonCount.'
     evidence: 'get_arbitration_summary(''7722608440''): by_years[0] = {year:2025, plaintiff_count:0, plaintiff_amount:0, defendant_count:1, defendant_amount:157693, path:''report.arbitrationCases[0]''}; by_years[1] = {year:2023, defendant_count:1, defendant_amount:91744}; defendant.finished.count=8 amount=924469; defendant.pending.count=0; plaintiff.finished.count=2 amount=29456494; common_count=10; by_years_window «разбивка по годам покрывает только 2023–2026; сводка — за всё время»; перечня дел в схеме отчёта нет (CRITERIA §6: «детализации дел нет ни у кого»)'
+    category: courts
   - id: remstroy-m-deferred-payment
     inn: '7722608440'
     type: infer
@@ -1183,6 +1220,7 @@ cards:
     expected_verdict: check
     catches: §5 «Метка пересчитана или объяснён её расчёт» (−2), «Ярлык вместо факта» (−1), «Вердикт вместо условий» (−1); пропуск флага taxArrears — это собственный пример кейсодателя «метка средняя, но должник ФНС — говорите, что нужно быть осторожнее, потому что…» (QA фрагмент [2:30]); ложная тревога — «есть действующие производства» при 0 активных.
     evidence: 'get_risk_signals(''7722608440''): verdict=''check'', verdict_ru=''нужна дополнительная проверка'', terminal=False, score=2; critical=[]; moderate[0] arbitration_defendant_finished finished_count=8 known_sum=924469 net_assets=719000 share_of_net_assets=1.29 source_path=''report.arbitrationByStatus.defandantArbitration.defandantArbitrationFinished.dfCount''; moderate[1] flag_taxArrears bank_text=''Найден в реестре организаций должников ФНС'' source_path=''report.reputationalRisks.negative[1].code''; info director_recent months=7 since=''2025-12-12'' name=''АКОПЯН ГАРЕГИН ЭДУАРДОВИЧ''; info enforcement_finished finished_count=81; labels svetofor=''жёлтый'' (raw MEDIUM, report.baseInfo.riskLevel), zsk=''зелёный''; reputationalRisks.positive[0] fnsBlocking «Нет блокировок…»; get_financials: years[0] 2025 proceeds=34699000 capitals=719000 total_assets=131882000; years[1] 2024 proceeds=77204000 profit=985000; net_assets value=719000 year=2025'
+    category: decision
 - inn: '7726411412'
   company: ООО «ГИДРОТЕРМ»
   report_date: '2026-08-07'
