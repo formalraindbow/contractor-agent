@@ -47,6 +47,7 @@ from contractor_agent.agent.question import (
     STAFF_QUESTION,
     limitation,
     needs_risk_review,
+    resolved_status_followup,
 )
 from contractor_agent.agent.schema import Answer, Attention, Card, CardLabels, Citation, Draft
 from contractor_agent.agent.scoped_answers import DOCUMENTS, scoped_answer
@@ -235,6 +236,18 @@ def make_nodes(llm: LLM, tools: list[Any], source: ReportSource) -> dict[str, No
         if (clarification := ambiguity(state)) is not None:
             return {
                 "messages": [AIMessage(content=clarification.text_md)],
+                "agent_rounds": state.get("agent_rounds", 0) + 1,
+            }
+        resolved = answer_inns(state)
+        if (
+            len(resolved) == 1
+            and source.get(resolved[0]) is not None
+            and resolved_status_followup(question, resolved[0])
+        ):
+            # The known source has no live registry access. Still execute the evidence
+            # node and validate the dated report answer; an LLM cannot add fresh data.
+            return {
+                "messages": [AIMessage(content="")],
                 "agent_rounds": state.get("agent_rounds", 0) + 1,
             }
         focus = requested_inns(question, answer_inns(state), source)

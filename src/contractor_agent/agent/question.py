@@ -61,6 +61,29 @@ def needs_risk_review(question: str) -> bool:
     return bool(DECISION.search(q) or RISK_TOPIC.search(q))
 
 
+def resolved_status_followup(question: str, inn: str) -> bool:
+    """Only a resolved identity or an unambiguously pronominal status question.
+
+    Unknown/new names must still go through search; do not inherit the last company.
+    """
+    q = subject(question)
+    if limitation(q) != "fresh_status":
+        return False
+    ids = set(re.findall(r"\b(?:\d{10}|\d{12})\b", q))
+    if ids:
+        return ids == {inn}
+    words = set(re.findall(r"[а-яёa-z]+", q.casefold()))
+    return bool(words) and words <= {
+        "а", "и", "но", "ну", "так", "то", "есть", "прямо", "сейчас", "сегодня",
+        "теперь", "уже", "ещё", "еще", "на", "в", "настоящий", "момент", "ли",
+        "какой", "какая", "какое", "что", "со", "с", "у", "неё", "нее", "него",
+        "она", "он", "оно", "это", "эта", "этот", "этой", "этого", "её", "ее", "его",
+        "компания", "компании", "организация", "организации", "контрагент", "контрагента",
+        "действует", "действующая", "действующий", "работает", "закрыта", "закрыт",
+        "закрылась", "ликвидирована", "ликвидирован", "статус", "текущий", "или", "?",
+    }
+
+
 def is_full_review(question: str) -> bool:
     q = subject(question)
     if limitation(q):

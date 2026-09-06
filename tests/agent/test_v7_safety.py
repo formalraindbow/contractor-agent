@@ -1038,3 +1038,30 @@ def test_enforcement_before_registration_does_not_invent_a_cause(snapshot):
     assert "Причину такого соотношения дат отчёт не раскрывает" in draft.text_md
     assert "перерег" not in draft.text_md and "физического лица" not in draft.text_md
     assert all(c.ok for c in validate_citations(snapshot, ["501207152100"], draft.citations))
+
+
+async def test_known_current_status_does_not_need_provider_but_reads_report(snapshot, tmp_path):
+    model = scripted_llm([])  # Any provider invocation would fail this test.
+    async with AgentRuntime(settings(tmp_path), source=snapshot, llm=model) as runtime:
+        first = await runtime.ask("Какой сейчас статус у 5032257375?", "offline-status")
+        second = await runtime.ask(
+            "А прямо сейчас компания действует или уже закрыта?", "offline-status"
+        )
+        state = await runtime.graph.aget_state({"configurable": {"thread_id": "offline-status"}})
+    for answer in [first, second]:
+        assert "нет обновлений на сегодня" in answer.text_md
+        assert "банкрот" in answer.text_md and "31.07.2026" in answer.text_md
+        assert set(answer.report_dates) == {"5032257375"}
+        assert not answer.invalid_citations
+    assert any(t.name == "get_report_summary" for t in state.values["trace"])
+    assert not model.models[0].seen
+
+
+def test_current_status_shortcut_never_resolves_an_unseen_name_or_other_id():
+    from contractor_agent.agent.question import resolved_status_followup
+
+    assert resolved_status_followup("Она на сегодня действующая?", "5032257375")
+    assert not resolved_status_followup("А надежда сейчас действует?", "5032257375")
+    assert not resolved_status_followup("А ТЕХПРОФ сейчас действует?", "5032257375")
+    assert not resolved_status_followup("Какой сейчас статус у 0000000000?", "5032257375")
+    assert not resolved_status_followup("Какие суды сейчас не закрыты?", "5032257375")
