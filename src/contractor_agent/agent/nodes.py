@@ -242,13 +242,19 @@ def make_nodes(llm: LLM, tools: list[Any], source: ReportSource) -> dict[str, No
                 list(state.get("selected_inns") or []),
                 source,
             )
-            or refusal_problem(answer, state.get("trace") or [])
+            or refusal_problem(answer, _turn_trace(state))
             or empty_problem(answer)
             or verdict_mismatch(answer, require_comparison=require_comparison)
             or forbidden_problem(answer.text_md)
             or format_problem(answer, str(state.get("question") or ""))
             or details_problem(answer, str(state.get("question") or ""))
             or absence_problem(answer.text_md)
+            or decision_problem(
+                answer,
+                str(state.get("question") or ""),
+                [c for c in (build_card(tools_layer, i) for i in _turn_inns(state)) if c],
+            )
+            or ranking_problem(answer)
         )
         retry = state.get("citation_retry") or 0
         if (invalid or verdict_problem) and retry < MAX_CITATION_RETRIES:
@@ -408,7 +414,9 @@ _CARD_RE = re.compile(
 _COMPARE_RE = re.compile(r"сравни|с кем лучше|кого выбрать|кто из них", re.I)
 _DECISION_RE = re.compile(
     r"можно (?:ли|им|давать|платить|работать)|стоит ли|давать ли|кому верить|или лучше|"
-    r"безопасно ли|рискованно ли|надо ли|потянет ли",
+    r"безопасно ли|рискованно ли|надо ли|потянет ли|пройд[её]т ли|есть ли смысл|взыщу ли|"
+    r"страшно|мешает ли|это мешает|рисков (?:у них )?нет|подозрительно|можно ей|можно ему|"
+    r"с ними работать|брать (?:у них|товар)|в поставщики|заключать договор|оплачу|оплатить",
     re.I,
 )
 _DOCUMENTS_Q = re.compile(r"что (?:запросить|уточнить)|какие документы|список документов", re.I)
@@ -709,10 +717,38 @@ def absence_problem(text: str) -> str | None:
     )
 
 
+def decision_problem(answer: Answer, question: str, cards: list[Card]) -> str | None:
+    """Вопрос-решение, а в ответе нет штатной фразы вывода — круг исправления.
+    «Рекомендуется дополнительная проверка» и подобное штатной фразой не считается."""
+    if answer.kind in ("card", "comparison", "refusal") or not cards or len(cards) != 1:
+        return None
+    if not _DECISION_RE.search(question):
+        return None
+    if verdict_present(answer.text_md, cards[0].verdict):
+        return None
+    return (
+        f"Это вопрос-решение. Добавь вывод буквально по verdict_ru: «{VERDICT_RU[cards[0].verdict]}» "
+        "— одной строкой, и назови критичные факты из get_risk_signals, на которых он держится."
+    )
+
+
+_ABOUT_COMPANY_RE = re.compile(
+    r"\d{10,12}|ооо|ип\b|компани|контрагент|фирм|у них|у неё|у него", re.I
+)
+
+
 def refusal_problem(answer: Answer, trace: list[ToolCallTrace]) -> str | None:
-    """Отказ, когда инструмент вернул данные, — ошибка модели, а не пробел в отчёте."""
+    """Отказ, когда инструмент вернул данные, — ошибка модели, а не пробел в отчёте.
+    Отказ вообще без вызова инструментов по вопросу про компанию — тем более: модель
+    решила «в отчёте нет телефона», не заглянув в отчёт."""
     if answer.kind != "refusal":
         return None
+    if not trace:
+        return (
+            "Отказываться без обращения к отчёту нельзя. Вызови инструмент по компании из вопроса "
+            "(get_section для телефонов, лицензий, учредителей и других разделов; get_report_summary "
+            "для реквизитов) и ответь по его данным; «нет сведений» — только если инструмент так сказал."
+        )
     with_data = [t.name for t in trace if t.available and t.result_chars > 400]
     if not with_data:
         return None
@@ -877,6 +913,43 @@ def drop_invalid_lines(text: str, invalid: list[Citation]) -> str:
             continue
         keep.append(line)
     return "\n".join(keep)
+
+
+_RANKING_RE = re.compile(
+    r"оценка\s*\**\s*\d|\d\s*(?:из|/)\s*10\b|\bбалл|рейтинг|первое место|второе место|третье место|скоринг",
+    re.I,
+)
+
+
+def ranking_problem(answer: Answer) -> str | None:
+    """Баллы, места и рейтинг вместо решений — запрещено кейсодателем (CRITERIA §6-бис)."""
+    if answer.kind != "comparison":
+        return None
+    m = _RANKING_RE.search(answer.text_md)
+    if not m:
+        return None
+    return (
+        f"Убери «{m.group(0)}»: баллы, оценки от 1 до 10, места и рейтинги не даём. По каждой "
+        "компании — вывод буквально по её verdict_ru и один-два факта; если просили баллы — "
+        "скажи одной строкой, что вместо баллов даёшь три исхода."
+    )
+
+
+def _turn_trace(state: AgentState) -> list[ToolCallTrace]:
+    """Вызовы инструментов текущего хода: после последней реплики пользователя с этим вопросом."""
+    messages = state["messages"]
+    question = str(state.get("question") or "")
+    start = 0
+    for i, m in enumerate(messages):
+        if isinstance(m, HumanMessage) and str(m.content) == question:
+            start = i
+    n_tools = sum(1 for m in messages[start:] if isinstance(m, ToolMessage))
+    trace = list(state.get("trace") or [])
+    return trace[-n_tools:] if n_tools else []
+
+
+def _turn_inns(state: AgentState) -> list[str]:
+    return list(state.get("turn_inns") or state.get("selected_inns") or [])
 
 
 def enforce_comparison(text: str, cards: list[Card]) -> str:
