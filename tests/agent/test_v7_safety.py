@@ -912,3 +912,27 @@ def test_question_about_indicator_colors_states_exact_bank_labels(snapshot):
     assert draft is not None
     assert "красный" in draft.text_md and "серый" in draft.text_md
     assert all(c.ok for c in validate_citations(snapshot, ["421412008124"], draft.citations))
+
+
+def test_registry_mark_explanation_across_sentences_uses_known_meaning(snapshot):
+    question = (
+        "У ФИНТРЕЙД 7806627689 отметка ФНС о регистрационных сведениях. "
+        "Объясни простыми словами, что означает недостоверность."
+    )
+    draft = scoped_answer(Tools(snapshot), ["7806627689"], question)
+    assert "регистрационн" in draft.text_md
+    assert "сомнение" in draft.text_md
+    assert "чужим именем" not in draft.text_md
+    assert all(c.ok for c in validate_citations(snapshot, ["7806627689"], draft.citations))
+
+
+def test_procurement_experience_does_not_override_rnp(snapshot):
+    question = "У 7704310756 был опыт закупок, значит в РНП его нет?"
+    draft = factual_sections(Tools(snapshot), ["7704310756"], question)
+    assert "включена в реестр недобросовестных поставщиков" in draft.text_md
+    assert "Подписанные контракты" in draft.text_md
+    assert all(c.ok for c in validate_citations(snapshot, ["7704310756"], draft.citations))
+    assert any(
+        r["name"] == "get_section" and r["args"]["name"] == "procurements"
+        for r in missing_reads(question, ["7704310756"], [])
+    )

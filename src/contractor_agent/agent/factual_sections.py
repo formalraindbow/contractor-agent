@@ -300,7 +300,7 @@ def factual_sections(tools: Tools, inns: list[str], question: str) -> Draft | No
                     "и не подтверждают право проводить обучение.",
                     "report.licenses",
                 )
-    elif re.search(r"закупк|госконтракт|тендер|госзаказ", q, re.I) and not re.search(
+    elif re.search(r"закуп(?:к|ок)|госконтракт|тендер|госзаказ", q, re.I) and not re.search(
         r"лиценз|выручк|прибыл|финанс|сколько.{0,10}суд|телефон|учредит", q, re.I
     ):
         lines = ["### Опыт государственных закупок"]

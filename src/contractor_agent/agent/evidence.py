@@ -51,7 +51,7 @@ def missing_reads(question: str, inns: list[str], trace: list[ToolCallTrace]) ->
             "foundersInfo",
         ),
         (r"связанн", "relatedCompanies"),
-        (r"закупк|тендер|госзаказ", "procurements"),
+        (r"закуп(?:к|ок)|госконтракт|тендер|госзаказ", "procurements"),
         (r"филиал", "branchesInfo"),
         (r"оквэд|вид\w* деятельн|профиль|занима[ею]|торгуют|обуч|образоват", "kindsOfActivityInfo"),
         (r"проверк\w* (?:гос|орган)|проверял|инспекц|нарушен", "inspections"),
