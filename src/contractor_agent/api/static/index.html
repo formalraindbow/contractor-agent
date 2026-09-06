@@ -74,9 +74,35 @@ button:focus-visible,a:focus-visible,input:focus-visible,textarea:focus-visible,
 .verdict.ok { background:var(--ok-bg); border-color:var(--ok); } .verdict.ok .v { color:var(--ok); }
 .verdict.check { background:var(--mod-bg); border-color:var(--mod); } .verdict.check .v { color:var(--mod); }
 .verdict.not_recommended { background:var(--crit-bg); border-color:var(--crit); } .verdict.not_recommended .v { color:var(--crit); }
-.facts { list-style:none; margin:0; padding:0 22px; } .facts li { padding:11px 0; border-bottom:1px solid var(--line); max-width:78ch; } .facts li:last-child { border:0; }
+.facts { list-style:none; margin:0; padding:8px 22px 20px; display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:12px; }
+.fact-block { --fact-tone:var(--info); --fact-bg:var(--info-bg); --fact-line:#cbd5df; min-width:0; padding:18px; border:1px solid var(--fact-line); border-radius:12px; background:var(--fact-bg); overflow-wrap:anywhere; }
+.fact-block.critical { --fact-tone:var(--crit); --fact-bg:#fdf1ef; --fact-line:#eac7c3; }
+.fact-block.moderate { --fact-tone:var(--mod); --fact-bg:#fff8ec; --fact-line:#e8d5b2; }
+.fact-block.historical { --fact-tone:#486d97; --fact-bg:#f2f6fa; --fact-line:#cfdae6; }
+.fact-block.wide { grid-column:1 / -1; }
+.fact-block.status-block { border-left:4px solid var(--fact-tone); }
+.fact-heading { display:flex; gap:10px; align-items:flex-start; margin-bottom:10px; }
+.fact-icon { display:flex; align-items:center; justify-content:center; width:29px; height:29px; flex:none; border-radius:8px; color:var(--fact-tone); background:#ffffffb3; }
+.fact-icon svg { width:18px; height:18px; }
+.fact-heading h3 { margin:2px 0 0; font-size:16px; line-height:1.4; font-weight:700; letter-spacing:-.15px; }
+.status-block .fact-heading h3 { font-size:20px; color:var(--fact-tone); }
+.fact-body p { margin:0; font-size:14px; line-height:1.65; max-width:76ch; }
+.fact-body p + p { margin-top:10px; padding-top:10px; border-top:1px solid var(--fact-line); }
+.fact-body strong { color:var(--fact-tone); font-weight:700; font-variant-numeric:tabular-nums; }
+.fact-amount { white-space:nowrap; }
+.facts.compact { padding:0; grid-template-columns:1fr; gap:9px; }
+.facts.compact .fact-block { padding:12px; }
+.facts.compact .fact-heading { gap:8px; margin-bottom:7px; }
+.facts.compact .fact-heading h3 { font-size:14px; }
+.facts.compact .fact-body p { font-size:13px; }
+#cardAssessment .verdict { padding:15px 22px 12px; border:0; background:transparent; }
+#cardAssessment .assessment-label { font-weight:400; color:var(--muted); margin-bottom:4px; }
+#cardAssessment .verdict .v { font-size:16px; font-weight:600; }
 .sev { display:inline-block; margin-right:7px; font-size:11px; border-radius:4px; padding:1px 6px; background:var(--info-bg); color:var(--info); } .sev.critical { background:var(--crit-bg); color:var(--crit); } .sev.moderate { background:var(--mod-bg); color:var(--mod); }
-.more-facts { margin:0 22px 12px; } .more-facts .facts { padding:0; } summary { cursor:pointer; font-size:14px; color:var(--muted); }
+.more-facts { margin:0 22px 16px; } .more-facts .facts { padding:12px 0 0; } summary { cursor:pointer; font-size:14px; color:var(--muted); }
+.history-facts { border-top:1px solid var(--line); padding-top:14px; }
+.history-facts summary { color:#486d97; font-weight:600; }
+.history-facts summary small { display:block; color:var(--muted); font-size:12px; font-weight:400; margin:3px 0 0 17px; }
 .gaps { padding:14px 22px; border-top:1px solid var(--line); font-size:14px; } .gaps b { display:block; margin-bottom:6px; font-weight:600; } .gaps ul { margin:0; padding-left:18px; max-width:78ch; } .gaps li { padding:3px 0; }
 .card-extra { display:grid; grid-template-columns:1fr 1fr; } .card-extra .gaps + .gaps { border-left:1px solid var(--line); }
 .chips { display:flex; flex-wrap:wrap; gap:8px; align-items:center; padding:14px 22px; } .chips .lbl { color:var(--muted); font-size:12px; width:100%; }
@@ -120,7 +146,12 @@ button:focus-visible,a:focus-visible,input:focus-visible,textarea:focus-visible,
 @media(max-width:1050px) { .shell { grid-template-columns:215px minmax(0,1fr); } .page { padding:24px; } .topbar { padding:15px 24px; } .card-extra { grid-template-columns:1fr; } .card-extra .gaps + .gaps { border-left:0; } }
 @media(max-width:720px) { .shell { display:block; height:auto; overflow:visible; } .sidebar { height:auto; padding:14px 16px; gap:14px; border-right:0; border-bottom:1px solid var(--line); } .brand { float:left; } .brand-mark { font-size:24px; } .new-chat { padding:7px 10px; } .tabs { display:flex; flex-wrap:wrap; gap:2px; } .tabs button { font-size:12px; padding:7px 9px; } .sidebar-note { display:none; } #chats { max-height:140px; overflow:auto; } .workspace { overflow:visible; } .topbar { display:none; } .page { padding:18px 12px; } .welcome { padding:15px 4px 24px; } .welcome h1 { font-size:28px; } .row { flex-wrap:wrap; } .row input { flex-basis:65%; } .company h1 { font-size:22px; } .company { padding:0 5px; } .ask { padding:12px; } .ask button { padding:12px; } .bubble { max-width:95%; } .thread { padding:18px 16px; } .drawer { padding:18px; } }
 @media(prefers-reduced-motion:reduce) { *,*::before,*::after { animation:none!important; transition:none!important; scroll-behavior:auto!important; } }
+@media(max-width:900px) { .facts { grid-template-columns:1fr; } }
 @media(max-width:720px) {
+  .facts { padding:8px 14px 16px; grid-template-columns:1fr; }
+  .fact-block { padding:15px; }
+  .status-block .fact-heading h3 { font-size:18px; }
+  .more-facts { margin-left:14px; margin-right:14px; }
   .answer { max-width:100%; padding:12px 13px; }
   .sidebar { position:sticky; top:0; z-index:5; display:block; overflow:visible; background:var(--page); }
   .nav-toggle { display:block; }
@@ -620,7 +651,7 @@ async function openReport(card) {
     $('#drawerTitle').textContent=c.name;
     $('#drawerContent').innerHTML=`<p class="meta">ИНН ${esc(c.inn)} · отчёт от ${dateRu(c.report_date)}</p><p>Сводка исходных данных из отчёта банка.</p><h3>Сведения о компании</h3><table>${item('Адрес',d.address)}${item('Регистрация',dateRu(d.registered))}${item('Статус',statusText)}${item('Руководитель',d.head ? `${d.head.name} · ${d.head.position}${d.head.since ? ' · с '+dateRu(d.head.since) : ''}` : null)}${item('Сотрудники',d.staff)}${item('Светофор банка',c.labels.riskLevel)}${item('ЗСК',c.labels.zskRiskLevel)}</table><h3>Финансовая отчётность</h3>`+
       (years.length ? years.map(y=>`<h3>${esc(y.year)} год</h3><table>${item('Выручка',money(y.proceeds))}${item('Прибыль / убыток',money(y.profit))}${item('Капитал и резервы',money(y.capitals))}${item('Текущая ликвидность',y.current_liquidity == null ? 'Не рассчитать: нет необходимых данных об оборотных активах или краткосрочных обязательствах' : Number(y.current_liquidity).toLocaleString('ru-RU',{maximumFractionDigits:3}))}</table>`).join('') : `<p>${esc(fin.note || 'Бухгалтерской отчётности нет — оценить финансовое положение нельзя.')}</p>`)+
-      `<h3>Что отмечено в отчёте</h3><ul>${c.attention.map(f=>`<li>${esc(cleanText(f.claim))}</li>`).join('') || '<li>Существенные факторы риска по правилам проверки не выделены.</li>'}</ul>${c.gaps.length ? `<h3>Ограничения данных</h3><ul>${c.gaps.map(g=>`<li>${esc(cleanText(g))}</li>`).join('')}</ul>` : ''}`;
+      `<h3>Что отмечено в отчёте</h3>${c.attention.length ? factBlocks(c.attention,true) : '<p>Существенные факторы риска по правилам проверки не выделены.</p>'}${c.gaps.length ? `<h3>Ограничения данных</h3><ul>${c.gaps.map(g=>`<li>${esc(cleanText(g))}</li>`).join('')}</ul>` : ''}`;
     revealDrawerContent();
   } catch { if(version===drawerVersion) $('#drawerContent').innerHTML='<p class="error-message">Не удалось загрузить отчёт. Попробуйте открыть его ещё раз.</p>'; }
 }
@@ -642,6 +673,57 @@ function orderedFacts(c) {
   const order = GOAL_ORDER[goal] || [];
   const rank = a => { const i = order.indexOf(signalGroup(a)); return i < 0 ? 99 : i; };
   return [...(c.attention || [])].sort((a,b) => rank(a) - rank(b));
+}
+const FACT_TITLES = {
+  status_not_current:'Статус и управление', status_reason:'Статус и управление', bankruptcy_trustee:'Статус и управление',
+  director_recent:'Смена руководителя', young_company:'Срок работы компании', license_expired:'Срок действия лицензии', inspection_violation:'Результаты проверок',
+  flag_liquidationStatus:'Ликвидация или банкротство', flag_invalidAddress:'Недостоверный адрес',
+  flag_invalidAuthpersonsData:'Сведения о руководителе', flag_disqualifiedAuthpersons:'Дисквалификация руководителя',
+  flag_fnsBlocking:'Блокировка счетов', flag_taxArrears:'Задолженность по налогам', flag_taxReporting:'Налоговая отчётность',
+  flag_dishonestProvider:'Реестр недобросовестных поставщиков', flag_invalidRegistrationData:'Регистрационные данные',
+  flag_massAddress:'Адрес регистрации', flag_massAuthpersons:'Руководитель нескольких компаний',
+  flag_inspectionWithViolation:'Результаты проверок', flag_currentAssets:'Оборотные активы', flag_massOkved:'Виды деятельности',
+  flag_executionProceedings:'Действующие производства', flag_arbitrationDefendant:'Иски к компании', flag_profit:'Финансовый результат',
+  arbitration_defendant_open:'Открытые иски к компании', arbitration_defendant_finished:'Завершённые судебные дела',
+  arbitration_defendant_by_years:'Судебные дела по годам', arbitration_mismatch_no_summary:'Полнота сведений о судах',
+  arbitration_mismatch_roles:'Сведения об участии в судах', arbitration_mismatch_years:'Сведения о судах по годам',
+  enforcement_active:'Действующие производства', enforcement_finished:'Завершённые производства',
+  enforcement_stale_active:'Актуальность сведений о производствах', enforcement_flag_mismatch:'Сведения о производствах',
+};
+const FACT_ICONS = {
+  status:'<circle cx="12" cy="12" r="9"/><path d="M12 7v6m0 4h.01"/>',
+  registry:'<path d="M20 10c0 6-8 11-8 11S4 16 4 10a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="2.5"/>',
+  finance:'<path d="M4 20h16M7 16v-4m5 4V8m5 8V4"/>',
+  courts:'<path d="M12 3v17m-6 0h12M4 7h16M6 7l-4 7h8L6 7Zm12 0-4 7h8l-4-7Z"/>',
+  enforcement:'<rect x="7" y="3" width="13" height="16" rx="2"/><path d="M4 7H3v13a2 2 0 0 0 2 2h10M11 8h5m-5 4h5"/>',
+  blocking:'<rect x="4" y="10" width="16" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3m-4 4v3"/>',
+  other:'<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6Zm0 0v6h6M8 13h8m-8 4h6"/>',
+  history:'<path d="M3 11a9 9 0 1 1 2.5 7M3 4v7h7m2-4v5l3 2"/>',
+};
+const historicalFact = a => ['arbitration_defendant_finished','enforcement_finished'].includes(a.code);
+function factText(claim) {
+  // Emphasize existing amounts; do not summarize, recompute or change the claim.
+  return esc(cleanText(claim)).replace(/\d+(?:[ \u00a0\u202f]\d{3})*(?:[,.]\d+)?(?:\s*(?:млрд|млн|тыс)\.?)?\s*(?:₽|%)/gu, '<strong class="fact-amount">$&</strong>')
+    .replace(/конкурсный управляющий|признано несостоятельным \(банкротом\)|открыто конкурсное производство/giu, '<strong>$&</strong>');
+}
+function factBlocks(facts, compact=false) {
+  const groups = new Map();
+  for (const [index,a] of facts.entries()) {
+    if (!cleanText(a.claim || '').trim()) continue;
+    const severity = ['critical','moderate','info'].includes(a.severity) ? a.severity : 'info';
+    const status = ['status_not_current','status_reason','bankruptcy_trustee'].includes(a.code);
+    const finance = (a.code || '').startsWith('fin_');
+    // Only combine related facts of the same severity; keep their complete source text.
+    const key = (status ? 'status' : finance ? 'finance' : 'fact-'+index) + ':' + severity;
+    if (!groups.has(key)) groups.set(key, {severity, status, historical:historicalFact(a), title:finance ? 'Финансовая отчётность' : FACT_TITLES[a.code] || 'Факт из отчёта', icon:status ? 'status' : signalGroup(a), facts:[]});
+    groups.get(key).facts.push(a);
+  }
+  const blocks = [...groups.values()];
+  return `<ul class="facts${compact ? ' compact' : ''}">`+blocks.map((g,index)=>{
+    const wide = g.status || (index === blocks.length-1 && blocks.filter(b=>!b.status).length%2===1);
+    const icon = FACT_ICONS[g.historical ? 'history' : g.icon] || FACT_ICONS.other;
+    return `<li class="fact-block ${g.severity}${g.historical ? ' historical' : ''}${g.status ? ' status-block' : ''}${wide ? ' wide' : ''}"><div class="fact-heading"><span class="fact-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">${icon}</svg></span><h3>${g.title}</h3></div><div class="fact-body">${g.facts.map(a=>`<p>${factText(a.claim)}</p>`).join('')}</div></li>`;
+  }).join('')+'</ul>';
 }
 function cardRequests(c) {
   if (goal === 'pay') return c.terminal ? ['Реквизиты и основание платежа у конкурсного управляющего или ликвидатора.'] : [];
@@ -665,14 +747,16 @@ function clearCard(html='') {
 }
 function renderCard(c) {
   const facts = orderedFacts(c);
-  const li = a => `<li>${esc(cleanText(a.claim))}</li>`;
   $('#cardAssessment').innerHTML = `<div class="assessment"><div class="verdict ${c.verdict}"><div class="assessment-label">Что важно в отчёте</div><div class="v">${recommendationText(c)}</div></div></div>`;
   let html = pillClass(c.labels.riskLevel)==='r' ? '<aside class="bank-note"><b>Светофор банка — красный</b><p>Это самостоятельный повод для дополнительной проверки. Причина оценки в отчёте не раскрыта. ЗСК — отдельная оценка; её зелёный цвет не отменяет красный светофор.</p></aside>' : '';
-  const primary = goal && goal !== 'look' ? facts : facts.filter(a => a.severity !== 'info');
-  const rest = facts.filter(a => !primary.includes(a));
-  html += primary.length ? `<ul class="facts">${primary.map(li).join('')}</ul>` :
+  const expanded = goal && goal !== 'look';
+  const history = expanded ? [] : facts.filter(historicalFact);
+  const primary = expanded ? facts : facts.filter(a => a.severity !== 'info' && !historicalFact(a));
+  const rest = facts.filter(a => !primary.includes(a) && !history.includes(a));
+  html += primary.length ? factBlocks(primary) :
     '<p class="gaps">Сводка содержит сведения о компании. Для оценки финансов и обязательств учитывайте полноту доступных данных.</p>';
-  if (rest.length) html += `<details class="more-facts"><summary>Ещё факты из отчёта · ${rest.length}</summary><div class="disclosure-content"><ul class="facts">${rest.map(li).join('')}</ul></div></details>`;
+  if (history.length) html += `<details class="more-facts history-facts"><summary>${history.length === 1 ? FACT_TITLES[history[0].code] : 'Завершённые дела и производства'}<small>История обязательств · ${history.length} ${history.length === 1 ? 'факт' : 'факта'} из отчёта</small></summary><div class="disclosure-content">${factBlocks(history)}</div></details>`;
+  if (rest.length) html += `<details class="more-facts"><summary>Ещё факты из отчёта · ${rest.length}</summary><div class="disclosure-content">${factBlocks(rest)}</div></details>`;
   const gaps = [...(c.gaps || [])].sort((a,b)=>goal==='deal' ? Number(/прибыл|ликвид|финанс/.test(b))-Number(/прибыл|ликвид|финанс/.test(a)) : 0), asks = cardRequests(c);
   if (gaps.length || asks.length) html += '<div class="card-extra">' +
     (gaps.length ? `<div class="gaps"><b>Чего не хватает для оценки</b><ul>${gaps.map(g => `<li>${esc(cleanText(g))}</li>`).join('')}</ul></div>` : '') +
@@ -754,7 +838,7 @@ function renderComparison(cards) {
   let html = `<div class="cmpwrap"><table class="cmp"><thead><tr><th></th>${cards.map((c) => `<th>${esc(c.name)}<small>отчёт от ${dateRu(c.report_date)}</small></th>`).join("")}</tr></thead><tbody>`;
   html += row("Оценки банка", (c) => `<td>${bankMarks(c.labels,true)}</td>`);
   html += row("Что важно в отчёте", (c) => `<td><div class="comparison-verdict ${c.verdict}">${VERDICT[c.verdict]}</div></td>`);
-  html += row("Главное", (c) => `<td>${(c.attention || []).length ? `<ul>${c.attention.slice(0, 3).map((a) => `<li>${esc(cleanText(a.claim))}</li>`).join("")}</ul>` : `<span class="muted">Сигналов не найдено</span>`}</td>`);
+  html += row("Главное", (c) => `<td>${(c.attention || []).length ? factBlocks(c.attention.slice(0,3),true) : `<span class="muted">Сигналов не найдено</span>`}</td>`);
   html += row("Чего нет в отчёте", (c) => `<td class="muted">${(c.gaps || []).length ? esc(cleanText(c.gaps.join(" · "))) : "Пробелов нет"}</td>`);
   html += `</tbody></table></div>`;
   html += `<div class="actions"><button type="button" class="quiet" id="cmpReports">Отчёты · ${cards.length}</button></div>`;

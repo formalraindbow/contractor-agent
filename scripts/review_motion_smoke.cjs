@@ -24,7 +24,7 @@ const settle = page => page.evaluate(async () => {
     await page.locator('#company').waitFor({ state: 'visible' });
     await settle(page);
 
-    const details = page.locator('.more-facts');
+    const details = page.locator('.more-facts:not(.history-facts)');
     await details.locator('summary').focus();
     await page.keyboard.press('Enter');
     await settle(page);
@@ -104,7 +104,7 @@ const settle = page => page.evaluate(async () => {
     await page.getByRole('button', { name: '＋ Новая проверка', exact: true }).click();
     await page.getByRole('button', { name: 'МАКСМАРКЕТ', exact: true }).click();
     await page.locator('#company').waitFor({ state: 'visible' });
-    await page.locator('.more-facts summary').click();
+    await page.locator('.more-facts:not(.history-facts) summary').click();
     assert.equal(await page.locator('.motion-sizing').count(), 0);
     assert.equal(await page.evaluate(() => document.getAnimations().length), 0);
     assert.equal(errors.length, 0, errors.join('\n'));
