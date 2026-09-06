@@ -77,7 +77,10 @@ def factual_sections(tools: Tools, inns: list[str], question: str) -> Draft | No
             fact("Электронная почта в отчёте не указана.", "report.baseInfo.email")
             kind = "refusal"
     elif re.search(
-        r"проверк\w* (?:гос|орган)|кто.{0,15}проверял|проверял.{0,15}орган|инспекц", q, re.I
+        r"проверк\w* (?:гос|орган)|кто.{0,15}проверял|проверял[аи]?\s+ли|"
+        r"проверял.{0,15}орган|инспекц",
+        q,
+        re.I,
     ):
         lines = ["### Проверки государственных органов"]
         inspections = report.inspections or []

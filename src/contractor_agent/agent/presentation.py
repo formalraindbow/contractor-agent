@@ -117,6 +117,19 @@ def public_text(text: str) -> str:
         return f"⟪{len(urls) - 1}⟫"
 
     text = _URL.sub(keep_url, text)
+    section_names = {
+        "inspections": "проверки государственных органов",
+        "licenses": "лицензии",
+        "phones": "телефоны",
+        "procurements": "госзакупки",
+        "staff": "численность сотрудников",
+    }
+    text = re.sub(
+        r"((?:раздел|поле|блок|показатель)\s*[«\"`]*)(inspections|licenses|phones|procurements|staff)\b",
+        lambda m: m[1] + section_names[m[2].lower()],
+        text,
+        flags=re.I,
+    )
     text = normalize_verdict_text(text)
     for old, new in PUBLIC_PHRASES.items():
         text = text.replace(old, new)

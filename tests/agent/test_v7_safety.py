@@ -862,3 +862,26 @@ def test_saved_registry_status_uses_reason_before_current_code(snapshot):
     answer = scoped_answer(Tools(snapshot), ["5032257375"], question)
     assert "банкрот" in answer.text_md
     assert "действующая" not in answer.text_md and "CURRENT" not in answer.text_md
+
+
+def test_inspection_absence_is_not_claimed_as_no_inspections(snapshot):
+    tools = Tools(snapshot)
+    inn = "5261137785"
+    draft = factual_sections(
+        tools,
+        [inn],
+        "Проверяли ли ПСК ТАЙФУН налоговая, Роспотребнадзор или пожарные, и находили ли нарушения?",
+    )
+    assert "нет сведений" in draft.text_md
+    assert "не проводили" not in draft.text_md
+    assert "inspections" not in draft.text_md
+    assert all(c.ok for c in validate_citations(snapshot, [inn], draft.citations))
+
+
+def test_lowercase_section_name_is_localized_without_changing_contact_data():
+    from contractor_agent.agent.presentation import public_text
+
+    value = "Раздел «inspections» отсутствует. Контакт: inspections@example.com. Сайт: https://inspections.example.com/"
+    text = public_text(value)
+    assert "Раздел «проверки государственных органов» отсутствует" in text
+    assert "inspections@example.com" in text and "https://inspections.example.com/" in text
