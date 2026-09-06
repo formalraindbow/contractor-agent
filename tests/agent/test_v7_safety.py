@@ -936,3 +936,22 @@ def test_procurement_experience_does_not_override_rnp(snapshot):
         r["name"] == "get_section" and r["args"]["name"] == "procurements"
         for r in missing_reads(question, ["7704310756"], [])
     )
+
+
+def test_leading_zero_question_keeps_identity_explanation_and_decision(snapshot):
+    from contractor_agent.agent.decision_answers import decision_answer
+    from contractor_agent.agent.nodes import build_card
+
+    tools = Tools(snapshot)
+    card = build_card(tools, "052500690823")
+    draft = decision_answer(
+        [card],
+        "Мне прислали ИНН 052500690823 — он начинается с нуля, это нормально? "
+        "Найди, кто это, и скажи, можно ли с ним работать.",
+        tools,
+    )
+    assert "12-значный" in draft.text_md and "Начальный ноль" in draft.text_md
+    assert "блокировка" in draft.text_md and "красный" in draft.text_md
+    assert all(c.ok for c in validate_citations(snapshot, [card.inn], draft.citations))
+    usual = decision_answer([card], "Можно ли с ним работать?", tools)
+    assert "Начальный ноль" not in usual.text_md
