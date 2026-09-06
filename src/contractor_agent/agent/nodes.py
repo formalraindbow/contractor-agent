@@ -172,13 +172,24 @@ def make_nodes(llm: LLM, tools: list[Any], source: ReportSource) -> dict[str, No
                 or scoped_answer(tools_layer, turn_inns, question)
             )
             if draft is None:
-                draft = await structured.ainvoke(messages)
+                try:
+                    draft = await structured.ainvoke(messages)
+                except Exception:  # модель не выдала структуру — одна повторная попытка
+                    logging.getLogger(__name__).warning("Structured answer failed, retrying")
+                    draft = await structured.ainvoke(messages)
             if not isinstance(draft, Draft):
                 draft = Draft.model_validate(draft)
-        except Exception as e:
+        except Exception:
             logging.getLogger(__name__).exception("Structured answer failed")
-            # Tool reasoning and incomplete drafts must never become a public answer.
-            raise RuntimeError("Не удалось собрать проверяемый ответ") from e
+            # рассуждения модели и сырые выдачи наружу не отдаём, но и пустого экрана быть не должно
+            draft = Draft(
+                kind="refusal",
+                lines=[
+                    "Не удалось собрать проверяемый ответ на этот вопрос. Переформулируйте его "
+                    "короче или спросите про один раздел: суды, долги у приставов, финансы, статус."
+                ],
+                citations=[],
+            )
         citations = list(draft.citations)
         seen_paths = {c.source_path for c in citations}
         for extra in extract_inline_citations(

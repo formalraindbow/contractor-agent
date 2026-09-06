@@ -3,7 +3,7 @@
 import re
 
 from contractor_agent.agent.schema import Card, Citation, Draft
-from contractor_agent.signals.model import Severity, Verdict
+from contractor_agent.signals.model import VERDICT_RU, Severity, Verdict
 
 _CHOICE = re.compile(r"с кем.{0,25}(?:лучше|работать)|кого выбрать|кто из них.{0,20}лучше", re.I)
 _DOCS = re.compile(r"какие документы|что запросить", re.I)
@@ -46,7 +46,8 @@ def comparison_followup(cards: list[Card], question: str) -> Draft | None:
     ordered = sorted(cards, key=lambda c: rank[c.verdict])
     best = [c for c in ordered if c.verdict == ordered[0].verdict]
     if len(best) == 1 and best[0].verdict == Verdict.OK:
-        lines = [f"У **{best[0].name}** в отчёте не выявлено существенных факторов риска."]
+        # вывод — только штатной фразой: «не выявлено факторов риска» звучит как гарантия
+        lines = [f"С **{best[0].name}** по отчёту {VERDICT_RU[Verdict.OK]}."]
     else:
         lines = ["Однозначного выбора по этим отчётам нет. Ключевые различия:"]
     for card in ordered:
