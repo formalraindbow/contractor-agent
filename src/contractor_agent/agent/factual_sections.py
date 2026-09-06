@@ -124,13 +124,24 @@ def factual_sections(tools: Tools, inns: list[str], question: str) -> Draft | No
                     parts.append(inspection.form)
                 fact("- " + "; ".join(parts) + ".", f"report.inspections[{i}]")
             if len(selected) < len(inspections):
-                lines.append(
-                    "Приведены последние пять записей и все записи "
-                    "с выявленными нарушениями из отчёта."
+                has_violations = any(
+                    i.inspection_status == "InspectionsViolationDetected" for i in inspections
                 )
-            lines.append(
-                "Содержание выявленных нарушений и их устранение в этих записях не раскрыты."
-            )
+                lines.append(
+                    "Приведены последние пять записей"
+                    + (" и все записи с выявленными нарушениями" if has_violations else "")
+                    + " из отчёта."
+                )
+            if any(
+                i.inspection_status == "InspectionsViolationDetected" for i in inspections
+            ):
+                lines.append(
+                    "Содержание выявленных нарушений и их устранение в этих записях не раскрыты."
+                )
+            elif any(i.inspection_status == "InspectionsUnknownResult" for i in inspections):
+                lines.append(
+                    "По записям без результата нельзя установить, были ли выявлены нарушения."
+                )
             if len(inspections) >= 100:
                 lines.append(
                     "Отчёт содержит не более 100 записей. Полнота перечня "
