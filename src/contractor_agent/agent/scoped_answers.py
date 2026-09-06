@@ -5,11 +5,13 @@ Mixed questions outside those scopes continue through the conversational model.
 """
 
 import re
+from datetime import date
 from decimal import Decimal
 
 from contractor_agent.agent.question import (
     BANK_LABEL,
     COURT_QUESTION,
+    EMAIL_QUESTION,
     HEAD_IDENTITY,
     STAFF_QUESTION,
     limitation,
@@ -205,6 +207,40 @@ def scoped_answer(tools: Tools, inns: list[str], question: str) -> Draft | None:
                     lines = [claim, "", *lines]
                     cite(claim, summary["paths"]["head"])
                     kind = "answer"
+    elif (
+        re.search(r"регистрац|зарегистр", q, re.I)
+        and re.search(r"производств|пристав", q, re.I)
+        and re.search(r"расхожд|несоответ|противореч|раньше|до регистрации|как объясн", q, re.I)
+        and summary.get("registered")
+    ):
+        registered = date.fromisoformat(summary["registered"])
+        claim = "Дата регистрации в отчёте: " + registered.strftime("%d.%m.%Y") + "."
+        lines = ["### Даты в отчёте", claim]
+        cite(claim, summary["paths"]["registered"])
+        report = tools.source.get(inn)
+        earlier = [
+            (i, p)
+            for i, p in enumerate(report.execution_proceedings or [])
+            if p.date and p.date < registered
+        ]
+        for i, proceeding in earlier[:5]:
+            claim = (
+                "Дата исполнительного производства: "
+                + proceeding.date.strftime("%d.%m.%Y")
+                + " — раньше указанной даты регистрации."
+            )
+            lines += ["", claim]
+            cite(claim, f"report.executionProceedings[{i}].date")
+        lines += [
+            "",
+            "Причину такого соотношения дат отчёт не раскрывает. "
+            "По этим данным нельзя установить связь записи с регистрацией "
+            "или объяснить расхождение. Для этого нужны исходные документы.",
+        ] if earlier else [
+            "",
+            "В доступных датах производств не найдено записей раньше регистрации. "
+            "Предположение о расхождении по этим полям не подтверждается.",
+        ]
     elif re.search(
         r"какой.{0,18}статус|проверь.{0,12}статус|действует.{0,12}ли|закрыта.{0,12}ли", q, re.I
     ) and not re.search(
@@ -241,6 +277,14 @@ def scoped_answer(tools: Tools, inns: list[str], question: str) -> Draft | None:
             claim = f"{label}: {value or 'в отчёте не указано'}."
             lines.append("- " + claim)
             cite(claim, summary["paths"]["head"])
+        if EMAIL_QUESTION.search(q):
+            claim = (
+                "Электронная почта: " + summary["email"] + "."
+                if summary.get("email")
+                else "Электронная почта в отчёте не указана."
+            )
+            lines += ["", "### Контакты", claim]
+            cite(claim, summary["paths"]["email"])
         if re.search(r"исключ|банкрот|ликвидир", q, re.I):
             report = tools.source.get(inn)
             status = report.status

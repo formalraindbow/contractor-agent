@@ -983,3 +983,24 @@ def test_concise_choice_keeps_every_critical_fact_and_each_non_ok_conclusion(sna
             assert fact.claim in draft.text_md
     assert len([line for line in draft.lines if line.startswith("- ")]) == 2
     assert all(c.ok for c in validate_citations(snapshot, [c.inn for c in cards], draft.citations))
+
+
+def test_head_and_email_question_keeps_both_requested_fields(snapshot):
+    draft = scoped_answer(
+        Tools(snapshot), ["5244026965"], "АНВЕК-ЭНЕРГО: кому писать на email и кто руководитель?"
+    )
+    assert "Седов Андрей Владимирович" in draft.text_md
+    assert "anvek@bk.ru" in draft.text_md
+    assert all(c.ok for c in validate_citations(snapshot, ["5244026965"], draft.citations))
+
+
+def test_enforcement_before_registration_does_not_invent_a_cause(snapshot):
+    draft = scoped_answer(
+        Tools(snapshot), ["501207152100"],
+        "У ОЙСТАЧЕРА производство за 2022 год, а регистрация в 2026. "
+        "Как объясняется такое расхождение?",
+    )
+    assert "19.01.2022" in draft.text_md and "27.04.2026" in draft.text_md
+    assert "Причину такого соотношения дат отчёт не раскрывает" in draft.text_md
+    assert "перерег" not in draft.text_md and "физического лица" not in draft.text_md
+    assert all(c.ok for c in validate_citations(snapshot, ["501207152100"], draft.citations))
