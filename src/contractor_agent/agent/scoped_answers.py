@@ -133,7 +133,8 @@ def scoped_answer(tools: Tools, inns: list[str], question: str) -> Draft | None:
                 ]
                 if unavailable == "fresh_extract"
                 else [
-                    "У меня нет обновлений на сегодня. Я не могу проверить, изменились ли сведения "
+                    "У меня нет обновлений на сегодня. Я не могу подтвердить текущий статус "
+                    "или проверить, изменились ли сведения "
                     "после даты сохранённого отчёта банка."
                 ]
             )
@@ -202,6 +203,21 @@ def scoped_answer(tools: Tools, inns: list[str], question: str) -> Draft | None:
                     lines = [claim, "", *lines]
                     cite(claim, summary["paths"]["head"])
                     kind = "answer"
+    elif re.search(
+        r"какой.{0,18}статус|проверь.{0,12}статус|действует.{0,12}ли|закрыта.{0,12}ли", q, re.I
+    ) and not re.search(
+        r"суд|пристав|лиценз|финанс|руководител|директор|оценк|светофор|зск", q, re.I
+    ):
+        if summary.get("status_reason"):
+            claim = "Статус на дату отчёта: «" + summary["status_reason"] + "»."
+            lines = [claim]
+            cite(claim, "report.status.reasonName")
+        elif summary.get("status") == "CURRENT":
+            claim = "В отчёте компания указана как действующая."
+            lines = [claim]
+            cite(claim, "report.status.status")
+        else:
+            lines = ["Состояние компании нельзя однозначно определить по доступному статусу."]
     elif (head_identity or head_date or head_concern) and not re.search(
         r"финанс|суд|адрес|телефон|возраст|сколько лет|почему|документ|учредител", q, re.I
     ):
