@@ -9,7 +9,12 @@ def subject(question: str) -> str:
     ].strip()
 
 
-BANK_LABEL = re.compile(r"\bзск\b|светофор|\bметк[аиу]\b|оценк[аиу]\s+банка", re.I)
+BANK_LABEL = re.compile(
+    r"\bзск\b|светофор|\bметк[аиу]\b|оценк[аиу]\s+банка"
+    r"|индикатор\w*[^.!?\n]{0,35}(?:зел[её]н|красн|ж[её]лт|сер)"
+    r"|(?:банковск\w*|цвет\w*)\s+индикатор",
+    re.I,
+)
 RATING_REQUEST = re.compile(
     r"(?:поставь|присвой|дай|оцени|выставь|оценк|рейтинг|балл)[^.!?\n]{0,55}"
     r"(?:от\s*1\s*до\s*10|1\s*[-–—/]\s*10|десятибалльн|балл|по\s+шкал)"
@@ -103,14 +108,25 @@ def limitation(question: str) -> str | None:
         r"дошл|дойд|зачисл|поступил|уже получил|прош[её]л|прошли|пройд", q, re.I
     ):
         return "payment_execution"
-    if (
-        re.search(r"сейчас|сегодня|в\s+настоящий\s+момент|текущ", q, re.I)
-        and re.search(
-            r"статус|действует|действующ|закрыт|ликвидиров|банкрот|исключен|исключён", q, re.I
-        )
-        and not re.search(r"выписк", q, re.I)
-    ):
-        return "fresh_status"
+    # Current court cases, proceedings or account restrictions are not the
+    # company's registration status. Match the clause, not unrelated words
+    # anywhere in a long question about a company.
+    for clause in re.split(r"[.!?;\n]", q):
+        if (
+            re.search(r"сейчас|сегодня|в\s+настоящий\s+момент|текущ", clause, re.I)
+            and re.search(
+                r"статус|действует|действующ|закрыт|ликвидиров|банкрот|исключен|исключён",
+                clause,
+                re.I,
+            )
+            and not re.search(r"выписк", clause, re.I)
+            and not re.search(
+                r"\bдел\w*\b|\bсуд\w*\b|арбитраж|\bиск\w*\b|производств|пристав|сч[её]т|лиценз",
+                clause,
+                re.I,
+            )
+        ):
+            return "fresh_status"
     if re.search(
         r"на сегодня|на текущ\w*\s+дат|ничего не поменялось|что изменилось|"
         r"свеж\w*\s+(?:данн|сведени|отч[её]т)|актуальн\w*\s+(?:статус|сведени|данн)",

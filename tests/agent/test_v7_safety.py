@@ -1,5 +1,6 @@
 """Regressions from real conversations and v6 failures, with raw-report oracles."""
 
+import pytest
 from langchain_core.messages import AIMessage, HumanMessage, ToolMessage
 
 from contractor_agent.agent.card_answer import card_answer
@@ -885,3 +886,29 @@ def test_lowercase_section_name_is_localized_without_changing_contact_data():
     text = public_text(value)
     assert "Раздел «проверки государственных органов» отсутствует" in text
     assert "inspections@example.com" in text and "https://inspections.example.com/" in text
+
+
+@pytest.mark.parametrize(
+    "question",
+    [
+        "Хочу отгрузить ГДК материалы с отсрочкой. Сколько у них судов и кто с кем — "
+        "они подавали или на них? Сколько дел сейчас не закрыто и на какую сумму?",
+        "Сколько сейчас действующих исполнительных производств?",
+        "Какой текущий статус судебных дел?",
+        "Счёт компании сейчас закрыт?",
+        "Лицензия сегодня действует?",
+    ],
+)
+def test_current_operational_question_is_not_registration_status(question):
+    from contractor_agent.agent.question import limitation
+
+    assert limitation(question) != "fresh_status"
+
+
+def test_question_about_indicator_colors_states_exact_bank_labels(snapshot):
+    draft = scoped_answer(
+        Tools(snapshot), ["421412008124"], "У ИП ЗОЛОТОРЁВ оба индикатора зелёные?"
+    )
+    assert draft is not None
+    assert "красный" in draft.text_md and "серый" in draft.text_md
+    assert all(c.ok for c in validate_citations(snapshot, ["421412008124"], draft.citations))
