@@ -93,8 +93,11 @@ class EvalRunner:
         repeats: int = 1,
         refresh: bool = False,
         rejudge: bool = False,
+        cached_only: bool = False,
     ) -> list[RunRecord]:
-        """``rejudge`` — ответы агента из кэша, вердикт судьи считается заново (правка рубрики)."""
+        """``rejudge`` — ответы агента из кэша, вердикт судьи считается заново (правка рубрики);
+        ``cached_only`` — вопросы без кэша пропускаются (пересуживаем старый прогон, не гоняем
+        новые вопросы на другом промпте под старой меткой)."""
         self.cache_dir.mkdir(parents=True, exist_ok=True)
         records: list[RunRecord] = []
         for question in questions:
@@ -111,6 +114,8 @@ class EvalRunner:
                             path.write_text(record.model_dump_json(indent=2), encoding="utf-8")
                         records.append(record)
                         continue
+                if cached_only:
+                    continue
                 record = await self.run_one(question, repeat)
                 path.write_text(record.model_dump_json(indent=2), encoding="utf-8")
                 records.append(record)
