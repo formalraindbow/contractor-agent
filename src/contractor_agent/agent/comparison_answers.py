@@ -180,11 +180,13 @@ def comparison_followup(
     for card in ordered:
         facts = [f for f in card.attention if f.severity != Severity.INFO]
         if facts:
-            selected = facts[:1]
-            second = next((f for f in facts[1:] if "fnsBlocking" in f.code), None)
-            if second or len(facts) > 1:
-                selected.append(second or facts[1])
-            detail = " ".join(f.claim.split("Такие блокировки", 1)[0].strip() for f in selected)
+            selected = [f for f in facts if f.severity == Severity.CRITICAL]
+            remaining = [f for f in facts if f not in selected]
+            blocking = next((f for f in remaining if "fnsBlocking" in f.code), None)
+            if remaining:
+                selected.append(blocking or remaining[0])
+            detail = VERDICT_RU[card.verdict].capitalize() + ". "
+            detail += " ".join(f.claim.split("Такие блокировки", 1)[0].strip() for f in selected)
             citations += [
                 Citation(claim=f.claim, source_path=f.source_path, inn=card.inn) for f in selected
             ]

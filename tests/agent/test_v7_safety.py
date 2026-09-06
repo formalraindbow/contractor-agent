@@ -955,3 +955,31 @@ def test_leading_zero_question_keeps_identity_explanation_and_decision(snapshot)
     assert all(c.ok for c in validate_citations(snapshot, [card.inn], draft.citations))
     usual = decision_answer([card], "Можно ли с ним работать?", tools)
     assert "Начальный ноль" not in usual.text_md
+
+
+def test_inspection_summary_does_not_imply_detected_violations_when_none_known(snapshot):
+    draft = factual_sections(
+        Tools(snapshot), ["3711039473"], "К ним приходили проверки госорганов, нашли что-нибудь?"
+    )
+    assert "Нарушений не выявлено: 14" in draft.text_md
+    assert "Результат не указан: 2" in draft.text_md
+    assert "Содержание выявленных нарушений" not in draft.text_md
+    assert "все записи с выявленными нарушениями" not in draft.text_md
+    assert "По записям без результата нельзя установить" in draft.text_md
+    assert all(c.ok for c in validate_citations(snapshot, ["3711039473"], draft.citations))
+
+
+def test_concise_choice_keeps_every_critical_fact_and_each_non_ok_conclusion(snapshot):
+    from contractor_agent.agent.comparison_answers import comparison_followup
+    from contractor_agent.agent.nodes import build_card
+    from contractor_agent.signals.model import VERDICT_RU, Severity
+
+    tools = Tools(snapshot)
+    cards = [build_card(tools, inn) for inn in ["5032257375", "1684017097"]]
+    draft = comparison_followup(cards, "Кого выбрать?")
+    assert VERDICT_RU[cards[0].verdict].capitalize() in draft.text_md
+    for fact in cards[0].attention:
+        if fact.severity == Severity.CRITICAL:
+            assert fact.claim in draft.text_md
+    assert len([line for line in draft.lines if line.startswith("- ")]) == 2
+    assert all(c.ok for c in validate_citations(snapshot, [c.inn for c in cards], draft.citations))
