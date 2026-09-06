@@ -98,7 +98,7 @@ def normalize_verdict_text(text: str) -> str:
         flags=re.I,
     )
     text = re.sub(
-        rf'^(?:В отч[её]те (?:отмечено|указано)|Итоговое заключение из отч[её]та):'
+        rf"^(?:В отч[её]те (?:отмечено|указано)|Итоговое заключение из отч[её]та):"
         rf'\s*[*«" ]*({labels})[»"* .]*$',
         lambda match: match[1][0].upper() + match[1][1:] + ".",
         text,
