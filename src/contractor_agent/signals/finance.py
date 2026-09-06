@@ -398,8 +398,12 @@ def _liquidity(rows: list[Row]) -> Signal | Gap | None:
                 "short_term_liabilities": short,
                 "year": row.year,
             },
-            source_path=f"{row.path}.assets.currentAssets.total",
-            source_paths=[f"{row.path}.liabilities.shortTermLiabilities.total"],
+            # коэффициент — производный показатель: адрес года, операнды рядом
+            source_path=row.path,
+            source_paths=[
+                f"{row.path}.assets.currentAssets.total",
+                f"{row.path}.liabilities.shortTermLiabilities.total",
+            ],
             explanation_ru=(
                 f"Оборотные активы {rub(current)} против краткосрочных обязательств "
                 f"{rub(short)} на конец {row.year} года: покрытие {ratio(value)}."

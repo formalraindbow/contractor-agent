@@ -371,7 +371,7 @@ async def test_comparison_after_card_uses_only_this_turn_companies(
     assert answer.kind == "comparison"
     assert [c.inn for c in answer.cards] == ["6165169320", "1684017097"]
     assert "предпочтительнее" not in answer.text_md
-    assert "У **ООО «ТЕХПРОФ»** в отчёте не выявлено существенных факторов риска" in answer.text_md
+    assert "С **ООО «ТЕХПРОФ»** по отчёту можно работать" in answer.text_md
     assert "МАКСМАРКЕТ" not in answer.text_md
 
 
