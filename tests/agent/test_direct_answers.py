@@ -433,6 +433,20 @@ def test_missing_profit_is_not_repeated_after_aggregate_years(snapshot):
     assert "2024–2025" in " ".join(draft.lines)
 
 
+@pytest.mark.parametrize(
+    "text,should_repair",
+    [
+        ("В отчёте отмечены отрицательные активы.", True),
+        ("В отчёте отмечены отрицательные чистые активы.", False),
+        ("Отрицательный капитал означает превышение обязательств над активами.", False),
+        ("Отрицательный капитал не означает отрицательные активы.", False),
+    ],
+)
+def test_net_assets_are_not_shortened_to_assets(text, should_repair):
+    answer = Answer(kind="answer", text_md=text)
+    assert bool(interpretation_problem(answer, "Объясни финансовое положение")) == should_repair
+
+
 def test_numeric_explanation_does_not_erase_valid_negative_decision(snapshot):
     cards = [build_card(Tools(snapshot), "5032257375")]
     q = "Стоит с ними иметь дело?"

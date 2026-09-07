@@ -234,6 +234,9 @@ cases are all finished, explain the historical disputes and that current unpaid 
 and case outcomes cannot be inferred. Do not list speculative financial or legal consequences.
 For missing financial fields, explain only what cannot be determined. Do not guess why a
 field is missing (accounting practices, no revenue or incomplete disclosure are unknown).
+Negative NET assets or capital means liabilities exceed assets. It does NOT mean total
+assets are negative. Say «отрицательные чистые активы» or «отрицательный капитал»;
+never shorten this to «отрицательные активы».
 Select exact evidence IDs, without brackets, ONLY in evidence_ids. Do not put IDs such as E3
 in answer: the interface displays the selected evidence automatically.
 When comparing, include evidence for EACH company.
@@ -402,6 +405,15 @@ def interpretation_problem(answer: Answer, question: str, cards: Sequence[Card] 
         return None
     q = subject(question)
     introduction = answer.text_md.split("\n\n")[0]
+    for sentence in re.split(r"[.!?\n]", introduction):
+        if re.search(r"не означает|не значит|не равн|нельзя назыв", sentence, re.I):
+            continue
+        if re.search(r"отрицательн\w*\s+актив\w*", sentence, re.I):
+            return (
+                "Не подменяй чистые активы всеми активами. Отрицательным в источнике "
+                "назван капитал / чистые активы: обязательства превышают активы. "
+                "Укажи полное название показателя, не пиши «отрицательные активы»."
+            )
     if re.search(r"в\s+прошл\w+\s+(?:год|месяц)", introduction, re.I):
         return (
             "Не подменяй год отчётности относительным периодом. Убери из краткой вводной "
