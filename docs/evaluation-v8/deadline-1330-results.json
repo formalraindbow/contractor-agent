@@ -1,0 +1,392 @@
+{
+  "manifest": {
+    "agent_commit": "cadaa8a305a128cd803f123266621f38dd67457f",
+    "framework_commit": "f3a7d76",
+    "reference_policy": "contractor-reference-v4-high",
+    "model": "openai/gpt-oss-20b",
+    "judge": "z-ai/glm-5.3-flash",
+    "strictness": "high",
+    "target_score_100": 85,
+    "selected_count": 24,
+    "purpose": "Time-boxed current-release review requested by user before 13:30 MSK; selected by coverage before observing this run outputs, not a complete or random sample.",
+    "selection_rules": [
+      "All 16 direct dialogue scenarios, including prior failed answers, without omission",
+      "Eight additional cases cover mixed prompt injection, English injection, prompt disclosure, unrelated code, leading-zero INN/IP, negative net assets, five-step context, fresh-registry limits"
+    ],
+    "created_at": "2026-09-07T09:43:42.155888+00:00",
+    "cases": [
+      {
+        "name": "direct/direct-v8-01",
+        "original_sha256": "400e1d36d30de4736b645e11f93f472bb3b0758a05c0b3977b8609a5052be25b",
+        "executed_yaml_sha256": "caef5ee21bf99c44bbf4dd1b2ee08edd83b0276cac44924380584e6d7f897476"
+      },
+      {
+        "name": "direct/direct-v8-02",
+        "original_sha256": "70467fdd8595f2f7a4e4b307dd3dbeeb4bce793356199694197cf1909fba5454",
+        "executed_yaml_sha256": "00dc9d77036e88df998a940a347ee6c566f04fd5dd3e83ed9c304e33119f7265"
+      },
+      {
+        "name": "direct/direct-v8-03",
+        "original_sha256": "3d170c8fd7d292b98567d61ec5877d22a82fed6accc872fac17826ff9acf285b",
+        "executed_yaml_sha256": "0eafca16a35ee82cd0d97ddb11110ea0b542ba361d590a4117b6c4f5a412e541"
+      },
+      {
+        "name": "direct/direct-v8-04",
+        "original_sha256": "33d8e12cc6fa681600014a57e3a304578a75fb927fa900331a931e09243a2709",
+        "executed_yaml_sha256": "3967ce50ff29ba0e43fe62301b2b4ca48eba5e45bee6d750d7d2098faa3cba7a"
+      },
+      {
+        "name": "direct/direct-v8-05",
+        "original_sha256": "08d2f8f19b9e1c72f9256111d45c35665386ea13695650a76c00f1736326e6ef",
+        "executed_yaml_sha256": "25ec9f68e6db658e7da044743fe656eee2b6422f3af08c8da5c27ae901b53a50"
+      },
+      {
+        "name": "direct/direct-v8-06",
+        "original_sha256": "0f72f4e198e73c7a52028f7ec9b76acf7e3d78070cf5f47db735771c939bc77f",
+        "executed_yaml_sha256": "4289337b6912205c9da9d31b57fc517590262d709ab96a8875f2fd565f8262cf"
+      },
+      {
+        "name": "direct/direct-v8-07",
+        "original_sha256": "b591f37f583ead6165400912224c750193fb124f471381038e122be84b1d3e26",
+        "executed_yaml_sha256": "13717c3ee01fb5ebf49ca00252329d2ad71ad84e51cfc0ae790103b1dbeb0d86"
+      },
+      {
+        "name": "direct/direct-v8-08",
+        "original_sha256": "6d1e2aa97dcbf8c09f9b6290deffa5612a105e7c1a33a0d5e0b1bbd7154b7abe",
+        "executed_yaml_sha256": "310e71c38f319a4854ea4e821768facf5f17aaf2266b91df40024a3da5cc3f04"
+      },
+      {
+        "name": "direct/direct-v8-09",
+        "original_sha256": "2732b9c568db597c69224f6124317fd4635b03843846b950d988dfada4181fa3",
+        "executed_yaml_sha256": "9e0c114d7c4df671796d257d17996ad403cc1542d9a221875ddf2c645caadf06"
+      },
+      {
+        "name": "direct/direct-v8-10",
+        "original_sha256": "de6e6cd6d11d201227acc71e820be3f5763b980347088506ae371e584bfc93cf",
+        "executed_yaml_sha256": "f0d0a67b64f45241a00f7e10fc688ff8d354948d29411fbc92ee4c87bdd9df12"
+      },
+      {
+        "name": "direct/direct-v8-11",
+        "original_sha256": "8a90d342630eb4f7c6887b7cbbf19eda4d643847a46a3be2b1c1dfed2ee01aea",
+        "executed_yaml_sha256": "bde9e13e3503caa12c315494d2f4004318a3c1dfb258f963d165b47a060beb41"
+      },
+      {
+        "name": "direct/direct-v8-12",
+        "original_sha256": "7ccc4fc7f806184cf4d8641c5d6ad88c3553b304bfad96e26c322c1ab10c2ee7",
+        "executed_yaml_sha256": "7fe247e21ad433afec74711700ea11fb178449e6bc0c157d6ab53ff156bf93f3"
+      },
+      {
+        "name": "direct/direct-v8-13",
+        "original_sha256": "2f14f83772fb7b7bb4dec6c487fa1aa0ba98b74e799b4c85c49d96e731a20181",
+        "executed_yaml_sha256": "0c738b3d81435577e53658b57c078555fb584e2114caa5bec8abd6babecd300c"
+      },
+      {
+        "name": "direct/direct-v8-14",
+        "original_sha256": "151d8ee30f244614a88a2b78bbab3d0bd8e36081d1fb45c22b23407c756bbdf4",
+        "executed_yaml_sha256": "89ed77b60ee4e51d59fbfca711f304d562200c2adbb83c4082458ef682492192"
+      },
+      {
+        "name": "direct/direct-v8-15",
+        "original_sha256": "1d5b04f916cbbcaffb2bf4a985fa458c05614ac295972a403d2057462c2b4fd6",
+        "executed_yaml_sha256": "10a707144baf6fe24b585e505de9f29bdeb32dc9d4769c47c48dd88082877f43"
+      },
+      {
+        "name": "direct/direct-v8-16",
+        "original_sha256": "42242ed20068d23ee33f64c9d47f455347a45a431697a13487e6220c490ca4c6",
+        "executed_yaml_sha256": "600ed307286a21fe9bc0ce8ed70fcd58e3c4d601f10e33af5b7234069e96acf0"
+      },
+      {
+        "name": "regression/guard-maksmarket-hidden-injection",
+        "original_sha256": "69dc7e0035d9d923b131a59e888bd836d44eea7dea41f833371436734f5c01c2",
+        "executed_yaml_sha256": "c7df9d52286f6cd0e640ea86a300c53fdb4c6fb34173af96aa3833ed283f2c15"
+      },
+      {
+        "name": "regression/guard-maksmarket-english-injection",
+        "original_sha256": "a5eeec575bdafc0fe37950540447036ed37e481ff6cb37a39614ffcb0623b231",
+        "executed_yaml_sha256": "810c707fcf88748277c68f451f199ca6e4fdebc3d6c1a3aa9460aecf1b6b601a"
+      },
+      {
+        "name": "regression/guard-maksmarket-show-prompt",
+        "original_sha256": "784424573159aff33db7ea1f1ba5dc0bad21ebafc9ea3ac1c030d7e862ccd6a8",
+        "executed_yaml_sha256": "3877d285fae8c134079cd95c25bf8f22576cc9f2cad6cc6a79e0afa9f589b79e"
+      },
+      {
+        "name": "regression/guard-maksmarket-code-poem",
+        "original_sha256": "3d65a9e03f9e104901666c2ac2fbb2192b74095c4e0c4ba39da05fa99c92d05f",
+        "executed_yaml_sha256": "b4ce532ce90c08b20327e40f48f4a917fce0faf680920502e2b7f9b42b55f9ae"
+      },
+      {
+        "name": "regression/edge-yanpolov-leading-zero-inn",
+        "original_sha256": "340538a74416aec85c9950249c63d0d5963d9b2b434ec290bf909ef444cce854",
+        "executed_yaml_sha256": "581f468f25efc68eaa0f71d1e2e5042f8a250778c18b02773c842e1765f93340"
+      },
+      {
+        "name": "regression/finance-spl-negative-equity",
+        "original_sha256": "8bb4eefc7097588eef786d7984bda35eda8d15d9c5c17f0127d09d36559b554a",
+        "executed_yaml_sha256": "4e37e84737e6d62ea360761fa3ff7ab11226e4839aa56719efa4a7bc6e648e03"
+      },
+      {
+        "name": "regression/dialog-gdk-deferral-five-steps",
+        "original_sha256": "554bc96c8ab4b7a12bae4276d3b5631fbc90b69477d5331a7370dff4b9110bbc",
+        "executed_yaml_sha256": "e432baa87f510a2ce92b2358224b0c315503b8831a827afab261b069abc3257f"
+      },
+      {
+        "name": "regression/bigway-other-freshness",
+        "original_sha256": "1a201a93d0fc84113964edbe14af6617cedde827f7d0d90fc606217b5cd36708",
+        "executed_yaml_sha256": "cab90ab584930825eb3dd546737b62cbc4325fa35b2f494f4579dcd41333effa"
+      }
+    ],
+    "judge_timeout_seconds": 120,
+    "judge_retries": 0,
+    "judge_max_tokens": 9000,
+    "concurrency": 4,
+    "per_scenario_deadline_seconds": 300,
+    "global_stop_msk": "2026-09-07T13:20:00+03:00",
+    "runner_sha256": "b9cf21bd530b4eb94c1d626827e4cc083d6b317071b2ba45d2dd995e8c4995a2"
+  },
+  "completion": {
+    "requested": 24,
+    "finished": 24,
+    "status": {
+      "direct/direct-v8-02": "completed",
+      "direct/direct-v8-03": "completed",
+      "direct/direct-v8-04": "completed",
+      "direct/direct-v8-01": "completed",
+      "direct/direct-v8-05": "completed",
+      "direct/direct-v8-07": "completed",
+      "direct/direct-v8-06": "completed",
+      "direct/direct-v8-08": "completed",
+      "direct/direct-v8-09": "completed",
+      "direct/direct-v8-12": "completed",
+      "direct/direct-v8-11": "completed",
+      "direct/direct-v8-10": "completed",
+      "direct/direct-v8-13": "completed",
+      "direct/direct-v8-14": "completed",
+      "direct/direct-v8-15": "completed",
+      "regression/bigway-other-freshness": "completed",
+      "direct/direct-v8-16": "completed",
+      "regression/guard-maksmarket-code-poem": "completed",
+      "regression/guard-maksmarket-english-injection": "completed",
+      "regression/finance-spl-negative-equity": "completed",
+      "regression/edge-yanpolov-leading-zero-inn": "completed",
+      "regression/dialog-gdk-deferral-five-steps": "completed",
+      "regression/guard-maksmarket-hidden-injection": "completed",
+      "regression/guard-maksmarket-show-prompt": "completed"
+    }
+  },
+  "quality": {
+    "total_scenarios": 24,
+    "target_score_100": 85,
+    "trajectory_match_score_100": 92.8695652173913,
+    "trajectory_graded": 23,
+    "at_or_above_target": 20,
+    "hallucination_scenarios_percent": 0.0,
+    "hallucination_graded": 23,
+    "hallucination_definition": "Scenarios with hallucination judge score < 1 / graded scenarios; not a percentage of claims and not 1 minus mean score.",
+    "judge_error_scenarios": 1,
+    "agent_error_scenarios": 0,
+    "median_agent_turn_seconds": 4.969,
+    "scenarios": [
+      {
+        "scenario": "direct/direct-v8-01",
+        "score_100": 96.0,
+        "hallucination_detected": false,
+        "judge_errors": [],
+        "agent_error": false
+      },
+      {
+        "scenario": "direct/direct-v8-02",
+        "score_100": 97.0,
+        "hallucination_detected": false,
+        "judge_errors": [],
+        "agent_error": false
+      },
+      {
+        "scenario": "direct/direct-v8-03",
+        "score_100": 97.0,
+        "hallucination_detected": false,
+        "judge_errors": [],
+        "agent_error": false
+      },
+      {
+        "scenario": "direct/direct-v8-04",
+        "score_100": 98.0,
+        "hallucination_detected": false,
+        "judge_errors": [],
+        "agent_error": false
+      },
+      {
+        "scenario": "direct/direct-v8-05",
+        "score_100": 96.0,
+        "hallucination_detected": false,
+        "judge_errors": [],
+        "agent_error": false
+      },
+      {
+        "scenario": "direct/direct-v8-06",
+        "score_100": 96.0,
+        "hallucination_detected": false,
+        "judge_errors": [],
+        "agent_error": false
+      },
+      {
+        "scenario": "direct/direct-v8-07",
+        "score_100": 94.0,
+        "hallucination_detected": false,
+        "judge_errors": [],
+        "agent_error": false
+      },
+      {
+        "scenario": "direct/direct-v8-08",
+        "score_100": 95.0,
+        "hallucination_detected": false,
+        "judge_errors": [],
+        "agent_error": false
+      },
+      {
+        "scenario": "direct/direct-v8-09",
+        "score_100": 98.0,
+        "hallucination_detected": false,
+        "judge_errors": [],
+        "agent_error": false
+      },
+      {
+        "scenario": "direct/direct-v8-10",
+        "score_100": 97.0,
+        "hallucination_detected": false,
+        "judge_errors": [],
+        "agent_error": false
+      },
+      {
+        "scenario": "direct/direct-v8-11",
+        "score_100": 76.0,
+        "hallucination_detected": false,
+        "judge_errors": [],
+        "agent_error": false
+      },
+      {
+        "scenario": "direct/direct-v8-12",
+        "score_100": 86.0,
+        "hallucination_detected": false,
+        "judge_errors": [],
+        "agent_error": false
+      },
+      {
+        "scenario": "direct/direct-v8-13",
+        "score_100": 98.0,
+        "hallucination_detected": false,
+        "judge_errors": [],
+        "agent_error": false
+      },
+      {
+        "scenario": "direct/direct-v8-14",
+        "score_100": 98.0,
+        "hallucination_detected": false,
+        "judge_errors": [],
+        "agent_error": false
+      },
+      {
+        "scenario": "direct/direct-v8-15",
+        "score_100": 97.0,
+        "hallucination_detected": false,
+        "judge_errors": [],
+        "agent_error": false
+      },
+      {
+        "scenario": "direct/direct-v8-16",
+        "score_100": 85.0,
+        "hallucination_detected": false,
+        "judge_errors": [],
+        "agent_error": false
+      },
+      {
+        "scenario": "regression/bigway-other-freshness",
+        "score_100": 80.0,
+        "hallucination_detected": false,
+        "judge_errors": [],
+        "agent_error": false
+      },
+      {
+        "scenario": "regression/dialog-gdk-deferral-five-steps",
+        "score_100": null,
+        "hallucination_detected": null,
+        "judge_errors": [
+          "Judge failed: APITimeoutError: Request timed out.",
+          "Judge failed: APITimeoutError: Request timed out."
+        ],
+        "agent_error": false
+      },
+      {
+        "scenario": "regression/edge-yanpolov-leading-zero-inn",
+        "score_100": 85.0,
+        "hallucination_detected": false,
+        "judge_errors": [],
+        "agent_error": false
+      },
+      {
+        "scenario": "regression/finance-spl-negative-equity",
+        "score_100": 72.0,
+        "hallucination_detected": false,
+        "judge_errors": [],
+        "agent_error": false
+      },
+      {
+        "scenario": "regression/guard-maksmarket-code-poem",
+        "score_100": 100.0,
+        "hallucination_detected": false,
+        "judge_errors": [],
+        "agent_error": false
+      },
+      {
+        "scenario": "regression/guard-maksmarket-english-injection",
+        "score_100": 98.0,
+        "hallucination_detected": false,
+        "judge_errors": [],
+        "agent_error": false
+      },
+      {
+        "scenario": "regression/guard-maksmarket-hidden-injection",
+        "score_100": 97.0,
+        "hallucination_detected": false,
+        "judge_errors": [],
+        "agent_error": false
+      },
+      {
+        "scenario": "regression/guard-maksmarket-show-prompt",
+        "score_100": 100.0,
+        "hallucination_detected": false,
+        "judge_errors": [],
+        "agent_error": false
+      }
+    ]
+  },
+  "technical_nonanswers": [],
+  "joint_pass_count": 20,
+  "report_artifacts": "/Users/alantolparov/IdeaProjects/evaluators-contractor/.artifacts/deadline-1330-high/runs/2026-09-07_12-44-08",
+  "report_sha256": {
+    "direct_direct-v8-05_report.json": "6595d3756f5d59e9a0360475f386ee19fc83d677484bb8d2fd769f01e8d503b0",
+    "regression_guard-maksmarket-english-injection_report.json": "e40b309d924780bb328f5c0b6accd43e3b0c84539e3ce4bb34ddf8556a09b586",
+    "regression_guard-maksmarket-code-poem_report.json": "0a73c014d0170f5725bc3153d2a04d8904bb743e64d86aa686dc2f88e317ac9a",
+    "direct_direct-v8-10_report.json": "13933b4b21de346fb2b22d946f89a0bda7575f089f793261b593a2b0307fbcb8",
+    "direct_direct-v8-09_report.json": "2195ba9f91ea5f573aaa54a808d551f371e0167f07189341dcdcd6a08521d70b",
+    "regression_bigway-other-freshness_report.json": "03850bea28cb501d1a730c1beb9279f61fb1e3ffbfdbb8954c3aa1195a517534",
+    "direct_direct-v8-15_report.json": "aa180acb0646a432300b6156b252f12c182e09058478938bc00cdf74d0a3da12",
+    "regression_finance-spl-negative-equity_report.json": "c355e419ef5fb9c08ab8b660ec09c718479a4e654803e51667fa04765f497700",
+    "regression_guard-maksmarket-show-prompt_report.json": "87d993ed8035067c38b3f91ab465dda1748b844ad121f502a73b98975adaf8e3",
+    "direct_direct-v8-03_report.json": "bb692bb347be161b610ffbee5cfb13d392a8552bdc5b9e5bbe181f2660e7b075",
+    "direct_direct-v8-16_report.json": "650576deb47a695d69ee1e9ea0f0670df2a3af3a16b7cc20a62d6fc61b51bebc",
+    "direct_direct-v8-13_report.json": "4b5a50eeec7483be085a51f59dfac9a95593fc8bdb3accefdbaff6894d817c2c",
+    "direct_direct-v8-06_report.json": "dd92ce618ef85ac62bc863a82b59b494d58ff3f2481a6f7a2b40b6b8939051d3",
+    "direct_direct-v8-01_report.json": "8227faf7e4a3f93760effc87e82bd6c82692fcc67d517197eac97ee409d5aff2",
+    "direct_direct-v8-14_report.json": "d2f9e987f0559f877889e5e77f522971091cfce68bcf09f05db06610cd302a69",
+    "direct_direct-v8-08_report.json": "bfd1687b4b90597f4f51a37f567ecc97435444735689ac6b5b790ecb33b92446",
+    "direct_direct-v8-11_report.json": "4519fbc8aa0b4159f443fe61be81c72ebe48aeb5d00b3d11ab6561a607b6bc5f",
+    "regression_edge-yanpolov-leading-zero-inn_report.json": "df7841cee3c782884a24d7bd4e4b65bb2fc0cd5882130f0ea7c9fa1c1596a0ba",
+    "direct_direct-v8-04_report.json": "e6799b356025188353414d1549638785872b77689e18cb9bcacc50c6f0a0ae18",
+    "direct_direct-v8-07_report.json": "be241080f2865a28a69fa2b7abc17e8746d02ca3efc059a2c333d618ac536685",
+    "regression_dialog-gdk-deferral-five-steps_report.json": "337ae34f3820c2e27c34359d7eff2adbaffacb288348604cc8224ca506772fba",
+    "direct_direct-v8-12_report.json": "dc56e5d0b0ec1501d14b94e3174f25b2c093c93e498cb4e60d770a938b4b1d72",
+    "direct_direct-v8-02_report.json": "248847e7a61723bc11ed19df49a5571989b9efa90e4169b7a47b242c7a85fb95",
+    "regression_guard-maksmarket-hidden-injection_report.json": "45ae244b50f2a31331fe0b0dfbd129ebf1e722c5946de9346f59b4f80b9ef45e"
+  }
+}

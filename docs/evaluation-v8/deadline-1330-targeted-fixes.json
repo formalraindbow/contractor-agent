@@ -1,0 +1,77 @@
+{
+  "manifest": {
+    "agent_commit": "b899b40b9daae246e0d045eaf59e4dee61aceee2",
+    "framework_commit": "f3a7d76",
+    "judge": "z-ai/glm-5.3-flash",
+    "model": "openai/gpt-oss-20b",
+    "strictness": "high",
+    "target_score_100": 85,
+    "purpose": "Post-fix targeted replay of two defects found in the 24-case control run; same user queries and reference, no pooled statistics. Judge timeout extended to 180 seconds, no retries.",
+    "cases": [
+      {
+        "name": "regression/finance-spl-negative-equity",
+        "original_yaml_sha256": "4e37e84737e6d62ea360761fa3ff7ab11226e4839aa56719efa4a7bc6e648e03",
+        "executed_yaml_sha256": "27e3fb61f002868f67735d8eec4a031430648c9fc329e4f1d620aacb2042a3e6"
+      },
+      {
+        "name": "regression/dialog-gdk-deferral-five-steps",
+        "original_yaml_sha256": "e432baa87f510a2ce92b2358224b0c315503b8831a827afab261b069abc3257f",
+        "executed_yaml_sha256": "553a24859b64dec8aa0b6fe502c1f263ba3ff4b60ad1fa948db3e7cc34ced1d3"
+      }
+    ],
+    "runner_sha256": "d06e5ebb0be1c410395c1628aa634a4f734626fc6cd4a2d6066483fe33baad2e"
+  },
+  "quality": {
+    "total_scenarios": 2,
+    "target_score_100": 85,
+    "trajectory_match_score_100": 88.5,
+    "trajectory_graded": 2,
+    "at_or_above_target": 2,
+    "hallucination_scenarios_percent": 0.0,
+    "hallucination_graded": 2,
+    "hallucination_definition": "Scenarios with hallucination judge score < 1 / graded scenarios; not a percentage of claims and not 1 minus mean score.",
+    "judge_error_scenarios": 0,
+    "agent_error_scenarios": 0,
+    "median_agent_turn_seconds": 4.1185,
+    "scenarios": [
+      {
+        "scenario": "regression/dialog-gdk-deferral-five-steps",
+        "score_100": 90.0,
+        "hallucination_detected": false,
+        "judge_errors": [],
+        "agent_error": false
+      },
+      {
+        "scenario": "regression/finance-spl-negative-equity",
+        "score_100": 87.0,
+        "hallucination_detected": false,
+        "judge_errors": [],
+        "agent_error": false
+      }
+    ]
+  },
+  "manual_review": {
+    "reviewer": "Codex, also implementer; not independent bank acceptance",
+    "agent_commit": "b899b40",
+    "scope": "All visible questions and answers in both targeted replays, plus unit regression for financial year preservation.",
+    "rows": [
+      {
+        "scenario": "regression/finance-spl-negative-equity",
+        "status": "accepted_with_style_note",
+        "note": "Прямое отрицательное решение об отсрочке 60 дней теперь стоит первым. Причины — отрицательные чистые активы и убыток; конкретные показатели за 2025 и 2024 годы разделены. Банковские метки сохранены зелёными. Во вводной есть стилистический повтор «отрицательные чистые активы» / «отрицательный капитал», это один показатель, а не две независимые причины.",
+        "outputs_sha256": "db67aeaf528b91da073397d7c71fec6cfc06ed8ad21ee1125d6b5f84facfbafd"
+      },
+      {
+        "scenario": "regression/dialog-gdk-deferral-five-steps",
+        "status": "accepted",
+        "note": "Прочитаны все пять ответов. Компания не потеряна, суды и приставы отделены, завершённые производства не представлены текущими долгами. Последний ответ начинается с решения об отсрочке; суммы и финансовые факты имеют явные годы. В этом повторе модель выбрала убыток 2024, а не отрицательный капитал. Отбор отрицательного капитала с годом проверен отдельно локальным тестом.",
+        "outputs_sha256": "eac6b9c0b954dedb4c5c1ba21b1d1d1521749e6d53b23af0346d0b14ac0a71e0"
+      }
+    ]
+  },
+  "artifacts": "/Users/alantolparov/IdeaProjects/evaluators-contractor/.artifacts/deadline-1330-fixes-high/runs/2026-09-07_13-00-02",
+  "report_sha256": {
+    "regression_finance-spl-negative-equity_report.json": "953117cad4a3665706f9fdec16bf4511d87a25f1c3142455a86cbdf8d729cd93",
+    "regression_dialog-gdk-deferral-five-steps_report.json": "9c2874358eb3a38391daaf4b9ceca4db37e36db25cfbb450f5175e88dd6859c0"
+  }
+}

@@ -1,0 +1,27 @@
+{
+  "source_commit": "b899b40b9daae246e0d045eaf59e4dee61aceee2",
+  "source_branch": "codex/v8-release-clean",
+  "image": "kontragent:selectel-v8-b899b40",
+  "base_image": "kontragent:selectel-v8-cadaa8a",
+  "model": "openai/gpt-oss-20b",
+  "provider": "Polza",
+  "backup": "/opt/contractor-agent/deploy-backups/20260907T100410Z",
+  "deployed_at": "2026-09-07T10:04:10.228481+00:00",
+  "health_verified": true,
+  "change": "Answer agreement decisions directly; retain year in financial evidence",
+  "verified_at": "2026-09-07T10:05:08.342694+00:00",
+  "verification": {
+    "offline_tests_passed": 513,
+    "targeted_hard_scores": {
+      "finance-spl-negative-equity": 87,
+      "dialog-gdk-deferral-five-steps": 90
+    },
+    "targeted_hallucination_flags": 0,
+    "public_https_sse": "passed; direct SPL recommendation, valid citations, streamed text equals final",
+    "stored_control_chat": "8 turns; SHA unchanged",
+    "source_sha256": {
+      "src/contractor_agent/agent/question.py": "ee4d6a9d3f81f44ca70588e2ea7815cc87bfb2ef4cb07ed9ca95fa40d8624baa",
+      "src/contractor_agent/agent/interpretation.py": "39d9eed17650f250c27045c3c41c7ebacbdfdb501feacad5c813ae8dfde9909a"
+    }
+  }
+}
