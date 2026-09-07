@@ -22,3 +22,5 @@ dist/
 
 # PowerPoint lock files
 ~$*
+output/
+decks/
