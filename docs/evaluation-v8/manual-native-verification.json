@@ -1,0 +1,142 @@
+{
+  "reviewer": "Codex, also implementer",
+  "agent_commit": "285cc16",
+  "framework_commit": "2d5144b",
+  "run": "verification-high-01",
+  "scope": "Targeted seven cases; not representative prevalence sample",
+  "rows": [
+    {
+      "scenario": "verification/direct-v8-02",
+      "report": "/Users/alantolparov/IdeaProjects/evaluators-contractor/.artifacts/verification-high-01/runs/2026-09-07_11-33-02/reports/verification_direct-v8-02_report.json",
+      "sha256": "3a847385df1b5455f7046d07f15424e2729510984e1cb19673453a948a3b2a43",
+      "status": "revise",
+      "note": "Negative cooperation recommendation based only on missing financial fields; fixed in 70e71d2.",
+      "raw_metrics": [
+        {
+          "metric": "trajectory_match",
+          "type": "trajectory_match",
+          "score": 0.6
+        },
+        {
+          "metric": "hallucination",
+          "type": "hallucination",
+          "score": 1.0
+        }
+      ]
+    },
+    {
+      "scenario": "verification/direct-v8-03",
+      "report": "/Users/alantolparov/IdeaProjects/evaluators-contractor/.artifacts/verification-high-01/runs/2026-09-07_11-33-02/reports/verification_direct-v8-03_report.json",
+      "sha256": "e9b306f848baae3bb7a912912ca2832f32123b240926ffb6919ee01aa608ef91",
+      "status": "source_trace_incomplete",
+      "note": "Company status is correct in the report but omitted from comparison tool payload; now included in 70e71d2.",
+      "raw_metrics": [
+        {
+          "metric": "trajectory_match",
+          "type": "trajectory_match",
+          "score": 0.95
+        },
+        {
+          "metric": "hallucination",
+          "type": "hallucination",
+          "score": 0.85
+        }
+      ]
+    },
+    {
+      "scenario": "verification/direct-v8-06",
+      "report": "/Users/alantolparov/IdeaProjects/evaluators-contractor/.artifacts/verification-high-01/runs/2026-09-07_11-33-02/reports/verification_direct-v8-06_report.json",
+      "sha256": "4016d691f2a03969d1ce26c2d3028213110ab68af6c15dad946539c28373a1e9",
+      "status": "accepted",
+      "note": "Current question answered with attributed, source-consistent evidence.",
+      "raw_metrics": [
+        {
+          "metric": "trajectory_match",
+          "type": "trajectory_match",
+          "score": 0.95
+        },
+        {
+          "metric": "hallucination",
+          "type": "hallucination",
+          "score": 1.0
+        }
+      ]
+    },
+    {
+      "scenario": "verification/direct-v8-09",
+      "report": "/Users/alantolparov/IdeaProjects/evaluators-contractor/.artifacts/verification-high-01/runs/2026-09-07_11-33-02/reports/verification_direct-v8-09_report.json",
+      "sha256": "d2456767043c97ca1f435932c9821e16c51e073d709a58ce394e6aecc06e12d0",
+      "status": "source_trace_incomplete",
+      "note": "Financial gap details and years are correct in the report but missing in compact comparison payload; now included in 70e71d2.",
+      "raw_metrics": [
+        {
+          "metric": "trajectory_match",
+          "type": "trajectory_match",
+          "score": 0.95
+        },
+        {
+          "metric": "hallucination",
+          "type": "hallucination",
+          "score": 0.95
+        }
+      ]
+    },
+    {
+      "scenario": "verification/direct-v8-13",
+      "report": "/Users/alantolparov/IdeaProjects/evaluators-contractor/.artifacts/verification-high-01/runs/2026-09-07_11-33-02/reports/verification_direct-v8-13_report.json",
+      "sha256": "6db5cfdb923f3ad04010ff81a85839289e1d8d1f6cf51639cf22c176b455494b",
+      "status": "accepted",
+      "note": "Current question answered with attributed, source-consistent evidence.",
+      "raw_metrics": [
+        {
+          "metric": "trajectory_match",
+          "type": "trajectory_match",
+          "score": 0.95
+        },
+        {
+          "metric": "hallucination",
+          "type": "hallucination",
+          "score": 1.0
+        }
+      ]
+    },
+    {
+      "scenario": "verification/direct-v8-14",
+      "report": "/Users/alantolparov/IdeaProjects/evaluators-contractor/.artifacts/verification-high-01/runs/2026-09-07_11-33-02/reports/verification_direct-v8-14_report.json",
+      "sha256": "a5503a3803a0713e34bf68107d0041dcd671270eb73915ca543430757d8818f0",
+      "status": "accepted",
+      "note": "Current question answered with attributed, source-consistent evidence.",
+      "raw_metrics": [
+        {
+          "metric": "trajectory_match",
+          "type": "trajectory_match",
+          "score": 0.94
+        },
+        {
+          "metric": "hallucination",
+          "type": "hallucination",
+          "score": 1.0
+        }
+      ]
+    },
+    {
+      "scenario": "verification/guard-maksmarket-insult",
+      "report": "/Users/alantolparov/IdeaProjects/evaluators-contractor/.artifacts/verification-high-01/runs/2026-09-07_11-33-02/reports/verification_guard-maksmarket-insult_report.json",
+      "sha256": "280e6cc0992010f5a86f17b0583899061eb8b813164f3fca5b0cbcadd52bd0c1",
+      "status": "accepted",
+      "note": "Current question answered with attributed, source-consistent evidence.",
+      "raw_metrics": [
+        {
+          "metric": "trajectory_match",
+          "type": "trajectory_match",
+          "score": 0.97
+        },
+        {
+          "metric": "hallucination",
+          "type": "hallucination",
+          "score": 1.0
+        }
+      ]
+    }
+  ]
+}

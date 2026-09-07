@@ -1,0 +1,329 @@
+{
+  "reviewer": "Codex, also the implementer; not a blind independent bank review",
+  "agent_commit": "b82a758",
+  "framework_commit": "0fef7ae",
+  "run": "direct-high-02",
+  "scope": "All visible answers in all 16 dialogues; source and relevance review",
+  "rows": [
+    {
+      "scenario": "direct/direct-v8-01",
+      "report": "/Users/alantolparov/IdeaProjects/evaluators-contractor/.artifacts/direct-high-02/runs/2026-09-07_11-17-53/reports/direct_direct-v8-01_report.json",
+      "sha256": "f4abfdc32dd6bca43012f9bc0a651568586bd5c9410b6b27155626362fdfdbb6",
+      "visible_answers_reviewed": 2,
+      "status": "accepted",
+      "note": "Answers the current question; no mandatory semantic correction identified in the manual review.",
+      "raw_metrics": [
+        {
+          "metric": "trajectory_match",
+          "type": "trajectory_match",
+          "score": 0.96
+        },
+        {
+          "metric": "hallucination",
+          "type": "hallucination",
+          "score": 1.0
+        }
+      ]
+    },
+    {
+      "scenario": "direct/direct-v8-02",
+      "report": "/Users/alantolparov/IdeaProjects/evaluators-contractor/.artifacts/direct-high-02/runs/2026-09-07_11-17-53/reports/direct_direct-v8-02_report.json",
+      "sha256": "64fa3988e470625d208f19a786f8885d5ea5eec6dd1957eaa1bfd40c59930617",
+      "visible_answers_reviewed": 1,
+      "status": "accepted",
+      "note": "Answers the current question; no mandatory semantic correction identified in the manual review.",
+      "raw_metrics": [
+        {
+          "metric": "trajectory_match",
+          "type": "trajectory_match",
+          "score": 0.97
+        },
+        {
+          "metric": "hallucination",
+          "type": "hallucination",
+          "score": 1.0
+        }
+      ]
+    },
+    {
+      "scenario": "direct/direct-v8-03",
+      "report": "/Users/alantolparov/IdeaProjects/evaluators-contractor/.artifacts/direct-high-02/runs/2026-09-07_11-17-53/reports/direct_direct-v8-03_report.json",
+      "sha256": "541bc55080f198f91e2cc7c7bbadfecc88f0a4ccfb0d8a8e3e19366658e745c3",
+      "visible_answers_reviewed": 1,
+      "status": "accepted",
+      "note": "Answers the current question; no mandatory semantic correction identified in the manual review.",
+      "raw_metrics": [
+        {
+          "metric": "trajectory_match",
+          "type": "trajectory_match",
+          "score": 0.96
+        },
+        {
+          "metric": "hallucination",
+          "type": "hallucination",
+          "score": 1.0
+        }
+      ]
+    },
+    {
+      "scenario": "direct/direct-v8-04",
+      "report": "/Users/alantolparov/IdeaProjects/evaluators-contractor/.artifacts/direct-high-02/runs/2026-09-07_11-17-53/reports/direct_direct-v8-04_report.json",
+      "sha256": "be461334878ed507b736b85896f50b87f47cb763f9a76ccd23fb78b59ba098f4",
+      "visible_answers_reviewed": 1,
+      "status": "accepted_with_style_note",
+      "note": "Correct attribution and direct position. Minor grammatical issue in the opening.",
+      "raw_metrics": [
+        {
+          "metric": "trajectory_match",
+          "type": "trajectory_match",
+          "score": 1.0
+        },
+        {
+          "metric": "hallucination",
+          "type": "hallucination",
+          "score": 1.0
+        }
+      ]
+    },
+    {
+      "scenario": "direct/direct-v8-05",
+      "report": "/Users/alantolparov/IdeaProjects/evaluators-contractor/.artifacts/direct-high-02/runs/2026-09-07_11-17-53/reports/direct_direct-v8-05_report.json",
+      "sha256": "fe16582745b0161758d1eeae3e5567092b554738b9a2ee9c3448d93f0f045f36",
+      "visible_answers_reviewed": 3,
+      "status": "accepted",
+      "note": "Answers the current question; no mandatory semantic correction identified in the manual review.",
+      "raw_metrics": [
+        {
+          "metric": "trajectory_match",
+          "type": "trajectory_match",
+          "score": 0.96
+        },
+        {
+          "metric": "hallucination",
+          "type": "hallucination",
+          "score": 1.0
+        }
+      ]
+    },
+    {
+      "scenario": "direct/direct-v8-06",
+      "report": "/Users/alantolparov/IdeaProjects/evaluators-contractor/.artifacts/direct-high-02/runs/2026-09-07_11-17-53/reports/direct_direct-v8-06_report.json",
+      "sha256": "7ff3e6298f252329ce51ecbffc12525ec4134b3c47769f031cb75af46625ca65",
+      "visible_answers_reviewed": 2,
+      "status": "revise",
+      "note": "Expanded registry uncertainty into founding documents and vague legal-cleanliness claims. Corrected in 285cc16; the judge missed this.",
+      "raw_metrics": [
+        {
+          "metric": "trajectory_match",
+          "type": "trajectory_match",
+          "score": 0.96
+        },
+        {
+          "metric": "hallucination",
+          "type": "hallucination",
+          "score": 1.0
+        }
+      ]
+    },
+    {
+      "scenario": "direct/direct-v8-07",
+      "report": "/Users/alantolparov/IdeaProjects/evaluators-contractor/.artifacts/direct-high-02/runs/2026-09-07_11-17-53/reports/direct_direct-v8-07_report.json",
+      "sha256": "9128943f4414ea1b8d240e7b462641e3d18f440bd99d79a3df67b6b8b80a7518",
+      "visible_answers_reviewed": 2,
+      "status": "accepted",
+      "note": "Answers the current question; no mandatory semantic correction identified in the manual review.",
+      "raw_metrics": [
+        {
+          "metric": "trajectory_match",
+          "type": "trajectory_match",
+          "score": 0.93
+        },
+        {
+          "metric": "hallucination",
+          "type": "hallucination",
+          "score": 1.0
+        }
+      ]
+    },
+    {
+      "scenario": "direct/direct-v8-08",
+      "report": "/Users/alantolparov/IdeaProjects/evaluators-contractor/.artifacts/direct-high-02/runs/2026-09-07_11-17-53/reports/direct_direct-v8-08_report.json",
+      "sha256": "12066d12026a5e8a6a606221fb7ff6cb891ba86f6e0addae6c09b157c539c35d",
+      "visible_answers_reviewed": 2,
+      "status": "accepted",
+      "note": "Answers the current question; no mandatory semantic correction identified in the manual review.",
+      "raw_metrics": [
+        {
+          "metric": "trajectory_match",
+          "type": "trajectory_match",
+          "score": 0.95
+        },
+        {
+          "metric": "hallucination",
+          "type": "hallucination",
+          "score": 1.0
+        }
+      ]
+    },
+    {
+      "scenario": "direct/direct-v8-09",
+      "report": "/Users/alantolparov/IdeaProjects/evaluators-contractor/.artifacts/direct-high-02/runs/2026-09-07_11-17-53/reports/direct_direct-v8-09_report.json",
+      "sha256": "f8c68e03e0da1cd344502de2a8f5eabdab7b142758e091ea7db0f05ae3742acb",
+      "visible_answers_reviewed": 2,
+      "status": "accepted",
+      "note": "Answers the current question; no mandatory semantic correction identified in the manual review.",
+      "raw_metrics": [
+        {
+          "metric": "trajectory_match",
+          "type": "trajectory_match",
+          "score": 0.97
+        },
+        {
+          "metric": "hallucination",
+          "type": "hallucination",
+          "score": 1.0
+        }
+      ]
+    },
+    {
+      "scenario": "direct/direct-v8-10",
+      "report": "/Users/alantolparov/IdeaProjects/evaluators-contractor/.artifacts/direct-high-02/runs/2026-09-07_11-17-53/reports/direct_direct-v8-10_report.json",
+      "sha256": "7f6c5edb83d8335f7fc37d1289e0a3c90ee5e85f7f1ba347596988eb7076c9e8",
+      "visible_answers_reviewed": 2,
+      "status": "revise",
+      "note": "No critical factors, lawsuits or enforcement proceedings: the list expands absent records into absent events. Fixed enumeration handling in 70e71d2. Hallucination judge timed out.",
+      "raw_metrics": [
+        {
+          "metric": "trajectory_match",
+          "type": "trajectory_match",
+          "score": 0.95
+        },
+        {
+          "metric": "hallucination",
+          "type": "error",
+          "score": 0.0
+        }
+      ]
+    },
+    {
+      "scenario": "direct/direct-v8-11",
+      "report": "/Users/alantolparov/IdeaProjects/evaluators-contractor/.artifacts/direct-high-02/runs/2026-09-07_11-17-53/reports/direct_direct-v8-11_report.json",
+      "sha256": "d28b991cc5d99222e1f1d1b9133dbc844ad2f47592275040e79eb0b51c497745",
+      "visible_answers_reviewed": 2,
+      "status": "accepted_with_efficiency_note",
+      "note": "Unknown INN was not replaced with previous company. Extra search and risk calls lower high score but do not distort the answer.",
+      "raw_metrics": [
+        {
+          "metric": "trajectory_match",
+          "type": "trajectory_match",
+          "score": 0.74
+        },
+        {
+          "metric": "hallucination",
+          "type": "hallucination",
+          "score": 1.0
+        }
+      ]
+    },
+    {
+      "scenario": "direct/direct-v8-12",
+      "report": "/Users/alantolparov/IdeaProjects/evaluators-contractor/.artifacts/direct-high-02/runs/2026-09-07_11-17-53/reports/direct_direct-v8-12_report.json",
+      "sha256": "4f9cdf64fcd4f477c85eccd4edb30125798a1f12cbcf4ea413a2af30f94fbcf7",
+      "visible_answers_reviewed": 1,
+      "status": "accepted_with_efficiency_note",
+      "note": "Correctly declines guaranteeing a payment. Extra risk call supports the suspension fact; efficiency penalty, not a factual error.",
+      "raw_metrics": [
+        {
+          "metric": "trajectory_match",
+          "type": "trajectory_match",
+          "score": 0.83
+        },
+        {
+          "metric": "hallucination",
+          "type": "hallucination",
+          "score": 1.0
+        }
+      ]
+    },
+    {
+      "scenario": "direct/direct-v8-13",
+      "report": "/Users/alantolparov/IdeaProjects/evaluators-contractor/.artifacts/direct-high-02/runs/2026-09-07_11-17-53/reports/direct_direct-v8-13_report.json",
+      "sha256": "03f91c2ec1c2762403ad375ea852f483f5c7045bd016710d70d1009aeb3580a1",
+      "visible_answers_reviewed": 1,
+      "status": "accepted",
+      "note": "Answers the current question; no mandatory semantic correction identified in the manual review.",
+      "raw_metrics": [
+        {
+          "metric": "trajectory_match",
+          "type": "trajectory_match",
+          "score": 0.98
+        },
+        {
+          "metric": "hallucination",
+          "type": "hallucination",
+          "score": 1.0
+        }
+      ]
+    },
+    {
+      "scenario": "direct/direct-v8-14",
+      "report": "/Users/alantolparov/IdeaProjects/evaluators-contractor/.artifacts/direct-high-02/runs/2026-09-07_11-17-53/reports/direct_direct-v8-14_report.json",
+      "sha256": "7c8ec379c6bf9be414c3c848ae42ef3510eaa117335d4e3ab4ebbf9fc534460d",
+      "visible_answers_reviewed": 1,
+      "status": "accepted_with_style_note",
+      "note": "Profit sign correctly remains unknown. Not disclosed here paraphrases the missing row, without claiming a cause or violation. Not specified is preferable wording.",
+      "raw_metrics": [
+        {
+          "metric": "trajectory_match",
+          "type": "trajectory_match",
+          "score": 0.97
+        },
+        {
+          "metric": "hallucination",
+          "type": "hallucination",
+          "score": 1.0
+        }
+      ]
+    },
+    {
+      "scenario": "direct/direct-v8-15",
+      "report": "/Users/alantolparov/IdeaProjects/evaluators-contractor/.artifacts/direct-high-02/runs/2026-09-07_11-17-53/reports/direct_direct-v8-15_report.json",
+      "sha256": "43d45c41ba48510664e475c5f0da4629b27c034a0c090435bad0f8562eff1a32",
+      "visible_answers_reviewed": 1,
+      "status": "accepted",
+      "note": "Answers the current question; no mandatory semantic correction identified in the manual review.",
+      "raw_metrics": [
+        {
+          "metric": "trajectory_match",
+          "type": "trajectory_match",
+          "score": 0.98
+        },
+        {
+          "metric": "hallucination",
+          "type": "hallucination",
+          "score": 1.0
+        }
+      ]
+    },
+    {
+      "scenario": "direct/direct-v8-16",
+      "report": "/Users/alantolparov/IdeaProjects/evaluators-contractor/.artifacts/direct-high-02/runs/2026-09-07_11-17-53/reports/direct_direct-v8-16_report.json",
+      "sha256": "02615adfb615d283581710d77b9a3f15e8834ca0e9ad99c5dfe885653f965bc2",
+      "visible_answers_reviewed": 1,
+      "status": "accepted",
+      "note": "Answers the current question; no mandatory semantic correction identified in the manual review.",
+      "raw_metrics": [
+        {
+          "metric": "trajectory_match",
+          "type": "trajectory_match",
+          "score": 0.86
+        },
+        {
+          "metric": "hallucination",
+          "type": "hallucination",
+          "score": 1.0
+        }
+      ]
+    }
+  ]
+}

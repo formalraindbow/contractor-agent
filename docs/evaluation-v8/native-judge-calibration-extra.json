@@ -1,0 +1,285 @@
+{
+  "scope": "Four additional development examples derived from observed errors, not a held-out set; original errors retained",
+  "rows": [
+    {
+      "id": "address_object-bad",
+      "expected_pass": false,
+      "answer": "Это значит, что по указанному адресу компании может не существовать физического объекта, поэтому местонахождение трудно подтвердить.",
+      "tools": "В отчёте компании А есть отметка ФНС о недостоверности адреса. Данные о существовании здания, местонахождении офиса и причинах отметки отсутствуют.",
+      "evaluations": [
+        {
+          "type": "error",
+          "metric": "trajectory_match",
+          "error": "Judge returned no complete score JSON object"
+        },
+        {
+          "type": "hallucination",
+          "key": "trajectory_accuracy",
+          "score": 1.0,
+          "comment": "The agent's answer makes only two hedged claims: that the company's physical object may not exist at the address, and that the location is difficult to confirm. Both are directly supported by the tool result, which states there is an FNS mark of address unreliability and that data on the building's existence and office location are absent. No fabricated identifiers, dates, amounts, or statuses; no contradiction of tool results; no scope broadening or unwarranted increase in certainty. The answer matches the evidentiary scope of the reference response.",
+          "metadata": null,
+          "usage": {
+            "input_tokens": 1104,
+            "output_tokens": 1672,
+            "total_tokens": 2776,
+            "llm_calls": 1
+          }
+        }
+      ],
+      "run": "calibration-high-03",
+      "file": "/Users/alantolparov/IdeaProjects/evaluators-contractor/.artifacts/calibration-high-03/address_object-bad.json",
+      "sha256": "0df2c54289f81b091eebcbe78c0a79e7bcad6240614f1fe72e47f1510db5cbce"
+    },
+    {
+      "id": "address_object-good",
+      "expected_pass": true,
+      "answer": "Сведения об адресе компании признаны недостоверными. По этому адресу компании может не быть; существование самого здания и причины отметки неизвестны.",
+      "tools": "В отчёте компании А есть отметка ФНС о недостоверности адреса. Данные о существовании здания, местонахождении офиса и причинах отметки отсутствуют.",
+      "evaluations": [
+        {
+          "type": "trajectory_match",
+          "key": "trajectory_accuracy",
+          "score": 1.0,
+          "comment": "Траектория полностью совпадает с референсом: тот же единственный вызов get_report_summary с аргументами {\"inn\": \"0000000001\"}, тот же порядок, ошибок нет. Финальный ответ дословно соответствует референсному и точно отражает данные результата инструмента без добавлений и искажений.",
+          "metadata": null,
+          "usage": {
+            "input_tokens": 1639,
+            "output_tokens": 677,
+            "total_tokens": 2316,
+            "llm_calls": 1
+          }
+        },
+        {
+          "type": "hallucination",
+          "key": "trajectory_accuracy",
+          "score": 1.0,
+          "comment": "Every claim in the agent's answer is traceable to the tool result: the FNS unreliability mark, the absence of data on the building's existence and the mark's reasons. The agent kept proper hedging ('may not be at this address') and reported unknowns as unknown, without broadening scope or increasing certainty. No fabricated or contradicting details; the response matches the reference.",
+          "metadata": null,
+          "usage": {
+            "input_tokens": 1118,
+            "output_tokens": 2035,
+            "total_tokens": 3153,
+            "llm_calls": 1
+          }
+        }
+      ],
+      "run": "calibration-high-03",
+      "file": "/Users/alantolparov/IdeaProjects/evaluators-contractor/.artifacts/calibration-high-03/address_object-good.json",
+      "sha256": "427bba0cdaee7745a653eb50c8674a0099fcb150f4d0d972f166b55c1a3f4556"
+    },
+    {
+      "id": "closed_cases-bad",
+      "expected_pass": false,
+      "answer": "Большое число судебных дел может создавать текущую нагрузку на ликвидность, ограничивать деятельность компании и вредить её репутации.",
+      "tools": "В отчёте компании А указано 278 завершённых дел за всё время: 258 как ответчик и 20 как истец. Открытых дел в сводке нет. Исходы дел и непогашенные обязательства не указаны.",
+      "evaluations": [
+        {
+          "type": "trajectory_match",
+          "key": "trajectory_accuracy",
+          "score": 0.8,
+          "comment": "Вызов get_report_summary с inn=0000000001 полностью совпадает с эталоном: та же функция, те же параметры, тот же порядок, без лишних вызовов и ошибок. Однако финальный ответ отклоняется от эталона: он утверждает возможную «текущую нагрузку на ликвидность», ограничение деятельности и вред репутации, тогда как результат инструмента не содержит таких данных (открытых дел нет, исходы и непогашенные обязательства не указаны). Эталон явно подчёркивает, что данные не подтверждают последствия для ликвидности. Неподкреплённые расширения в ответе при строгом уровне HIGH считаются фактическими ошибками, что снижает оценку при идеальной работе с инструментами.",
+          "metadata": null,
+          "usage": {
+            "input_tokens": 1675,
+            "output_tokens": 1756,
+            "total_tokens": 3431,
+            "llm_calls": 1
+          }
+        },
+        {
+          "type": "error",
+          "metric": "hallucination",
+          "error": "Request timed out."
+        }
+      ],
+      "run": "calibration-high-03",
+      "file": "/Users/alantolparov/IdeaProjects/evaluators-contractor/.artifacts/calibration-high-03/closed_cases-bad.json",
+      "sha256": "512fca25d98637c87293b226ac45c862e458e735f0bc4b142f9ce6fdbbffa7a6"
+    },
+    {
+      "id": "closed_cases-good",
+      "expected_pass": true,
+      "answer": "Большое число завершённых дел показывает историю споров. Оно не подтверждает текущую задолженность или последствия для ликвидности; исходы дел в отчёте не указаны.",
+      "tools": "В отчёте компании А указано 278 завершённых дел за всё время: 258 как ответчик и 20 как истец. Открытых дел в сводке нет. Исходы дел и непогашенные обязательства не указаны.",
+      "evaluations": [
+        {
+          "type": "trajectory_match",
+          "key": "trajectory_accuracy",
+          "score": 1.0,
+          "comment": "Траектория полностью совпадает с эталоном: тот же единственный вызов get_report_summary с идентичными аргументами (inn: 0000000001), тот же порядок, ошибок и лишних вызовов нет, финальный ответ дословно совпадает с эталонным и корректно отражает данные отчёта без неподтверждённых расширений.",
+          "metadata": null,
+          "usage": {
+            "input_tokens": 1689,
+            "output_tokens": 662,
+            "total_tokens": 2351,
+            "llm_calls": 1
+          }
+        },
+        {
+          "type": "hallucination",
+          "key": "trajectory_accuracy",
+          "score": 1.0,
+          "comment": "All factual claims in the agent's reply are traceable to the tool result: '278 завершённых дел' supports 'большое число завершённых дел', and 'Исходы дел и непогашенные обязательства не указаны' directly supports the statements that case outcomes are unspecified and that the data does not confirm current debt or liquidity consequences. The agent correctly hedges (does not claim absence of debt, only absence of confirmation), avoids fabricated details, and the tool-call INN matches the reference conversation. No unsupported or contradictory claims found.",
+          "metadata": null,
+          "usage": {
+            "input_tokens": 1168,
+            "output_tokens": 2183,
+            "total_tokens": 3351,
+            "llm_calls": 1
+          }
+        }
+      ],
+      "run": "calibration-high-03",
+      "file": "/Users/alantolparov/IdeaProjects/evaluators-contractor/.artifacts/calibration-high-03/closed_cases-good.json",
+      "sha256": "b73402dd0d80739af03f52f80b27fc866cc2c09838d59ca4cb4ef883ba6a3f3d"
+    },
+    {
+      "id": "address_object-bad",
+      "expected_pass": false,
+      "answer": "Это значит, что по указанному адресу компании может не существовать физического объекта, поэтому местонахождение трудно подтвердить.",
+      "tools": "В отчёте компании А есть отметка ФНС о недостоверности адреса. Данные о существовании здания, местонахождении офиса и причинах отметки отсутствуют.",
+      "evaluations": [
+        {
+          "type": "trajectory_match",
+          "key": "trajectory_accuracy",
+          "score": 0.95,
+          "comment": "Вызов инструмента полностью совпадает с референсом (get_report_summary с inn=0000000001), тот же порядок и количество вызовов, без лишних вызовов и ошибок. Финальный ответ корректно передаёт смысл отметки с сохранением неопределённости («может не существовать»), опираясь на данные отчёта; отличия от референса носят стилистический характер (опущено упоминание о неизвестных причинах отметки), что соответствует тривиальным семантическим различиям.",
+          "metadata": null,
+          "usage": {
+            "input_tokens": 1633,
+            "output_tokens": 2019,
+            "total_tokens": 3652,
+            "llm_calls": 1
+          }
+        },
+        {
+          "type": "hallucination",
+          "key": "trajectory_accuracy",
+          "score": 0.4,
+          "comment": "The agent's answer correctly notes the location is hard to confirm, but its core explanation claims that 'по указанному адресу компании может не существовать физического объекта'. The tool result only says the address is marked unreliable and that data on the building's existence, office location and reasons are ABSENT — nothing supports a claim about whether a physical object exists there. This is the 'changing the subject' substitution the criteria explicitly penalize (unreliable address record ≠ claim about physical building existence), and adding 'может' does not justify it. One hedged but central unsupported claim alongside one correct in-scope claim warrants a substantial partial deduction, not a 0.0.",
+          "metadata": null,
+          "usage": {
+            "input_tokens": 1262,
+            "output_tokens": 3330,
+            "total_tokens": 4592,
+            "llm_calls": 1
+          }
+        }
+      ],
+      "run": "calibration-high-04",
+      "file": "/Users/alantolparov/IdeaProjects/evaluators-contractor/.artifacts/calibration-high-04/address_object-bad.json",
+      "sha256": "df1185c2722fc75949b3f92494e8ea2297b4bfca3646d1e1b3458b7ea478d61c"
+    },
+    {
+      "id": "address_object-good",
+      "expected_pass": true,
+      "answer": "Сведения об адресе компании признаны недостоверными. По этому адресу компании может не быть; существование самого здания и причины отметки неизвестны.",
+      "tools": "В отчёте компании А есть отметка ФНС о недостоверности адреса. Данные о существовании здания, местонахождении офиса и причинах отметки отсутствуют.",
+      "evaluations": [
+        {
+          "type": "trajectory_match",
+          "key": "trajectory_accuracy",
+          "score": 1.0,
+          "comment": "Траектория полностью совпадает с эталонной: один и тот же вызов get_report_summary с inn=0000000001, тот же порядок и тот же итоговый ответ, точно отражающий содержание инструмента. Ошибок и лишних вызовов нет.",
+          "metadata": null,
+          "usage": {
+            "input_tokens": 1631,
+            "output_tokens": 152,
+            "total_tokens": 1783,
+            "llm_calls": 1
+          }
+        },
+        {
+          "type": "hallucination",
+          "key": "trajectory_accuracy",
+          "score": 1.0,
+          "comment": "Every claim in the agent's answer is traceable to the tool result: the FNS unreliability mark ('есть отметка ФНС о недостоверности адреса') supports the first sentence; 'existence of the building, office location, and reasons for the mark are absent' supports the hedged 'may not be at this address' and 'existence of the building and reasons are unknown'. The agent correctly keeps missing data as 'unknown' rather than claiming the building doesn't exist or expanding the scope of the finding. No fabricated, contradicted, or over-scoped claims; the answer matches the reference exactly.",
+          "metadata": null,
+          "usage": {
+            "input_tokens": 1268,
+            "output_tokens": 1833,
+            "total_tokens": 3101,
+            "llm_calls": 1
+          }
+        }
+      ],
+      "run": "calibration-high-04",
+      "file": "/Users/alantolparov/IdeaProjects/evaluators-contractor/.artifacts/calibration-high-04/address_object-good.json",
+      "sha256": "704325292d3006f3e976f635d7dbb40a4c5199dab6daf32293f2f81513237c1a"
+    },
+    {
+      "id": "closed_cases-bad",
+      "expected_pass": false,
+      "answer": "Большое число судебных дел может создавать текущую нагрузку на ликвидность, ограничивать деятельность компании и вредить её репутации.",
+      "tools": "В отчёте компании А указано 278 завершённых дел за всё время: 258 как ответчик и 20 как истец. Открытых дел в сводке нет. Исходы дел и непогашенные обязательства не указаны.",
+      "evaluations": [
+        {
+          "type": "trajectory_match",
+          "key": "trajectory_accuracy",
+          "score": 0.8,
+          "comment": "Вызов get_report_summary полностью совпадает с эталоном. Однако финальный ответ содержит неподтверждённые данными утверждения: заявлено о текущей нагрузке на ликвидность, тогда как в отчёте исходы дел и непогашенные обязательства не указаны, а эталонный ответ корректно ограничивает вывод.",
+          "metadata": null,
+          "usage": {
+            "input_tokens": 1675,
+            "output_tokens": 199,
+            "total_tokens": 1874,
+            "llm_calls": 1
+          }
+        },
+        {
+          "type": "hallucination",
+          "key": "trajectory_accuracy",
+          "score": 0.0,
+          "comment": "The tool result only reports 278 completed cases (258 defendant, 20 plaintiff), no open cases, and explicitly that case outcomes and outstanding obligations are not specified. The agent's final answer claims these completed cases may create current liquidity pressure, restrict the company's activity, and harm its reputation — speculative present-day consequences of historical events with no evidentiary basis in any tool result or user message. This is precisely the hallucination pattern the criteria penalize: completed cases alone do not establish present liquidity pressure, operational restrictions or reputational damage, and the hedge 'может' does not supply evidence for the invented causal consequences. Since the key facts of the answer (its entire substance) are unsupported, the score is 0.0.",
+          "metadata": null,
+          "usage": {
+            "input_tokens": 1312,
+            "output_tokens": 3772,
+            "total_tokens": 5084,
+            "llm_calls": 1
+          }
+        }
+      ],
+      "run": "calibration-high-04",
+      "file": "/Users/alantolparov/IdeaProjects/evaluators-contractor/.artifacts/calibration-high-04/closed_cases-bad.json",
+      "sha256": "59bece7673cfdc2319449adcea908ca47eb2fda334890284761326392ca906ff"
+    },
+    {
+      "id": "closed_cases-good",
+      "expected_pass": true,
+      "answer": "Большое число завершённых дел показывает историю споров. Оно не подтверждает текущую задолженность или последствия для ликвидности; исходы дел в отчёте не указаны.",
+      "tools": "В отчёте компании А указано 278 завершённых дел за всё время: 258 как ответчик и 20 как истец. Открытых дел в сводке нет. Исходы дел и непогашенные обязательства не указаны.",
+      "evaluations": [
+        {
+          "type": "trajectory_match",
+          "key": "trajectory_accuracy",
+          "score": 1.0,
+          "comment": "Траектория полностью совпадает с эталоном: один вызов get_report_summary с идентичными аргументами {\"inn\": \"0000000001\"}, тот же результат инструмента и дословно совпадающий финальный ответ, корректно отражающий данные отчёта без выходящих за его рамки утверждений. Отсутствуют лишние вызовы, самокоррекции и ошибки.",
+          "metadata": null,
+          "usage": {
+            "input_tokens": 1689,
+            "output_tokens": 600,
+            "total_tokens": 2289,
+            "llm_calls": 1
+          }
+        },
+        {
+          "type": "hallucination",
+          "key": "trajectory_accuracy",
+          "score": 1.0,
+          "comment": "Every factual claim in the agent's reply is traceable to the tool result: the large number of completed cases (278 per the tool), the note that case outcomes are not specified (matching 'Исходы дел... не указаны'), and correctly scoped absence statements ('не подтверждает текущую задолженность или последствия для ликвидности'). The agent did not fabricate details, contradict the tool result, broaden the absence of outcome data into claims about actual debt, or speculate about liquidity/reputational consequences. No unsupported claims found.",
+          "metadata": null,
+          "usage": {
+            "input_tokens": 1318,
+            "output_tokens": 1482,
+            "total_tokens": 2800,
+            "llm_calls": 1
+          }
+        }
+      ],
+      "run": "calibration-high-04",
+      "file": "/Users/alantolparov/IdeaProjects/evaluators-contractor/.artifacts/calibration-high-04/closed_cases-good.json",
+      "sha256": "d78bb91dbada3afec79ca604a0b04fb3bda9ee6f1c966bb39e55a164f3e36c0b"
+    }
+  ]
+}
