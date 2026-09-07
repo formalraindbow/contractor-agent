@@ -40,6 +40,28 @@ def test_choice_paraphrases_reach_interpretation(question):
     assert needs_interpretation(question)
 
 
+@pytest.mark.parametrize(
+    "question",
+    [
+        "ООО СПЛ 6700011489 просит отсрочку на 60 дней на 5 млн, можно соглашаться?",
+        "Стоит соглашаться на эти условия?",
+        "Соглашаться ли на отсрочку?",
+        "Можно согласиться?",
+    ],
+)
+def test_agreement_decision_paraphrases_reach_interpretation(question):
+    from contractor_agent.agent.question import needs_interpretation, needs_risk_review
+
+    assert needs_interpretation(question)
+    assert needs_risk_review(question)
+
+
+def test_factual_agreement_question_is_not_a_recommendation():
+    from contractor_agent.agent.question import recommendation_requested
+
+    assert not recommendation_requested("Компания согласилась на мировое соглашение?")
+
+
 def test_choice_followup_refreshes_with_one_batch_and_keeps_specialist_reads():
     from contractor_agent.agent.evidence import missing_reads
 
@@ -210,6 +232,35 @@ def test_proof_keeps_court_role_when_selected_outside_the_original_section():
         citations=[Citation(claim="Завершены: 20 дел.", source_path="report.arbitrationByStatus")],
     )
     assert "истец" in contextual_citations(draft)[0].claim
+
+
+def test_selected_financial_evidence_keeps_year_even_for_repeated_values(snapshot):
+    from contractor_agent.agent.financial_answers import financial_answer
+    from contractor_agent.agent.interpretation import contextual_citations
+
+    draft = financial_answer(Tools(snapshot), ["6165169320"], "Финансы")
+    evidence = contextual_citations(draft)
+    negative_capital = next(c for c in evidence if "-26 411 000" in c.claim)
+    assert negative_capital.claim.startswith("2024 год: Капитал и резервы:")
+    assert next(c for c in evidence if "3 782 000" in c.claim).claim.startswith("2025 год:")
+
+    from contractor_agent.agent.schema import Draft
+
+    duplicate = "Прибыль / убыток: строка в отчёте отсутствует."
+    draft = Draft(
+        kind="answer",
+        lines=[
+            "### Финансовые данные за 2025 год",
+            "- " + duplicate,
+            "### Финансовые данные за 2024 год",
+            "- " + duplicate,
+        ],
+        citations=[
+            Citation(claim=duplicate, source_path="report.finReports[0].profit"),
+            Citation(claim=duplicate, source_path="report.finReports[1].profit"),
+        ],
+    )
+    assert [c.claim[:4] for c in contextual_citations(draft)] == ["2025", "2024"]
 
 
 def test_model_plan_cannot_invent_evidence_or_numbers(snapshot):

@@ -143,15 +143,34 @@ def evidence_context(
 
 def contextual_citations(draft: Draft) -> list[Citation]:
     """Keep section headings when a numeric evidence line cannot stand alone."""
+    contexts = []
+    heading, kind = "", ""
+    for line in draft.lines:
+        financial = re.match(r"### Финансовые данные за (\d{4}) год", line)
+        if financial:
+            heading, kind = f"{financial[1]} год", "financial"
+        elif line.startswith("#"):
+            heading, kind = "", ""
+        elif "**Иски к компании" in line or "**Иски компании" in line:
+            heading, kind = line.strip("* "), "court"
+        contexts.append((line, heading, kind))
+
     out = []
+    cursor = 0
     for citation in draft.citations:
-        heading = ""
-        for line in draft.lines:
-            if "**Иски к компании" in line or "**Иски компании" in line:
-                heading = line.strip("* ")
+        heading, kind = "", ""
+        for index in range(cursor, len(contexts)):
+            line, section, section_kind = contexts[index]
             if citation.claim in line:
+                heading, kind = section, section_kind
+                # Repeated values (including missing/zero) in different years must
+                # retain the period of their own occurrence, not the first match.
+                cursor = index + 1
                 break
-        if heading and not re.search(r"ответчик|истец|истц", citation.claim, re.I):
+        needs_heading = (
+            kind == "financial" and citation.source_path.startswith("report.finReports")
+        ) or (kind == "court" and not re.search(r"ответчик|истец|истц", citation.claim, re.I))
+        if heading and needs_heading:
             citation = citation.model_copy(update={"claim": heading + ": " + citation.claim})
         out.append(citation)
     return out

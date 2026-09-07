@@ -64,7 +64,8 @@ CHOICE = re.compile(
 )
 TRANSACTION_DECISION = re.compile(
     r"(?:можно|стоит|рекоменду\w*|совету\w*|безопасно|лучше)[^.!?\n]{0,45}"
-    r"(?:дать|давать|предоставить|согласиться|выбрать|отгружать|платить|отсроч|предоплат|постоплат)"
+    r"(?:дать|давать|предоставить|согласиться|соглашаться|выбрать|отгружать|платить|отсроч|предоплат|постоплат)"
+    r"|(?:согласиться|соглашаться)\s+ли\b"
     r"|(?:отсроч\w*|постоплат\w*|предоплат\w*)[^.!?\n]{0,35}(?:или\s+лучше|стоит|можно|или\s+нет)",
     re.I,
 )
@@ -94,9 +95,7 @@ RISK_TOPIC = re.compile(
 
 def needs_risk_review(question: str) -> bool:
     q = subject(question)
-    return bool(
-        DECISION.search(q) or COOPERATION.search(q) or CHOICE.search(q) or RISK_TOPIC.search(q)
-    )
+    return bool(DECISION.search(q) or recommendation_requested(q) or RISK_TOPIC.search(q))
 
 
 def needs_interpretation(question: str) -> bool:
