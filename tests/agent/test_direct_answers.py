@@ -265,6 +265,22 @@ def test_guarantee_with_modifiers_and_separate_negated_sentence(text, bad):
     assert bool(interpretation_problem(answer, "Объясни отсутствие сигналов")) == bad
 
 
+@pytest.mark.parametrize(
+    "text,bad",
+    [
+        ("Рекомендую ТЕХПРОФ, поскольку банк одобрил его.", True),
+        ("Банк рекомендует сотрудничать с компанией.", True),
+        ("Компания одобрена банком.", True),
+        ("Зелёный светофор означает одобрение банка.", True),
+        ("Зелёный светофор не означает, что банк одобрил компанию.", False),
+        ("Светофор банка: зелёный. Это значение банковского индикатора в отчёте.", False),
+    ],
+)
+def test_bank_indicator_is_not_bank_approval(text, bad):
+    answer = Answer(kind="answer", text_md=text)
+    assert bool(interpretation_problem(answer, "Объясни отсутствие сигналов")) == bad
+
+
 def test_historical_court_evidence_does_not_support_generic_present_consequences():
     answer = Answer(
         kind="answer",

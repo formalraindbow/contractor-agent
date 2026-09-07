@@ -169,8 +169,6 @@ button:focus-visible,a:focus-visible,input:focus-visible,textarea:focus-visible,
   <nav class="tabs" aria-label="Разделы">
     <button type="button" class="on" id="tabOne" aria-current="page">Проверка компании</button>
     <button type="button" id="tabMany">Сравнить компании</button>
-    <button type="button" id="tabQuality">Качество ответов</button>
-    <button type="button" id="tabMcp">Для агентов банка</button>
   </nav>
   <div id="chats" hidden></div>
   <div class="sidebar-note">Данные из отчётов банка.<br>200 компаний в демобазе.</div>
@@ -1130,7 +1128,6 @@ function switchMode(mode) {
   const nextPanel=$(one ? '#modeOne' : many ? '#modeMany' : mcp ? '#modeMcp' : '#modeQuality'), changed=nextPanel.hidden;
   $("#modeOne").hidden = !one; $("#modeMany").hidden = !many; $("#modeMcp").hidden = !mcp; $("#modeQuality").hidden = !quality;
   $("#tabOne").classList.toggle("on", one); $("#tabMany").classList.toggle("on", many);
-  $("#tabMcp").classList.toggle("on", mcp); $("#tabQuality").classList.toggle("on", quality);
   const titles={one:"Проверка контрагента",many:"Сравнение компаний",quality:"Качество ответов",mcp:"Подключение к агентам"};
   $("#pageTitle").textContent=titles[mode];
   document.querySelectorAll(".tabs button").forEach(b=>b.classList.contains("on") ? b.setAttribute("aria-current","page") : b.removeAttribute("aria-current"));
@@ -1139,8 +1136,6 @@ function switchMode(mode) {
 }
 $("#tabOne").addEventListener("click", () => switchMode("one"));
 $("#tabMany").addEventListener("click", () => switchMode("many"));
-$("#tabMcp").addEventListener("click", () => switchMode("mcp"));
-$("#tabQuality").addEventListener("click", () => switchMode("quality"));
 $("#mcpcopy").addEventListener("click", async () => {
   try { await navigator.clipboard.writeText($("#mcpjson").textContent); } catch (e) {}
   const ok = $("#mcpcopied"); ok.hidden = false; setTimeout(() => { ok.hidden = true; }, 1500);
