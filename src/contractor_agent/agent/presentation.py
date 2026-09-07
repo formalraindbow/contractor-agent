@@ -110,6 +110,14 @@ def public_text(text: str) -> str:
     Run after extracting and checking citations, so presentation cannot erase evidence.
     Ordinary brackets (dates, company names, explanations) remain intact.
     """
+    # Older saved answers used internal severity labels as repeated paragraph titles.
+    # Only strip anchored labels; preserve every fact and ordinary mentions in prose.
+    text = re.sub(
+        r"(?im)^[ \t]*(?:[-•]\s+)?(?:\*\*)?(?:[ℹi]\s+)?"
+        r"(?:Критический факт|Умеренный факт|Информация|Пробел)\s*:(?:\*\*)?\s*",
+        "- ",
+        text,
+    )
     urls = []
 
     def keep_url(match):

@@ -26,6 +26,7 @@ from contractor_agent.agent.prompt import PROMPT_VERSION, prompt_fingerprint
 from contractor_agent.agent.runtime import AgentRuntime
 from contractor_agent.settings import Settings, make_source
 from evals.gold import GOLD_PATH, Gold, load_gold
+from evals.judge import JUDGE_VERSION
 from evals.runner import EvalRunner, RunRecord, model_slug
 
 SUITES = Path(__file__).parent / "suites/readiness.json"
@@ -66,6 +67,7 @@ class Usage(BaseCallbackHandler):
                         "usage": getattr(message, "usage_metadata", None),
                         "reported_model": metadata.get("model_name"),
                         "finish_reason": metadata.get("finish_reason"),
+                        "cost_rub": (metadata.get("token_usage") or {}).get("cost_rub"),
                     }
                 )
 
@@ -99,10 +101,13 @@ def quantile(values: list[float], fraction: float) -> float | None:
 
 
 def summarize(records: list[dict], models: list[str], planned: int, repeats: int = 2) -> dict:
+    def agent_ok(record):
+        return not record["error"] or record.get("error_stage") == "judge"
+
     result = {"planned_scenarios": planned, "completed_scenarios": len(records), "models": {}}
     for model in models:
         rows = [r for r in records if r["record"]["model"] == model]
-        completed = [r for r in rows if not r["record"]["error"]]
+        completed = [r for r in rows if agent_ok(r["record"])]
         turns = [t["duration_s"] for r in completed for t in r["turns"] if "answer" in t]
         groups = defaultdict(list)
         for row in rows:
@@ -113,8 +118,9 @@ def summarize(records: list[dict], models: list[str], planned: int, repeats: int
         result["models"][model] = {
             "scenarios": len(rows),
             "agent_errors": len(rows) - len(completed),
+            "judge_errors": sum(r["record"].get("error_stage") == "judge" for r in rows),
             "code_passes": sum(
-                r["record"]["checks_passed"] and not r["record"]["error"] for r in rows
+                r["record"]["checks_passed"] and agent_ok(r["record"]) for r in rows
             ),
             "by_type": {
                 kind: {
@@ -122,7 +128,7 @@ def summarize(records: list[dict], models: list[str], planned: int, repeats: int
                     "passed": sum(
                         r["record"]["type"] == kind
                         and r["record"]["checks_passed"]
-                        and not r["record"]["error"]
+                        and agent_ok(r["record"])
                         for r in rows
                     ),
                 }
@@ -135,7 +141,7 @@ def summarize(records: list[dict], models: list[str], planned: int, repeats: int
             "repeat_groups": len(repeat_groups),
             "planned_case_groups": planned // (len(models) * repeats),
             "groups_all_repeats_pass": sum(
-                all(r["record"]["checks_passed"] and not r["record"]["error"] for r in g)
+                all(r["record"]["checks_passed"] and agent_ok(r["record"]) for r in g)
                 for g in repeat_groups
             ),
             "observed_llm_completions": len(calls),
@@ -147,13 +153,23 @@ def summarize(records: list[dict], models: list[str], planned: int, repeats: int
             "judge_passes": sum(
                 bool(r["record"].get("judge")) and r["record"]["judge"]["score"] >= 4 for r in rows
             ),
+            "judge_input_tokens": sum(
+                (c.get("usage") or {}).get("input_tokens", 0)
+                for r in rows
+                for c in r.get("judge_calls", [])
+            ),
+            "judge_output_tokens": sum(
+                (c.get("usage") or {}).get("output_tokens", 0)
+                for r in rows
+                for c in r.get("judge_calls", [])
+            ),
             "semantic_correctness": None,
         }
     paired = defaultdict(dict)
     for row in records:
         r = row["record"]
         paired[(r["question_id"], r["repeat"])][r["model"]] = bool(
-            r["checks_passed"] and not r["error"]
+            r["checks_passed"] and agent_ok(r)
         )
     pairs = [p for p in paired.values() if all(m in p for m in models)]
     if len(models) == 2:
@@ -242,6 +258,8 @@ async def run(args):
         "base_url": args.base_url,
         "models": args.models,
         "fallback_models": [],
+        "provider_order": settings.provider_order,
+        "provider_allow_fallbacks": settings.llm_provider_allow_fallbacks,
         "temperature": 0,
         "reasoning_effort": "low",
         "max_tokens": 8192,
@@ -256,7 +274,11 @@ async def run(args):
         "type_counts": dict(Counter(q.type for q in questions)),
         "planned_scenarios": len(jobs),
         "job_order": [{"id": q.id, "repeat": rep, "model": m} for q, rep, m in jobs],
-        "judge": {"model": settings.judge_model, "base_url": settings.judge_base_url}
+        "judge": {
+            "model": settings.judge_model,
+            "base_url": settings.judge_base_url,
+            "rubric_version": JUDGE_VERSION,
+        }
         if args.judge
         else None,
         "holdout": False,
@@ -270,7 +292,6 @@ async def run(args):
     args.out.mkdir(parents=True)
     (args.out / "manifest.json").write_text(json.dumps(manifest, indent=2, ensure_ascii=False))
     source = make_source(settings)
-    judge_llm = make_judge_llm(settings) if args.judge else None
     records = []
     queue = asyncio.Queue()
     for job in jobs:
@@ -281,6 +302,11 @@ async def run(args):
         while not queue.empty() and not stop.is_set():
             q, repeat, model = queue.get_nowait()
             usage = Usage()
+            judge_usage = Usage()
+            judge_llm = make_judge_llm(settings) if args.judge else None
+            if judge_llm:
+                for underlying in judge_llm.models:
+                    underlying.callbacks = [judge_usage]
             llm = make_llm(settings, model, api_key=api_key, fallbacks=[])
             for underlying in llm.models:
                 underlying.callbacks = [usage]
@@ -311,6 +337,7 @@ async def run(args):
                     for marker in (
                         "401",
                         "403",
+                        "402",
                         "insufficient_quota",
                         "insufficient funds",
                         "RESOURCE_EXHAUSTED",
@@ -324,6 +351,8 @@ async def run(args):
                     "turns": runtime.turns,
                     "calls": usage.calls,
                     "failed_callbacks": usage.failed_callbacks,
+                    "judge_calls": judge_usage.calls,
+                    "judge_failed_callbacks": judge_usage.failed_callbacks,
                 }
             path = args.out / f"{model_slug(model)}--{q.id}--{repeat}.json"
             path.write_text(json.dumps(row, ensure_ascii=False, indent=2))

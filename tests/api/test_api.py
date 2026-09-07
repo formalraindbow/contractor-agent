@@ -254,7 +254,7 @@ def test_quality_names_do_not_expose_provider_paths():
     assert "gpt://" not in quality_name(uri, "prompt-v3")
     assert "GPT-OSS-20B" in quality_name(uri, "prompt-v3")
     assert quality_role(uri, "prompt-v3") == "other"
-    assert quality_role(uri, "prompt-v7", active_model=uri, prompt_version="v7 · hash") == "current"
+    assert quality_role(uri, "prompt-v8", active_model=uri, prompt_version="v8 · hash") == "current"
     assert quality_name(uri, "prompt-v6") == "GPT-OSS-20B · v6"
     assert quality_role(uri, "original") == "first"
 
@@ -263,7 +263,7 @@ def test_quality_counts_unique_cases_and_uses_the_running_model(snapshot, tmp_pa
     from evals.runner import RunRecord
 
     settings = _settings(tmp_path).model_copy(update={"llm_model": "gpt://test/gpt-oss-120b"})
-    folder = settings.runs_dir / "evals" / "prompt-v7"
+    folder = settings.runs_dir / "evals" / "prompt-v8"
     folder.mkdir(parents=True)
     for index, (question_id, inn, repeat) in enumerate(
         (("one", "5032257375", 0), ("one", "5032257375", 1), ("two", "1684017097", 0))
@@ -273,7 +273,7 @@ def test_quality_counts_unique_cases_and_uses_the_running_model(snapshot, tmp_pa
             inn=inn,
             type="answer",
             model=settings.llm_model + "/latest",
-            prompt_version="v7 · hash",
+            prompt_version="v8 · hash",
             repeat=repeat,
             question="test",
         )
@@ -284,4 +284,4 @@ def test_quality_counts_unique_cases_and_uses_the_running_model(snapshot, tmp_pa
     assert data["questions"] == 2 and data["companies"] == 2
     assert data["rows"][0]["total"] == 3
     assert data["rows"][0]["role"] == "current"
-    assert data["rows"][0]["model"] == "GPT-OSS-120B · v7"
+    assert data["rows"][0]["model"] == "GPT-OSS-120B · v8"

@@ -1,6 +1,7 @@
 # ruff: noqa: E501
 from langchain_core.messages import AIMessage, HumanMessage, ToolMessage
 
+from contractor_agent.agent.interpretation import InterpretationPlan
 from contractor_agent.agent.runtime import AgentRuntime
 from contractor_agent.agent.schema import Citation, Draft
 from contractor_agent.data.loader import Snapshot
@@ -53,7 +54,7 @@ async def test_card_flow_with_one_citation_repair(snapshot: Snapshot, tmp_path) 
         ]
     )
     async with AgentRuntime(_settings(tmp_path), source=snapshot, llm=llm) as rt:
-        answer = await rt.ask("Можно ли сотрудничать с ООО МАКСМАРКЕТ, ИНН 5032257375?", thread_id="t1")
+        answer = await rt.ask("Что известно о МАКСМАРКЕТ, ИНН 5032257375?", thread_id="t1")
         state = await rt.graph.aget_state({"configurable": {"thread_id": "t1"}})
 
     assert answer.kind == "card" and answer.card is not None
@@ -169,17 +170,9 @@ async def test_comparison_flow_builds_cards_for_each_company(snapshot: Snapshot,
         [
             tool_call("compare_companies", "c1", inns=["5032257375", "6165169320"]),
             AIMessage(content="Фактов достаточно."),
-            Draft(
-                kind="comparison",
-                lines=[
-                    "МАКСМАРКЕТ: признана банкротом [report.status.reasonName].",
-                    "ГДК: блокировка счетов на дату отчёта.",
-                    "",
-                    "Итог: МАКСМАРКЕТ — есть существенные риски; ГДК — есть существенные риски.",
-                ],
-                citations=[
-                    Citation(claim="признана банкротом", source_path="report.status.reasonName")
-                ],
+            InterpretationPlan(
+                answer="По этим данным я не рекомендую выбирать ни одну компанию.",
+                evidence_ids=["E4", "E12"],
             ),
         ]
     )
@@ -195,7 +188,7 @@ async def test_comparison_flow_builds_cards_for_each_company(snapshot: Snapshot,
 
 
 async def test_comparison_verdict_is_enforced_by_code(snapshot: Snapshot, tmp_path) -> None:
-    """Текст сравнения спорит с вердиктами: круг исправления, потом итог дописывает код."""
+    """An unsupported positive recommendation must not survive a failed repair."""
     wrong = Draft(
         kind="comparison",
         lines=["С МАКСМАРКЕТ можно работать; с ГДК можно работать."],
@@ -215,9 +208,8 @@ async def test_comparison_verdict_is_enforced_by_code(snapshot: Snapshot, tmp_pa
             "Сравни 5032257375 и 6165169320. С кем можно работать, учитывая суды?",
             thread_id="cmp2",
         )
-    assert answer.kind == "comparison" and len(answer.cards) == 2
-    assert "По данным отчётов" in answer.text_md
-    assert answer.text_md.count("в отчёте есть факты, требующие особого внимания") == 2
+    assert answer.kind == "refusal"
+    assert not answer.cards
     assert "можно работать" not in answer.text_md
 
 
@@ -356,9 +348,9 @@ async def test_comparison_after_card_uses_only_this_turn_companies(
             AIMessage(content="ок"),
             tool_call("compare_companies", "c2", inns=["6165169320", "1684017097"]),
             AIMessage(content="ок"),
-            Draft(kind="card", lines=["ГДК и ТЕХПРОФ: см. ниже."], citations=[]),
-            AIMessage(content="ок"),
-            Draft(kind="card", lines=["ГДК и ТЕХПРОФ: см. ниже."], citations=[]),
+            InterpretationPlan(
+                answer="Я бы выбрал ТЕХПРОФ по данным отчёта.", evidence_ids=["E3", "E7"]
+            ),
         ]
     )
     async with AgentRuntime(_settings(tmp_path), source=snapshot, llm=llm) as rt:
@@ -369,7 +361,7 @@ async def test_comparison_after_card_uses_only_this_turn_companies(
     assert answer.kind == "comparison"
     assert [c.inn for c in answer.cards] == ["6165169320", "1684017097"]
     assert "предпочтительнее" not in answer.text_md
-    assert "С **ООО «ТЕХПРОФ»** по отчёту можно работать" in answer.text_md
+    assert "Я бы выбрал ТЕХПРОФ" in answer.text_md
     assert "МАКСМАРКЕТ" not in answer.text_md
 
 

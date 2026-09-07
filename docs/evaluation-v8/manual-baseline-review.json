@@ -1,0 +1,476 @@
+{
+  "reviewer": "Codex, manual second review (also implementation author; not independent external acceptance)",
+  "created_utc": "2026-09-07T07:21:08.110052+00:00",
+  "source_run": "direct-20b-01",
+  "source_commit": "bbba8e5c4ee5619a502c3bc817196c8ebbe0cf02",
+  "scope": "All 48 non-card scenarios: read the final responses and preceding user questions. No claim that all intermediate assistant turns or 12 card scenarios were manually reviewed. Known developer cases, not unseen holdout.",
+  "basis": "Question relevance, company scope, direction/status of claims, uncertainty, repetition; compared with supplied structured report facts. Legal interpretation was not externally certified.",
+  "counts": {
+    "accepted": 33,
+    "revise": 12,
+    "transport_error": 2,
+    "unanswered": 1
+  },
+  "rows": [
+    {
+      "question_id": "direct-v8-01",
+      "repeat": 0,
+      "status": "accepted",
+      "issues": [],
+      "automatic_score": 5,
+      "artifact": "/Users/alantolparov/IdeaProjects/contractor-agent-v7/runs/v8-polza/direct-20b-01/openai_gpt-oss-20b--direct-v8-01--0.json",
+      "artifact_sha256": "69bc0f4b03ec2e0bcd311fb8a9dd02de827e8264d95ac6dd5967ad4f55cce8e7"
+    },
+    {
+      "question_id": "direct-v8-01",
+      "repeat": 1,
+      "status": "accepted",
+      "issues": [],
+      "automatic_score": 4,
+      "artifact": "/Users/alantolparov/IdeaProjects/contractor-agent-v7/runs/v8-polza/direct-20b-01/openai_gpt-oss-20b--direct-v8-01--1.json",
+      "artifact_sha256": "1b0625326393c720a50c5184412b62d51b16f6fb0f30241fb4a7f56d8516eba2"
+    },
+    {
+      "question_id": "direct-v8-01",
+      "repeat": 2,
+      "status": "accepted",
+      "issues": [],
+      "automatic_score": 5,
+      "artifact": "/Users/alantolparov/IdeaProjects/contractor-agent-v7/runs/v8-polza/direct-20b-01/openai_gpt-oss-20b--direct-v8-01--2.json",
+      "artifact_sha256": "8c5d3be5613b087ca588f595f82f8e81271ad9085e1dea9678f9abcf38dac481"
+    },
+    {
+      "question_id": "direct-v8-02",
+      "repeat": 0,
+      "status": "accepted",
+      "issues": [],
+      "automatic_score": 5,
+      "artifact": "/Users/alantolparov/IdeaProjects/contractor-agent-v7/runs/v8-polza/direct-20b-01/openai_gpt-oss-20b--direct-v8-02--0.json",
+      "artifact_sha256": "2bf2507153b118e52bf8e93ea202a4e9ccd25a4c78e655b95a720a18260f96e2"
+    },
+    {
+      "question_id": "direct-v8-02",
+      "repeat": 1,
+      "status": "accepted",
+      "issues": [],
+      "automatic_score": 5,
+      "artifact": "/Users/alantolparov/IdeaProjects/contractor-agent-v7/runs/v8-polza/direct-20b-01/openai_gpt-oss-20b--direct-v8-02--1.json",
+      "artifact_sha256": "7886abc9109b6c3dcd4ea6f807e3d9eec19b912f56aebcc937d393b93b787aa0"
+    },
+    {
+      "question_id": "direct-v8-02",
+      "repeat": 2,
+      "status": "revise",
+      "issues": [
+        "scope: не имеет негативных репутационных рисков вместо отсутствия отметок в отчёте"
+      ],
+      "automatic_score": 5,
+      "artifact": "/Users/alantolparov/IdeaProjects/contractor-agent-v7/runs/v8-polza/direct-20b-01/openai_gpt-oss-20b--direct-v8-02--2.json",
+      "artifact_sha256": "047d44f4b21b3b3ac6bea3bf8052021af75d3117f8104571ec50825f5e38b97e"
+    },
+    {
+      "question_id": "direct-v8-03",
+      "repeat": 0,
+      "status": "revise",
+      "issues": [
+        "scope: отсутствие записей превращено в отсутствие судебных и исполнительных производств"
+      ],
+      "automatic_score": 5,
+      "artifact": "/Users/alantolparov/IdeaProjects/contractor-agent-v7/runs/v8-polza/direct-20b-01/openai_gpt-oss-20b--direct-v8-03--0.json",
+      "artifact_sha256": "33489992d739b8320c7659b94285a90e2d697f0b046a0e812707ca6dc8631dd8"
+    },
+    {
+      "question_id": "direct-v8-03",
+      "repeat": 1,
+      "status": "revise",
+      "issues": [
+        "causality: зелёные метки не подтверждают отсутствие критических фактов",
+        "scope: отсутствие судебных дел без ограничения данными отчёта"
+      ],
+      "automatic_score": 5,
+      "artifact": "/Users/alantolparov/IdeaProjects/contractor-agent-v7/runs/v8-polza/direct-20b-01/openai_gpt-oss-20b--direct-v8-03--1.json",
+      "artifact_sha256": "ad927a7d171d8f41cd65a442ae4b9bbfb6ae21d417779e2cc4b9b044f3e2d5c5"
+    },
+    {
+      "question_id": "direct-v8-03",
+      "repeat": 2,
+      "status": "accepted",
+      "issues": [],
+      "automatic_score": 5,
+      "artifact": "/Users/alantolparov/IdeaProjects/contractor-agent-v7/runs/v8-polza/direct-20b-01/openai_gpt-oss-20b--direct-v8-03--2.json",
+      "artifact_sha256": "723916da58decbabb82fbb4134596e5c15c20bfcc198160916690286543cbb53"
+    },
+    {
+      "question_id": "direct-v8-04",
+      "repeat": 0,
+      "status": "transport_error",
+      "issues": [],
+      "automatic_score": null,
+      "artifact": "/Users/alantolparov/IdeaProjects/contractor-agent-v7/runs/v8-polza/direct-20b-01/openai_gpt-oss-20b--direct-v8-04--0.json",
+      "artifact_sha256": "f8188e48587a7d9d07f5f91939cb5ee30f6d39a39768faa8bc98a7346c92a338"
+    },
+    {
+      "question_id": "direct-v8-04",
+      "repeat": 1,
+      "status": "accepted",
+      "issues": [],
+      "automatic_score": 5,
+      "artifact": "/Users/alantolparov/IdeaProjects/contractor-agent-v7/runs/v8-polza/direct-20b-01/openai_gpt-oss-20b--direct-v8-04--1.json",
+      "artifact_sha256": "ca107b9e90a664eefeef6603afa7b58659800c80589a50df55da9a01b91c7633"
+    },
+    {
+      "question_id": "direct-v8-04",
+      "repeat": 2,
+      "status": "accepted",
+      "issues": [],
+      "automatic_score": 5,
+      "artifact": "/Users/alantolparov/IdeaProjects/contractor-agent-v7/runs/v8-polza/direct-20b-01/openai_gpt-oss-20b--direct-v8-04--2.json",
+      "artifact_sha256": "ae88e92b5bf2ca4ba07872fb4d2fef54e1cbb6486a2a91e44519d491349d4d22"
+    },
+    {
+      "question_id": "direct-v8-05",
+      "repeat": 0,
+      "status": "accepted",
+      "issues": [],
+      "automatic_score": 5,
+      "artifact": "/Users/alantolparov/IdeaProjects/contractor-agent-v7/runs/v8-polza/direct-20b-01/openai_gpt-oss-20b--direct-v8-05--0.json",
+      "artifact_sha256": "9bff5c40fb819cd78cb19f4c4cd7891e6a2bce79333a02ca426569295e2fafe9"
+    },
+    {
+      "question_id": "direct-v8-05",
+      "repeat": 1,
+      "status": "accepted",
+      "issues": [],
+      "automatic_score": 5,
+      "artifact": "/Users/alantolparov/IdeaProjects/contractor-agent-v7/runs/v8-polza/direct-20b-01/openai_gpt-oss-20b--direct-v8-05--1.json",
+      "artifact_sha256": "c155f06494e5dca0da40d752cd87428873c48519d13ba1d770dba27071257b01"
+    },
+    {
+      "question_id": "direct-v8-05",
+      "repeat": 2,
+      "status": "accepted",
+      "issues": [],
+      "automatic_score": 5,
+      "artifact": "/Users/alantolparov/IdeaProjects/contractor-agent-v7/runs/v8-polza/direct-20b-01/openai_gpt-oss-20b--direct-v8-05--2.json",
+      "artifact_sha256": "711f6f4a6ecf6399ecd87c3298306d383ed74a0138edd076a11cc0b818d2daad"
+    },
+    {
+      "question_id": "direct-v8-06",
+      "repeat": 0,
+      "status": "accepted",
+      "issues": [],
+      "automatic_score": 5,
+      "artifact": "/Users/alantolparov/IdeaProjects/contractor-agent-v7/runs/v8-polza/direct-20b-01/openai_gpt-oss-20b--direct-v8-06--0.json",
+      "artifact_sha256": "189f9e3934e020ab1e79aff2a60a3fdd0dcd52e5189ab533946d3461f736c4aa"
+    },
+    {
+      "question_id": "direct-v8-06",
+      "repeat": 1,
+      "status": "accepted",
+      "issues": [],
+      "automatic_score": 5,
+      "artifact": "/Users/alantolparov/IdeaProjects/contractor-agent-v7/runs/v8-polza/direct-20b-01/openai_gpt-oss-20b--direct-v8-06--1.json",
+      "artifact_sha256": "9a1942a2de62d97e9fd8fce79fc8dfc9f058f5e57689402d2552f007385d5211"
+    },
+    {
+      "question_id": "direct-v8-06",
+      "repeat": 2,
+      "status": "accepted",
+      "issues": [],
+      "automatic_score": 5,
+      "artifact": "/Users/alantolparov/IdeaProjects/contractor-agent-v7/runs/v8-polza/direct-20b-01/openai_gpt-oss-20b--direct-v8-06--2.json",
+      "artifact_sha256": "f247f13ef8933616d7af6670fa449d59fe407f2b6a59d70b0aa04edb0fe1f974"
+    },
+    {
+      "question_id": "direct-v8-07",
+      "repeat": 0,
+      "status": "revise",
+      "issues": [
+        "material: требования истца названы его возможными обязательствами по выплатам",
+        "speculation: финансовые последствия выведены из завершённых дел"
+      ],
+      "automatic_score": 5,
+      "artifact": "/Users/alantolparov/IdeaProjects/contractor-agent-v7/runs/v8-polza/direct-20b-01/openai_gpt-oss-20b--direct-v8-07--0.json",
+      "artifact_sha256": "bab6a716c72c2eda09dc60a3c9d1ddda613d8dfd09cc7ce6f47bd74ef845b370"
+    },
+    {
+      "question_id": "direct-v8-07",
+      "repeat": 1,
+      "status": "revise",
+      "issues": [
+        "speculation: ликвидность и репутационный эффект не следуют из количества завершённых дел"
+      ],
+      "automatic_score": 5,
+      "artifact": "/Users/alantolparov/IdeaProjects/contractor-agent-v7/runs/v8-polza/direct-20b-01/openai_gpt-oss-20b--direct-v8-07--1.json",
+      "artifact_sha256": "1196116b8f7127041f976339210f9ce2633479f05a4937ef9c9d8808cc768b79"
+    },
+    {
+      "question_id": "direct-v8-07",
+      "repeat": 2,
+      "status": "revise",
+      "issues": [
+        "speculation: ограничения операционной деятельности не следуют из количества завершённых дел"
+      ],
+      "automatic_score": 5,
+      "artifact": "/Users/alantolparov/IdeaProjects/contractor-agent-v7/runs/v8-polza/direct-20b-01/openai_gpt-oss-20b--direct-v8-07--2.json",
+      "artifact_sha256": "a2f337667b57228e5458048e0bc2ad4ebe97486bd768a391659e4c9e9d43af33"
+    },
+    {
+      "question_id": "direct-v8-08",
+      "repeat": 0,
+      "status": "accepted",
+      "issues": [],
+      "automatic_score": 5,
+      "artifact": "/Users/alantolparov/IdeaProjects/contractor-agent-v7/runs/v8-polza/direct-20b-01/openai_gpt-oss-20b--direct-v8-08--0.json",
+      "artifact_sha256": "75eb361fab9bc23f4d38ad0f5333b1201af5546a79f341f022f059b1d0edfedf"
+    },
+    {
+      "question_id": "direct-v8-08",
+      "repeat": 1,
+      "status": "accepted",
+      "issues": [],
+      "automatic_score": 5,
+      "artifact": "/Users/alantolparov/IdeaProjects/contractor-agent-v7/runs/v8-polza/direct-20b-01/openai_gpt-oss-20b--direct-v8-08--1.json",
+      "artifact_sha256": "4b7681598b4ed3107dd098256863162e5bfa0f9770c4ea53ad9acde0c745d333"
+    },
+    {
+      "question_id": "direct-v8-08",
+      "repeat": 2,
+      "status": "accepted",
+      "issues": [],
+      "automatic_score": 5,
+      "artifact": "/Users/alantolparov/IdeaProjects/contractor-agent-v7/runs/v8-polza/direct-20b-01/openai_gpt-oss-20b--direct-v8-08--2.json",
+      "artifact_sha256": "1d400608cebf4b88524044e9a7087a33dd3a8d45d823d35a1d84c3ded07691b0"
+    },
+    {
+      "question_id": "direct-v8-09",
+      "repeat": 0,
+      "status": "revise",
+      "issues": [
+        "uncertainty: может не быть усилено до скорее всего нет"
+      ],
+      "automatic_score": 5,
+      "artifact": "/Users/alantolparov/IdeaProjects/contractor-agent-v7/runs/v8-polza/direct-20b-01/openai_gpt-oss-20b--direct-v8-09--0.json",
+      "artifact_sha256": "214d59f417389074a5269456face66428711a1bdb89d04bb846db7560c971929"
+    },
+    {
+      "question_id": "direct-v8-09",
+      "repeat": 1,
+      "status": "accepted",
+      "issues": [],
+      "automatic_score": 5,
+      "artifact": "/Users/alantolparov/IdeaProjects/contractor-agent-v7/runs/v8-polza/direct-20b-01/openai_gpt-oss-20b--direct-v8-09--1.json",
+      "artifact_sha256": "d16d90c2b6d20a7829e5319804fe51fce13c1867108850c98d2f4696ed344b86"
+    },
+    {
+      "question_id": "direct-v8-09",
+      "repeat": 2,
+      "status": "accepted",
+      "issues": [],
+      "automatic_score": 5,
+      "artifact": "/Users/alantolparov/IdeaProjects/contractor-agent-v7/runs/v8-polza/direct-20b-01/openai_gpt-oss-20b--direct-v8-09--2.json",
+      "artifact_sha256": "d6230f84d78fc6f1f42754a0506bab1ebcbb540910497aec5b92d838ba419a59"
+    },
+    {
+      "question_id": "direct-v8-10",
+      "repeat": 0,
+      "status": "revise",
+      "issues": [
+        "scope: нет судебных дел вместо нет записей в отчёте"
+      ],
+      "automatic_score": 5,
+      "artifact": "/Users/alantolparov/IdeaProjects/contractor-agent-v7/runs/v8-polza/direct-20b-01/openai_gpt-oss-20b--direct-v8-10--0.json",
+      "artifact_sha256": "8bbd7870f5fbb55ac3085dd75cf6b019b25a72f9f590397a4da19acd9fdf1158"
+    },
+    {
+      "question_id": "direct-v8-10",
+      "repeat": 1,
+      "status": "accepted",
+      "issues": [],
+      "automatic_score": 5,
+      "artifact": "/Users/alantolparov/IdeaProjects/contractor-agent-v7/runs/v8-polza/direct-20b-01/openai_gpt-oss-20b--direct-v8-10--1.json",
+      "artifact_sha256": "a03be26531c98c8a862c4b410acdcf2ce735128c1b3469286d5b0b5800e5a32e"
+    },
+    {
+      "question_id": "direct-v8-10",
+      "repeat": 2,
+      "status": "revise",
+      "issues": [
+        "scope: отсутствие судебных разбирательств без ограничения данными отчёта"
+      ],
+      "automatic_score": 5,
+      "artifact": "/Users/alantolparov/IdeaProjects/contractor-agent-v7/runs/v8-polza/direct-20b-01/openai_gpt-oss-20b--direct-v8-10--2.json",
+      "artifact_sha256": "1294c53cf4582c2a9d0f348769c7ff2e56d3f33ebb47a645718435006ca06d0d"
+    },
+    {
+      "question_id": "direct-v8-11",
+      "repeat": 0,
+      "status": "accepted",
+      "issues": [],
+      "automatic_score": 5,
+      "artifact": "/Users/alantolparov/IdeaProjects/contractor-agent-v7/runs/v8-polza/direct-20b-01/openai_gpt-oss-20b--direct-v8-11--0.json",
+      "artifact_sha256": "611ddfb4490c0f6c6736ec8b94acdfb3b9c03a57df635f9d9751e394ceda7a15"
+    },
+    {
+      "question_id": "direct-v8-11",
+      "repeat": 1,
+      "status": "accepted",
+      "issues": [],
+      "automatic_score": 5,
+      "artifact": "/Users/alantolparov/IdeaProjects/contractor-agent-v7/runs/v8-polza/direct-20b-01/openai_gpt-oss-20b--direct-v8-11--1.json",
+      "artifact_sha256": "659d49515a7bdf4fb52ef42ff16262d39d45eff39deca05bd8084da7b0435b98"
+    },
+    {
+      "question_id": "direct-v8-11",
+      "repeat": 2,
+      "status": "accepted",
+      "issues": [],
+      "automatic_score": 5,
+      "artifact": "/Users/alantolparov/IdeaProjects/contractor-agent-v7/runs/v8-polza/direct-20b-01/openai_gpt-oss-20b--direct-v8-11--2.json",
+      "artifact_sha256": "597e27baf421ecd81a1e80e334e6f0e594a45269d4c3e15f7ea0080e1b3eb3f2"
+    },
+    {
+      "question_id": "direct-v8-12",
+      "repeat": 0,
+      "status": "accepted",
+      "issues": [],
+      "automatic_score": 5,
+      "artifact": "/Users/alantolparov/IdeaProjects/contractor-agent-v7/runs/v8-polza/direct-20b-01/openai_gpt-oss-20b--direct-v8-12--0.json",
+      "artifact_sha256": "7e41199c5ebaaaade5b7f0ac5338ff2d4edad55f839d37c17b124b0363863e78"
+    },
+    {
+      "question_id": "direct-v8-12",
+      "repeat": 1,
+      "status": "accepted",
+      "issues": [],
+      "automatic_score": 5,
+      "artifact": "/Users/alantolparov/IdeaProjects/contractor-agent-v7/runs/v8-polza/direct-20b-01/openai_gpt-oss-20b--direct-v8-12--1.json",
+      "artifact_sha256": "56e79f66d0ac4003aad9bd55d2df495ac2d84b48aeb50c403bf2462bac897c56"
+    },
+    {
+      "question_id": "direct-v8-12",
+      "repeat": 2,
+      "status": "accepted",
+      "issues": [],
+      "automatic_score": 5,
+      "artifact": "/Users/alantolparov/IdeaProjects/contractor-agent-v7/runs/v8-polza/direct-20b-01/openai_gpt-oss-20b--direct-v8-12--2.json",
+      "artifact_sha256": "8fb4f957c95acd87e8ffb6ba20e3231706a67b0a7c4cd24fc2b6ad5a404936f6"
+    },
+    {
+      "question_id": "direct-v8-13",
+      "repeat": 0,
+      "status": "transport_error",
+      "issues": [],
+      "automatic_score": null,
+      "artifact": "/Users/alantolparov/IdeaProjects/contractor-agent-v7/runs/v8-polza/direct-20b-01/openai_gpt-oss-20b--direct-v8-13--0.json",
+      "artifact_sha256": "7356c214a83a19748c8f124326224a767818d1289f0c144e61ae93a09bc74e90"
+    },
+    {
+      "question_id": "direct-v8-13",
+      "repeat": 1,
+      "status": "unanswered",
+      "issues": [],
+      "automatic_score": 0,
+      "artifact": "/Users/alantolparov/IdeaProjects/contractor-agent-v7/runs/v8-polza/direct-20b-01/openai_gpt-oss-20b--direct-v8-13--1.json",
+      "artifact_sha256": "d00b540d2543def22bd0e1dfc9d91bd80899fe620b77d22208d96dda6b9d9669"
+    },
+    {
+      "question_id": "direct-v8-13",
+      "repeat": 2,
+      "status": "accepted",
+      "issues": [],
+      "automatic_score": 5,
+      "artifact": "/Users/alantolparov/IdeaProjects/contractor-agent-v7/runs/v8-polza/direct-20b-01/openai_gpt-oss-20b--direct-v8-13--2.json",
+      "artifact_sha256": "50369277c9c046965f17ea797ab1ab2680966e4d6bad761209420244b13542be"
+    },
+    {
+      "question_id": "direct-v8-14",
+      "repeat": 0,
+      "status": "revise",
+      "issues": [
+        "material: отсутствие строки прибыли расширено до отсутствия данных о доходах и расходах",
+        "presentation: одинаковое отсутствие прибыли повторено двумя пунктами"
+      ],
+      "automatic_score": 5,
+      "artifact": "/Users/alantolparov/IdeaProjects/contractor-agent-v7/runs/v8-polza/direct-20b-01/openai_gpt-oss-20b--direct-v8-14--0.json",
+      "artifact_sha256": "7dd476dc00472fbfc76366207e221833aa30f5bd15881838f7add0b39ccb5e00"
+    },
+    {
+      "question_id": "direct-v8-14",
+      "repeat": 1,
+      "status": "revise",
+      "issues": [
+        "presentation: одинаковое отсутствие прибыли повторено двумя пунктами"
+      ],
+      "automatic_score": 5,
+      "artifact": "/Users/alantolparov/IdeaProjects/contractor-agent-v7/runs/v8-polza/direct-20b-01/openai_gpt-oss-20b--direct-v8-14--1.json",
+      "artifact_sha256": "d8e86cf104b34a55f5826c3922df05e592f299cb0ee39480d44b809189c693dc"
+    },
+    {
+      "question_id": "direct-v8-14",
+      "repeat": 2,
+      "status": "revise",
+      "issues": [
+        "speculation: предложены неизвестные причины отсутствия строки, включая отсутствие доходов",
+        "presentation: одинаковое отсутствие прибыли повторено двумя пунктами"
+      ],
+      "automatic_score": 5,
+      "artifact": "/Users/alantolparov/IdeaProjects/contractor-agent-v7/runs/v8-polza/direct-20b-01/openai_gpt-oss-20b--direct-v8-14--2.json",
+      "artifact_sha256": "3128b9eed1e2dc40e2634239a472fdbf4974626dafd72335ab6d6bf3d51d8a6a"
+    },
+    {
+      "question_id": "direct-v8-15",
+      "repeat": 0,
+      "status": "accepted",
+      "issues": [],
+      "automatic_score": 5,
+      "artifact": "/Users/alantolparov/IdeaProjects/contractor-agent-v7/runs/v8-polza/direct-20b-01/openai_gpt-oss-20b--direct-v8-15--0.json",
+      "artifact_sha256": "0f72ecff71c5b565900c41b20cef7ac095ab6b99f85cf738562fa9aa51a77a4d"
+    },
+    {
+      "question_id": "direct-v8-15",
+      "repeat": 1,
+      "status": "accepted",
+      "issues": [],
+      "automatic_score": 5,
+      "artifact": "/Users/alantolparov/IdeaProjects/contractor-agent-v7/runs/v8-polza/direct-20b-01/openai_gpt-oss-20b--direct-v8-15--1.json",
+      "artifact_sha256": "2d38906defa92249530209de4ac5754e551a74204375734cd0308707779b08a7"
+    },
+    {
+      "question_id": "direct-v8-15",
+      "repeat": 2,
+      "status": "accepted",
+      "issues": [],
+      "automatic_score": 5,
+      "artifact": "/Users/alantolparov/IdeaProjects/contractor-agent-v7/runs/v8-polza/direct-20b-01/openai_gpt-oss-20b--direct-v8-15--2.json",
+      "artifact_sha256": "d51809bc4ac2012a0baa5e34f7c19dad1e1ab2b6c059454faaa1b84b861228ca"
+    },
+    {
+      "question_id": "direct-v8-16",
+      "repeat": 0,
+      "status": "accepted",
+      "issues": [],
+      "automatic_score": 5,
+      "artifact": "/Users/alantolparov/IdeaProjects/contractor-agent-v7/runs/v8-polza/direct-20b-01/openai_gpt-oss-20b--direct-v8-16--0.json",
+      "artifact_sha256": "3866c7329623549f600b8e1a9da26252a91670a3d04f5457f713f4976e903b09"
+    },
+    {
+      "question_id": "direct-v8-16",
+      "repeat": 1,
+      "status": "accepted",
+      "issues": [],
+      "automatic_score": 5,
+      "artifact": "/Users/alantolparov/IdeaProjects/contractor-agent-v7/runs/v8-polza/direct-20b-01/openai_gpt-oss-20b--direct-v8-16--1.json",
+      "artifact_sha256": "28d83c7c66742cb7f0ca8d3a64f358374c34b97c81353cbd72bb546a1f01a089"
+    },
+    {
+      "question_id": "direct-v8-16",
+      "repeat": 2,
+      "status": "accepted",
+      "issues": [],
+      "automatic_score": 5,
+      "artifact": "/Users/alantolparov/IdeaProjects/contractor-agent-v7/runs/v8-polza/direct-20b-01/openai_gpt-oss-20b--direct-v8-16--2.json",
+      "artifact_sha256": "15e5d7ddf6ceb1920d8241fbdd24e4a15153a6c3a31b5e17089bfd40b7e10a83"
+    }
+  ]
+}

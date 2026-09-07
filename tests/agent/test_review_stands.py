@@ -413,7 +413,7 @@ async def test_fact_explanation_repairs_unrequested_company_summaries(snapshot, 
     settings = Settings(session_db_path=tmp_path / "scope.sqlite", runs_dir=tmp_path / "runs")
     context = " Компании: ГДК (ИНН 6165169320), ТЕХПРОФ (ИНН 1684017097), БИЛД-ЮГ (ИНН 2311304742)."
     async with AgentRuntime(settings, source=snapshot, llm=llm) as runtime:
-        await runtime.ask("С кем лучше работать?" + context, "address")
+        await runtime.ask("Сравни компании." + context, "address")
         answer = await runtime.ask(
             "Что с регистрационными данными у 2311304742?" + context, "address"
         )

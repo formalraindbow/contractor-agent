@@ -29,6 +29,7 @@ def missing_reads(question: str, inns: list[str], trace: list[ToolCallTrace]) ->
         or limitation(q) == "payment_execution"
         or BANK_LABEL.search(q)
         or re.search(r"соотнош|соразмер", q, re.I)
+        or re.search(r"недостовр|егрюл", q, re.I)
         or re.search(
             r"сравни|что запросить|какие документы|объясни.{0,20}(?:вывод|рекомендац)"
             r"|почему.{0,40}сигнал",

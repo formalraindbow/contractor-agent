@@ -75,3 +75,14 @@ def test_unfinished_repeats_do_not_count_as_a_stable_success():
     assert result["models"]["a"]["repeat_groups"] == 0
     assert result["models"]["a"]["groups_all_repeats_pass"] == 0
     assert result["models"]["a"]["planned_case_groups"] == 1
+
+
+def test_judge_outage_does_not_turn_a_valid_agent_answer_into_agent_error():
+    result_row = row("a", 0, error="Judge unavailable")
+    result_row["record"]["error_stage"] = "judge"
+    result = summarize([result_row], ["a"], 1, repeats=1)["models"]["a"]
+    assert result["agent_errors"] == 0
+    assert result["code_passes"] == 1
+    assert result["judge_errors"] == 1
+    assert result["judge_coverage"] == 0
+    assert result["judge_passes"] == 0

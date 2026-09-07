@@ -3,7 +3,7 @@
 import re
 from decimal import Decimal
 
-from contractor_agent.agent.question import COURT_QUESTION, DECISION
+from contractor_agent.agent.question import COURT_QUESTION, DECISION, MEANING
 from contractor_agent.agent.schema import Citation, Draft
 from contractor_agent.mcp_server.tools import Tools
 from contractor_agent.signals.text import plural
@@ -35,7 +35,7 @@ def section_answer(tools: Tools, inns: list[str], question: str) -> Draft | None
         or not (court_q or bailiff_q)
         or DECISION.search(q)
         or re.search(r"можно|отсроч|метк|зск|документ|запрос|финанс|руковод", q, re.I)
-        or (re.search(r"почему|объясни", q, re.I) and not reconcile)
+        or ((MEANING.search(q) or re.search(r"почему", q, re.I)) and not reconcile)
     ):
         return None
     inn = inns[0]

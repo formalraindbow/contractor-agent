@@ -42,6 +42,10 @@ class ScriptedChatModel(BaseChatModel):
     ) -> ChatResult:
         self.seen.append(list(messages))
         item = self._next()
+        if not isinstance(item, AIMessage) and any(
+            "FINAL_JSON:" in str(m.content) for m in messages
+        ):
+            item = AIMessage(content=item.model_dump_json())
         assert isinstance(item, AIMessage), f"ожидался AIMessage, в сценарии {type(item).__name__}"
         return ChatResult(generations=[ChatGeneration(message=item)])
 

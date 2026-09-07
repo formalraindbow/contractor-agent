@@ -24,3 +24,7 @@ dist/
 ~$*
 output/
 decks/
+
+# Bank-provided source reports are supplied outside the public repository.
+data/contractors_audit.snapshot*
+raw/

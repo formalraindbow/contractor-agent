@@ -53,6 +53,7 @@ class RunRecord(BaseModel):
     judge: JudgeVerdict | None = None
     duration_s: float = 0.0
     error: str | None = None
+    error_stage: str | None = None
 
 
 def model_slug(name: str) -> str:
@@ -180,8 +181,10 @@ class EvalRunner:
             record.judge = await self._judge(question, record.answer, record.tool_outputs)
         except Exception as e:
             record.error = f"{type(e).__name__}: {e}"
+            record.error_stage = "judge"
             return False
         record.error = None
+        record.error_stage = None
         return True
 
     async def run_one(self, question: GoldQuestion, repeat: int) -> RunRecord:
@@ -199,6 +202,7 @@ class EvalRunner:
         )
         thread_id = f"eval-{question.id}-{repeat}"
         started = time.perf_counter()
+        stage = "agent"
         try:
             history = follow_up_history(self.gold.card(question.inn)) if question.follow_up else ()
             for prior in question.prior_questions:  # dialog: прошлые ходы задаются живьём
@@ -220,14 +224,17 @@ class EvalRunner:
             record.tool_calls = sum(
                 1 for m in _last_turn(messages, question.question) if isinstance(m, ToolMessage)
             )
+            stage = "checks"
             result: CheckResult = self._check(question, record)
             record.checks_passed = result.passed
             record.check_failures = result.failures
             record.check_notes = result.notes
             if self.judge_llm is not None:
+                stage = "judge"
                 record.judge = await self._judge(question, answer, record.tool_outputs)
         except Exception as e:  # ошибка прогона — запись, а не остановка эталона
             record.error = f"{type(e).__name__}: {e}"  # проверки, если успели, остаются как есть
+            record.error_stage = stage
         record.duration_s = round(time.perf_counter() - started, 1)
         return record
 

@@ -12,6 +12,8 @@ from __future__ import annotations
 from typing import Any
 
 from langchain_core.language_models import BaseChatModel
+from langchain_core.messages import SystemMessage
+from langchain_core.output_parsers import PydanticOutputParser
 from langchain_core.runnables import Runnable, RunnableLambda
 from langchain_openai import ChatOpenAI
 
@@ -40,7 +42,7 @@ class LLM:
         bound = [m.bind_tools(tools, **options) for m in self.models]
         return bound[0].with_fallbacks(bound[1:]) if len(bound) > 1 else bound[0]
 
-    def structured(self, schema: type) -> Runnable:
+    def structured(self, schema: type, *, method: str = "json_schema") -> Runnable:
         chains: list[Runnable] = []
 
         def _validate(result: Any) -> Any:
@@ -50,8 +52,24 @@ class LLM:
 
         validate = RunnableLambda(_validate)
         for m in self.models:
-            chains.append(m.with_structured_output(schema, method="json_schema") | validate)
-            chains.append(m.with_structured_output(schema, method="function_calling") | validate)
+            if method == "prompt_json":
+                parser = PydanticOutputParser(pydantic_object=schema)
+
+                def formatted(messages, parser=parser):
+                    return [
+                        *messages,
+                        SystemMessage(
+                            content="FINAL_JSON: Верни JSON-объект, "
+                            "без блока кода, по приведённой схеме.\n"
+                            + parser.get_format_instructions()
+                        ),
+                    ]
+
+                chains.append(RunnableLambda(formatted) | m | parser | validate)
+                continue
+            methods = ("json_schema", "function_calling") if method == "json_schema" else (method,)
+            for output_method in methods:
+                chains.append(m.with_structured_output(schema, method=output_method) | validate)
         return chains[0].with_fallbacks(chains[1:])
 
 
@@ -63,6 +81,7 @@ def make_llm(
     api_key: str | None = None,
     fallbacks: list[str] | None = None,
     reasoning_effort: str | None = "inherit",
+    provider_order: list[str] | None = None,
 ) -> LLM:
     """Модель агента по умолчанию; судья эвалов передаёт свой адрес, ключ и пустые запасные."""
     names = [
@@ -71,6 +90,11 @@ def make_llm(
     ]
     effort = settings.llm_reasoning_effort if reasoning_effort == "inherit" else reasoning_effort
     extra: dict[str, Any] = {"reasoning_effort": effort} if effort else {}
+    order = settings.provider_order if provider_order is None else provider_order
+    if order:
+        extra["extra_body"] = {
+            "provider": {"order": order, "allow_fallbacks": settings.llm_provider_allow_fallbacks}
+        }
     return LLM(
         [
             ChatOpenAI(
@@ -97,4 +121,5 @@ def make_judge_llm(settings: Settings, model: str | None = None) -> LLM:
         api_key=settings.judge_api_key,
         fallbacks=[],
         reasoning_effort=None,  # судья думает как умеет: качество важнее скорости
+        provider_order=[],  # the judge family has its own available providers
     )
