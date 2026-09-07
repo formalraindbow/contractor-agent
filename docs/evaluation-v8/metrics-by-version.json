@@ -1806,5 +1806,49 @@
       "legacy_flag_percent": 0.0,
       "source": "docs/evaluation-v7/metrics.json"
     }
-  ]
+  ],
+  "early_runs": [
+    {
+      "version": "control",
+      "model": "deepseek-v4-flash",
+      "scenarios": 50,
+      "judge": "gpt-oss-120b",
+      "legacy_score_100": 88.8,
+      "confirmed_percent": 76,
+      "invented_fact_percent_rounded": 2,
+      "missed_critical_percent_rounded": 0,
+      "source": "deliverables/interim/EVAL_REPORT.md"
+    },
+    {
+      "version": "v1",
+      "model": "gpt-oss-20b",
+      "scenarios": 50,
+      "judge": "gpt-oss-120b",
+      "legacy_score_100": 70.8,
+      "confirmed_percent": 45,
+      "invented_fact_percent_rounded": 6,
+      "missed_critical_percent_rounded": 8,
+      "source": "deliverables/interim/EVAL_REPORT.md"
+    },
+    {
+      "version": "v2",
+      "model": "gpt-oss-20b",
+      "scenarios": 50,
+      "judge": "gpt-oss-120b",
+      "legacy_score_100": 90.4,
+      "confirmed_percent": 76,
+      "invented_fact_percent_rounded": 0,
+      "missed_critical_percent_rounded": 0,
+      "source": "deliverables/interim/EVAL_REPORT.md"
+    }
+  ],
+  "v7_repetition_counts": {
+    "historical_two_models": 438,
+    "readiness_three_repeats_two_models": 528,
+    "compound_three_repeats_two_models": 72,
+    "court_roles_regression": 6,
+    "total_including_repeats": 1044,
+    "unique_scenarios_warning": "Runs include repeats. Do not call this 1044 unique cases. These runs belong to v7, not final v8.",
+    "source": "docs/EVAL_V7_2026-09-07.md"
+  }
 }
