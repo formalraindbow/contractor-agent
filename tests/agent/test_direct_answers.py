@@ -40,6 +40,16 @@ def test_choice_paraphrases_reach_interpretation(question):
     assert needs_interpretation(question)
 
 
+def test_choice_followup_refreshes_with_one_batch_and_keeps_specialist_reads():
+    from contractor_agent.agent.evidence import missing_reads
+
+    inns = ["6165169320", "1684017097"]
+    calls = missing_reads("Кого ты бы выбрал?", inns, [])
+    assert [(c["name"], c["args"]) for c in calls] == [("compare_companies", {"inns": inns})]
+    calls = missing_reads("Кого выбрать с учётом финансов?", inns, [])
+    assert [c["name"] for c in calls] == ["compare_companies", "get_financials", "get_financials"]
+
+
 async def test_recommendation_is_model_composed_and_keeps_checked_evidence(snapshot, tmp_path):
     opening = "По данным отчёта я бы не начинал сотрудничество: компания проходит банкротство."
     model = scripted_llm(
@@ -153,6 +163,70 @@ def test_model_plan_cannot_invent_evidence_or_numbers(snapshot):
             cards,
             "Стоит сотрудничать?",
         )
+
+
+def test_known_evidence_markers_are_removed_without_hiding_unknown_sources(snapshot):
+    cards = [build_card(Tools(snapshot), "5032257375")]
+    _, sources = evidence_context(cards, "Стоит сотрудничать?")
+    plan = InterpretationPlan(
+        answer="Не рекомендую сотрудничать: компания банкрот (E4).", evidence_ids=["E4"]
+    )
+    assert plan_draft(plan, sources, cards).lines[0] == (
+        "Не рекомендую сотрудничать: компания банкрот."
+    )
+    for text in ("Компания банкрот (E999).", "Долг 99 миллионов (E4)."):
+        with pytest.raises(ValueError, match="numbers"):
+            plan_draft(plan.model_copy(update={"answer": text}), sources, cards)
+
+
+@pytest.mark.parametrize(
+    "text,bad",
+    [
+        ("Отсутствие дел подтверждает отсутствие текущих юридических рисков.", True),
+        ("Компания не имеет негативных судебных или репутационных рисков.", True),
+        ("Зелёные метки не подтверждают отсутствие текущих юридических рисков.", False),
+        (
+            "Зелёные метки не подтверждают безопасность. Отсутствие дел гарантирует надёжность.",
+            True,
+        ),
+    ],
+)
+def test_guarantee_with_modifiers_and_separate_negated_sentence(text, bad):
+    answer = Answer(kind="answer", text_md=text)
+    assert bool(interpretation_problem(answer, "Объясни отсутствие сигналов")) == bad
+
+
+def test_historical_court_evidence_does_not_support_generic_present_consequences():
+    answer = Answer(
+        kind="answer",
+        text_md="Большое число судебных дел может создавать риски для ликвидности и репутации.",
+        citations=[
+            Citation(
+                claim="Всего в сводке за всё время: 278 дел.", source_path="report.arbitration"
+            ),
+            Citation(
+                claim="258 завершённых дел, ответчик.",
+                source_path="report.arbitrationByStatus.defandantArbitrationFinished",
+            ),
+        ],
+    )
+    assert interpretation_problem(answer, "На что влияет количество судебных дел?")
+    safe = answer.model_copy(
+        update={"text_md": "Завершённые дела не подтверждают текущие риски для ликвидности."}
+    )
+    assert interpretation_problem(safe, "На что влияет количество судебных дел?") is None
+
+
+@pytest.mark.parametrize(
+    "text,bad",
+    [
+        ("Строки нет, что может быть связано с особенностями учёта или неполным раскрытием.", True),
+        ("Причина отсутствия строки неизвестна. Определить прибыль или убыток нельзя.", False),
+    ],
+)
+def test_missing_financial_field_has_no_invented_explanation(text, bad):
+    answer = Answer(kind="answer", text_md=text)
+    assert bool(interpretation_problem(answer, "Объясни, почему в отчётности нет прибыли?")) == bad
 
 
 def test_user_proposed_duration_is_allowed_but_new_report_numbers_are_not(snapshot):
@@ -382,3 +456,11 @@ def test_report_year_is_not_silently_replaced_by_last_year():
         kind="answer", text_md="Я не рекомендую отсрочку, поскольку в прошлом году был убыток."
     )
     assert interpretation_problem(answer, "Можно отсрочку?")
+
+
+def test_later_financial_report_word_does_not_scope_earlier_absence():
+    answer = Answer(
+        kind="answer",
+        text_md="Рекомендую А: нет судебных дел и долгов, однако в отчётности нет прибыли.",
+    )
+    assert interpretation_problem(answer, "Кого рекомендуешь?")

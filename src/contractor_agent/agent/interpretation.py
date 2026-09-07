@@ -225,7 +225,9 @@ cases are all finished, explain the historical disputes and that current unpaid 
 and case outcomes cannot be inferred. Do not list speculative financial or legal consequences.
 For missing financial fields, explain only what cannot be determined. Do not guess why a
 field is missing (accounting practices, no revenue or incomplete disclosure are unknown).
-Select exact evidence IDs, without brackets. When comparing, include evidence for EACH company.
+Select exact evidence IDs, without brackets, ONLY in evidence_ids. Do not put IDs such as E3
+in answer: the interface displays the selected evidence automatically.
+When comparing, include evidence for EACH company.
 Never change numbers, role, status or period. Do not call a bankrupt company safe to work with.
 """
 
@@ -242,7 +244,14 @@ def plan_draft(
         if key not in sources:
             raise ValueError("Unknown evidence ID: " + key)
         chosen.append(sources[key])
-    without_identity = plan.answer
+    # Known source markers are presentation metadata, not financial figures. Strip
+    # them before numeric validation; unknown markers still fail that validation.
+    opening = re.sub(
+        r"\s*[\[(](E\d+)[\])]",
+        lambda match: "" if match[1] in sources else match[0],
+        plan.answer,
+    )
+    without_identity = opening
     for card in cards:
         without_identity = without_identity.replace(card.inn, "")
         without_identity = without_identity.replace(card.name, "")
@@ -345,7 +354,7 @@ def plan_draft(
             and (c.inn, re.sub(r"\[\d+\]", "[]", c.source_path)) in aggregates
         )
     ]
-    lines = [plan.answer, "", "**Почему:**" if decision else "**По данным отчёта:**"]
+    lines = [opening, "", "**Почему:**" if decision else "**По данным отчёта:**"]
     if len(cards) > 1:
         for card in cards:
             lines += ["", "**" + card.name + "**"]
@@ -399,7 +408,19 @@ def interpretation_problem(answer: Answer, question: str, cards: Sequence[Card] 
                 )
             # Match the asserted cause, not the whole company's card: a company can
             # also have open plaintiff claims or independent financial problems.
-            closed_only = re.search(r"заверш[её]н[^.]{0,60}(?:дел|иск|спор)", sentence, re.I)
+            court_evidence = [
+                c
+                for c in answer.citations
+                if "arbitration" in c.source_path.lower()
+                and not c.claim.startswith("Всего в сводке за всё время:")
+            ]
+            historical_evidence = bool(court_evidence) and all(
+                "finished" in c.source_path.lower() or re.search(r"заверш[её]н", c.claim, re.I)
+                for c in court_evidence
+            )
+            closed_only = historical_evidence or re.search(
+                r"заверш[её]н[^.]{0,60}(?:дел|иск|спор)", sentence, re.I
+            )
             if closed_only and re.search(
                 r"ликвидн|репутац|операционн\w*\s+деятельност", sentence, re.I
             ):
@@ -409,18 +430,25 @@ def interpretation_problem(answer: Answer, question: str, cards: Sequence[Card] 
                     "ограничения деятельности. Объясни значение прошлых споров, различая "
                     "истца и ответчика; не выводи текущие последствия без данных."
                 )
-    if re.search(
+    for absence in re.finditer(
         r"\bнет\s+(?:(?:открытых|текущих|незакрытых|судебных|арбитражных|исполнительных)\s+){0,3}"
-        r"(?:дел\b|судов|производств)|"
+        r"(?:дел\b|судов|производств|долгов)|"
         r"отсутствуют\s+(?:судебные|арбитражные|исполнительные)",
         introduction,
         re.I,
-    ) and not re.search(r"отч[её]т|по\s+(?:доступным|представленным)\s+данным", introduction, re.I):
-        return (
-            "Не превращай отсутствие записей в отсутствие событий: в отчёте нет записей "
-            "о судебных делах или производствах, а не доказано, что их вообще нет. "
-            "Сохрани прямую рекомендацию и точно обозначь границы доступных сведений."
-        )
+    ):
+        # A later mention of missing financial REPORTS does not scope an earlier
+        # assertion that court cases or debts do not exist in the real world.
+        preceding_clause = re.split(r"[,;.!?]", introduction[: absence.start()])[-1][-100:]
+        if not re.search(
+            r"отч[её]т|по\s+(?:доступным|представленным)\s+данным", preceding_clause, re.I
+        ):
+            return (
+                "Не превращай отсутствие записей в отсутствие событий: в отчёте нет записей "
+                "о судебных делах или производствах, а не доказано, что их вообще нет. "
+                "Напиши именно «в отчёте не найдено записей», привязав оговорку к этому факту. "
+                "Упоминание отчётности в другой части предложения не исправляет утверждение."
+            )
     if re.search(r"адрес|недостовер|недостовр|егрюл", q, re.I) and re.search(
         r"скорее всего|наверняка|точно (?:нет|отсутствует)|не существует", introduction, re.I
     ):
@@ -429,17 +457,39 @@ def interpretation_problem(answer: Answer, question: str, cards: Sequence[Card] 
             "Компании может не быть по этому адресу, но вероятность и факт её "
             "отсутствия не установлены. Не усиливай предположение до уверенного вывода."
         )
-    if re.search(
-        r"(?:подтвержда\w*|доказыва\w*|гарантиру\w*)[^.\n]{0,45}"
-        r"(?:над[её]жност|стабильност|безопасност|отсутствие рисков)",
-        introduction,
-        re.I,
-    ) and not re.search(r"не (?:подтвержда|доказыва|гарантиру)", introduction, re.I):
-        return (
-            "Отсутствие выявленных факторов и зелёные метки не доказывают надёжность "
-            "или стабильность компании. Дай рекомендацию по доступным фактам, "
-            "не обещая надёжности, безопасности или отсутствия рисков."
-        )
+    for sentence in re.split(r"[.!?\n]", introduction):
+        if re.search(r"не имеет[^.]{0,55}рисков|без\s+(?:\w+\s+){0,3}рисков", sentence, re.I):
+            return (
+                "Нельзя утверждать, что компания не имеет рисков. В доступном отчёте "
+                "могут быть не выявлены конкретные факторы; это основание для выбора, "
+                "но не доказательство отсутствия рисков. Сохрани рекомендацию и сузь основание."
+            )
+        if re.search(
+            r"(?:подтвержда\w*|доказыва\w*|гарантиру\w*)[^.\n]{0,45}"
+            r"(?:над[её]жност|стабильност|безопасност|отсутствие\s+(?:\w+\s+){0,3}рисков)",
+            sentence,
+            re.I,
+        ) and not re.search(r"не (?:подтвержда|доказыва|гарантиру)", sentence, re.I):
+            return (
+                "Отсутствие выявленных факторов и зелёные метки не доказывают надёжность "
+                "или стабильность компании. Дай рекомендацию по доступным фактам, "
+                "не обещая надёжности, безопасности или отсутствия рисков."
+            )
+    if re.search(r"прибыл|финанс|отч[её]тност", q, re.I) and re.search(
+        r"нет|не указан|отсутств|неизвест", q, re.I
+    ):
+        for sentence in re.split(r"[.!?\n]", introduction):
+            if re.search(r"неизвест|не указан|нельзя (?:установить|определить)", sentence, re.I):
+                continue
+            if re.search(r"уч[её]т|раскрыти|не вед[её]т|не получа", sentence, re.I) and re.search(
+                r"связан|объясня|причин|потому|из-за|возможно|может", sentence, re.I
+            ):
+                return (
+                    "Причина отсутствия финансовой строки в источнике не указана. "
+                    "Не предполагай особенности учёта, неполное раскрытие или отсутствие "
+                    "выручки. Объясни только, какой показатель неизвестен и что нельзя "
+                    "определить без него."
+                )
     if not recommendation_requested(q) and re.search(
         r"я (?:не )?рекомендую|рекомендуется (?:начинать|сотруднич|работ)",
         answer.text_md.split("\n\n")[0],

@@ -9,6 +9,7 @@ from uuid import uuid4
 
 from contractor_agent.agent.question import (
     BANK_LABEL,
+    CHOICE,
     COURT_QUESTION,
     is_full_review,
     limitation,
@@ -75,9 +76,25 @@ def missing_reads(question: str, inns: list[str], trace: list[ToolCallTrace]) ->
                 return True
         return False
 
-    return [
+    pending = [
         {"name": name, "args": args, "id": "evidence-" + uuid4().hex, "type": "tool_call"}
         for inn in dict.fromkeys(inns)
         for name, extra in reads
         if not covered(name, args := {"inn": inn, **extra})
     ]
+    if len(set(inns)) > 1 and CHOICE.search(q):
+        # A follow-up may use cached conversation context and make no new model
+        # tool calls. The evidence gate still refreshes the reports through the
+        # batch tool instead of multiplying summary/risk calls per company.
+        basic = {"get_report_summary", "get_risk_signals"}
+        if any(call["name"] in basic for call in pending):
+            pending = [
+                {
+                    "name": "compare_companies",
+                    "args": {"inns": list(dict.fromkeys(inns))},
+                    "id": "evidence-" + uuid4().hex,
+                    "type": "tool_call",
+                },
+                *(call for call in pending if call["name"] not in basic),
+            ]
+    return pending

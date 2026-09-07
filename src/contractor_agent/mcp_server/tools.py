@@ -433,7 +433,11 @@ class Tools:
                         for s in signal_set.by_severity(Severity.CRITICAL)
                     ],
                     "moderate": [
-                        {"title": s.title_ru, "source_path": s.source_path}
+                        {
+                            "title": s.title_ru,
+                            "explanation": s.explanation_ru,
+                            "source_path": s.source_path,
+                        }
                         for s in signal_set.by_severity(Severity.MODERATE)
                     ],
                     "net_assets": {"value": net.value, "year": net.year, "source_path": net.path}
