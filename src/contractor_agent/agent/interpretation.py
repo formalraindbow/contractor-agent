@@ -180,6 +180,11 @@ from the short opening and leave the exact year in evidence.
 You may repeat the user's proposed duration (e.g. deferred payment for 30 days); that is
 a proposed transaction term, not a reported fact. Prefer company names without INNs.
 For cooperation: recommend, defer pending verification, or decline based on the evidence.
+For a general cooperation question, missing financial fields alone are not grounds to decline
+an otherwise ordinary candidate with no detected adverse factors. State that cooperation can
+be considered on the available report, then qualify what is unknown. Do not silently assume
+the user is granting credit or making an advance. A lack of proof of solvency is not proof
+against cooperation.
 If asked about a specific action (e.g. granting deferred payment), take a position on THAT
 action, not just general cooperation. Missing profit/liquidity can prevent recommending credit
 terms even if no adverse flags were detected. Do not promise repayment. If asked what to check,
@@ -435,7 +440,9 @@ def interpretation_problem(answer: Answer, question: str, cards: Sequence[Card] 
                     "истца и ответчика; не выводи текущие последствия без данных."
                 )
     for absence in re.finditer(
-        r"\bнет\s+(?:(?:открытых|текущих|незакрытых|судебных|арбитражных|исполнительных)\s+){0,3}"
+        r"\bнет\s+(?:(?:критическ\w+|умеренн\w+|негативн\w+)\s+"
+        r"(?:факторов|сигналов|рисков)\s*[,и]\s*)?"
+        r"(?:(?:открытых|текущих|незакрытых|судебных|арбитражных|исполнительных)\s+){0,3}"
         r"(?:дел\b|судов|производств|долгов)|"
         r"отсутствуют\s+(?:судебные|арбитражные|исполнительные)",
         introduction,
@@ -567,6 +574,28 @@ def interpretation_problem(answer: Answer, question: str, cards: Sequence[Card] 
             opening,
             re.I,
         )
+        if (
+            negative
+            and len(cards) == 1
+            and cards[0].verdict == Verdict.OK
+            and not re.search(
+                r"отсроч|кредит|за[её]м|займ|аванс|предоплат|постоплат|безопас|"
+                r"гарант|верн[её]т|расплат|плат[её]жеспособ|платить|оплач|деньг|взыск",
+                q,
+                re.I,
+            )
+            and re.search(
+                r"(?:не рекоменд|не совет|не стоит).{0,65}(?:сотруднич|работ)", opening, re.I
+            )
+            and re.search(r"отсутств|не хватает|нет данных|недостат|неизвест", opening, re.I)
+        ):
+            return (
+                "Ты отказал в обычном сотрудничестве только из-за недостающих сведений. "
+                "По доступному отчёту негативные факторы не выявлены; пользователь не просил "
+                "о кредите, авансе или гарантии. Не превращай неизвестные показатели в "
+                "негативные факты. Дай соразмерную рекомендацию по обычному сотрудничеству "
+                "и отдельно обозначь, чего по отчёту определить нельзя."
+            )
         if affirmative and not negative and cards:
             # Names in the explanation may be rejected alternatives, not selected ones.
             recommendation = re.split(

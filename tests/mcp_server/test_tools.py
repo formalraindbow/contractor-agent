@@ -87,6 +87,14 @@ def test_compare_companies(snapshot: Snapshot) -> None:
     assert [i["inn"] for i in items] == ["5032257375", "1684017097", "0000000000"]  # дубликат снят
     assert items[0]["verdict"] == "not_recommended" and items[0]["critical"]
     assert items[1]["verdict"] == "ok" and items[2]["available"] is False
+    assert items[1]["status"] == tools.get_report_summary("1684017097").data["status"]
+    # A comparison must expose the same missing-field evidence as the full card,
+    # including its period, so report-based claims are verifiable from this call.
+    assert items[1]["gap_details"] == [
+        {k: g[k] for k in ("criterion", "text", "source_path")}
+        for g in tools.get_risk_signals("1684017097").data["gaps"]
+    ]
+    assert all(g["source_path"] in res.source_paths for g in items[1]["gap_details"])
     assert not tools.compare_companies([]).available
 
 

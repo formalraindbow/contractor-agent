@@ -413,6 +413,8 @@ class Tools:
                     "available": True,
                     "name": report.base_info.short_name,
                     "report_date": report.report_date,
+                    "status": report.status.status,
+                    "status_reason": report.status.reason_name,
                     "labels": {
                         "svetofor": svetofor_ru(report.base_info.risk_level),
                         "zsk": zsk_ru(report.zsk_risk_level),
@@ -451,9 +453,19 @@ class Tools:
                     if proceeds
                     else None,
                     "gaps": [g.criterion for g in signal_set.gaps],
+                    "gap_details": [
+                        {
+                            "criterion": g.criterion,
+                            "text": g.text_ru,
+                            "source_path": g.source_path,
+                        }
+                        for g in signal_set.gaps
+                    ],
                 }
             )
             paths.extend(s.source_path for s in signal_set.signals)
+            paths.extend(g.source_path for g in signal_set.gaps)
+            paths.extend(["report.status.status", "report.status.reasonName"])
             paths.extend(x.path for x in (net, proceeds) if x)
         missing = [i["inn"] for i in items if not i["available"]]
         notes = []

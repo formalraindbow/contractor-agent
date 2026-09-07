@@ -81,6 +81,45 @@ def test_fewer_signals_do_not_justify_recommending_a_critical_company(snapshot):
     assert interpretation_problem(answer, "Кого порекомендуешь для сотрудничества?", cards)
 
 
+@pytest.mark.parametrize(
+    "question,opening,should_repair",
+    [
+        (
+            "Стоит сотрудничать с ТЕХПРОФ?",
+            "Я не рекомендую сотрудничать с ТЕХПРОФ, поскольку отсутствуют данные о прибыли "
+            "и текущей ликвидности.",
+            True,
+        ),
+        (
+            "Можно дать ТЕХПРОФ отсрочку?",
+            "Я не рекомендую отсрочку, поскольку отсутствуют данные о прибыли и ликвидности.",
+            False,
+        ),
+        (
+            "Можно безопасно сотрудничать с ТЕХПРОФ по предоплате?",
+            "Я не рекомендую сотрудничать по предоплате: нет данных о платёжеспособности.",
+            False,
+        ),
+        (
+            "Стоит сотрудничать с ТЕХПРОФ?",
+            "По данным отчёта рекомендую рассматривать ТЕХПРОФ для сотрудничества; "
+            "о прибыли и ликвидности сведений недостаточно.",
+            False,
+        ),
+    ],
+)
+def test_missing_fields_are_not_a_blanket_cooperation_refusal(
+    snapshot, question, opening, should_repair
+):
+    cards = [build_card(Tools(snapshot), "1684017097")]
+    answer = Answer(
+        kind="answer",
+        text_md=opening,
+        citations=[Citation(claim="Действующая", source_path="report.status.status")],
+    )
+    assert bool(interpretation_problem(answer, question, cards)) == should_repair
+
+
 @pytest.mark.parametrize("separator", ["\n\n", " "])
 def test_choice_is_not_rejected_for_explaining_why_other_companies_were_not_chosen(
     snapshot, separator
@@ -283,6 +322,16 @@ def test_court_summary_and_its_nested_count_are_not_duplicate_evidence(snapshot)
     "opening, problem",
     [
         ("Я рекомендую ТЕХПРОФ, так как у него нет судебных дел.", True),
+        (
+            "Я бы выбрал ТЕХПРОФ, так как у него нет критических факторов, судов "
+            "и исполнительных производств.",
+            True,
+        ),
+        (
+            "Рекомендую ТЕХПРОФ: в отчёте нет критических факторов, судов "
+            "и исполнительных производств.",
+            False,
+        ),
         ("По этим отчётам я бы выбрал ТЕХПРОФ: записей о судебных делах нет.", False),
         ("Рекомендую ТЕХПРОФ: в отчёте не найдено судебных дел.", False),
     ],
