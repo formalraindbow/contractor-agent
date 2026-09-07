@@ -16,6 +16,7 @@ from langchain_core.messages import SystemMessage
 from langchain_core.output_parsers import PydanticOutputParser
 from langchain_core.runnables import Runnable, RunnableLambda
 from langchain_openai import ChatOpenAI
+from openai import APIConnectionError, InternalServerError
 
 from contractor_agent.settings import Settings
 
@@ -28,10 +29,23 @@ HEADERS = {
 class LLM:
     """Основная модель и запасные; отдаёт готовые цепочки с инструментами или схемой."""
 
-    def __init__(self, models: list[BaseChatModel]) -> None:
+    def __init__(self, models: list[BaseChatModel], *, retry_transport: bool = False) -> None:
         if not models:
             raise ValueError("нужна хотя бы одна модель")
         self.models = models
+        self.retry_transport = retry_transport
+
+    def _transport(self, chain: Runnable) -> Runnable:
+        if not self.retry_transport:
+            return chain
+        # Some gateways send Retry-After: 60 with a 502/503. That SDK sleep blocks
+        # the whole chat. Retry transient failures once with a short bounded wait;
+        # rate limits/authentication errors deliberately do not use this policy.
+        return chain.with_retry(
+            retry_if_exception_type=(APIConnectionError, InternalServerError),
+            stop_after_attempt=2,
+            exponential_jitter_params={"initial": 0.5, "max": 2.0, "jitter": 0.5},
+        )
 
     @property
     def name(self) -> str:
@@ -39,7 +53,7 @@ class LLM:
 
     def with_tools(self, tools: list[Any], *, tool_choice: str | None = None) -> Runnable:
         options = {"tool_choice": tool_choice} if tool_choice is not None else {}
-        bound = [m.bind_tools(tools, **options) for m in self.models]
+        bound = [self._transport(m.bind_tools(tools, **options)) for m in self.models]
         return bound[0].with_fallbacks(bound[1:]) if len(bound) > 1 else bound[0]
 
     def structured(self, schema: type, *, method: str = "json_schema") -> Runnable:
@@ -65,11 +79,14 @@ class LLM:
                         ),
                     ]
 
-                chains.append(RunnableLambda(formatted) | m | parser | validate)
+                chains.append(RunnableLambda(formatted) | self._transport(m) | parser | validate)
                 continue
             methods = ("json_schema", "function_calling") if method == "json_schema" else (method,)
             for output_method in methods:
-                chains.append(m.with_structured_output(schema, method=output_method) | validate)
+                chains.append(
+                    self._transport(m.with_structured_output(schema, method=output_method))
+                    | validate
+                )
         return chains[0].with_fallbacks(chains[1:])
 
 
@@ -82,6 +99,7 @@ def make_llm(
     fallbacks: list[str] | None = None,
     reasoning_effort: str | None = "inherit",
     provider_order: list[str] | None = None,
+    retry_transport: bool = True,
 ) -> LLM:
     """Модель агента по умолчанию; судья эвалов передаёт свой адрес, ключ и пустые запасные."""
     names = [
@@ -104,12 +122,13 @@ def make_llm(
                 temperature=0,
                 max_tokens=settings.llm_max_tokens,
                 timeout=settings.llm_timeout,
-                max_retries=2,
+                max_retries=0 if retry_transport else 2,
                 default_headers=HEADERS,
                 **extra,
             )
             for name in names
-        ]
+        ],
+        retry_transport=retry_transport,
     )
 
 
@@ -122,4 +141,5 @@ def make_judge_llm(settings: Settings, model: str | None = None) -> LLM:
         fallbacks=[],
         reasoning_effort=None,  # судья думает как умеет: качество важнее скорости
         provider_order=[],  # the judge family has its own available providers
+        retry_transport=False,  # offline judging keeps the SDK's conservative retry policy
     )

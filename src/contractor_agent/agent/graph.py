@@ -52,8 +52,10 @@ def build_graph(
     tools: list[Any],
     source: ReportSource,
     checkpointer: BaseCheckpointSaver | None = None,
+    *,
+    fast_known_company: bool = False,
 ) -> CompiledStateGraph:
-    nodes = make_nodes(llm, tools, source)
+    nodes = make_nodes(llm, tools, source, fast_known_company=fast_known_company)
     graph = StateGraph(AgentState)
     for name, fn in nodes.items():
         graph.add_node(name, fn)

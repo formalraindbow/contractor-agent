@@ -38,6 +38,7 @@ class Settings(BaseSettings):
     llm_fallback_models: str = ""
     llm_max_tokens: int = 8192  # bounded completion, including reasoning tokens
     llm_timeout: float = 90
+    llm_fast_known_company: bool = False  # opt-in: read known reports before the composer
     llm_reasoning_effort: str | None = (
         "low"  # gpt-oss: low в 3 раза быстрее medium на том же ответе
     )

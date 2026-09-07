@@ -75,7 +75,9 @@ MAX_CITATION_RETRIES = 1
 Node = Callable[[AgentState], Awaitable[dict[str, Any]]]
 
 
-def make_nodes(llm: LLM, tools: list[Any], source: ReportSource) -> dict[str, Node]:
+def make_nodes(
+    llm: LLM, tools: list[Any], source: ReportSource, *, fast_known_company: bool = False
+) -> dict[str, Node]:
     with_tools = llm.with_tools(tools)
     by_name = {t.name: t for t in tools}
 
@@ -200,6 +202,13 @@ def make_nodes(llm: LLM, tools: list[Any], source: ReportSource) -> dict[str, No
             return focus or explicit
         if focus:
             return focus
+        # A fresh chat opened from an existing card already carries its identity.
+        # Only unambiguously pronominal decision questions may use it directly;
+        # a new company name still needs the normal search/disambiguation path.
+        if fast_known_company and contextual_decision(question):
+            context_ids = list(dict.fromkeys(re.findall(r"\b(?:\d{10}|\d{12})\b", question)))
+            if context_ids and all(source.get(inn) is not None for inn in context_ids):
+                return context_ids
         if ambiguity(state):
             return []
         if not state.get("turn_inns") and any(
@@ -266,6 +275,17 @@ def make_nodes(llm: LLM, tools: list[Any], source: ReportSource) -> dict[str, No
                 "agent_rounds": state.get("agent_rounds", 0) + 1,
             }
         resolved = answer_inns(state)
+        subject = question_subject(question)
+        explicit_ids = re.findall(r"\b(?:\d{10}|\d{12})\b", subject)
+        if (
+            fast_known_company
+            and resolved
+            and all(source.get(inn) is not None for inn in resolved)
+            and (explicit_ids or contextual_decision(question))
+        ):
+            # Evidence still goes through MCP, and finalization/validation are unchanged.
+            # Asking the model to rediscover these same reads adds multiple network calls.
+            return {"messages": [AIMessage(content="")], "agent_rounds": 1}
         if (
             len(resolved) == 1
             and source.get(resolved[0]) is not None
@@ -933,6 +953,26 @@ def question_subject(question: str) -> str:
     ].strip()
 
 
+def contextual_decision(question: str) -> bool:
+    """UI identity is sufficient for these complete, pronominal decisions only."""
+    if not re.search(r"Речь о компании|Контекст сравнения:", question):
+        return False
+    q = question_subject(question).casefold().replace("ё", "е")
+    return bool(
+        re.fullmatch(
+            r"(?:а\s+)?(?:"
+            r"(?:стоит|можно|безопасно)(?:\s+ли)?\s+(?:с\s+(?:ними|ней|ним)\s+)?"
+            r"(?:работать|сотрудничать|иметь\s+(?:с\s+(?:ними|ней|ним)\s+)?дело)"
+            r"(?:\s+с\s+(?:ними|ней|ним))?"
+            r"|с\s+кем\s+(?:лучше\s+)?работать"
+            r"|кого\s+(?:из\s+(?:них|этих\s+(?:двух|трех|троих))\s+)?"
+            r"(?:ты\s+)?(?:бы\s+)?(?:выбрал|выбрать|порекомендуешь|посоветуешь)"
+            r")[?!.\s]*",
+            q,
+        )
+    )
+
+
 def requested_inns(question: str, candidates: list[str], source: ReportSource) -> list[str]:
     """Named companies narrow this turn; the comparison remains in session memory."""
     subject = normalize_name(question_subject(question))
@@ -1108,6 +1148,7 @@ def offtopic_reply(question: str) -> str | None:
     if (
         len(text) <= 60
         and not _TOPIC_RE.search(text)
+        and not is_full_review(text)
         and not needs_interpretation(text)
         and not re.search(r"\?$", text)
     ):

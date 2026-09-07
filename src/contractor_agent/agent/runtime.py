@@ -95,7 +95,13 @@ class AgentRuntime:
             self.client = Client(build_server(self.source))
         await self.client.__aenter__()
         self.tools = await load_tools(self.client)
-        self.graph = build_graph(self.llm, self.tools, self.source, self.checkpointer)
+        self.graph = build_graph(
+            self.llm,
+            self.tools,
+            self.source,
+            self.checkpointer,
+            fast_known_company=self.settings.llm_fast_known_company,
+        )
         return self
 
     async def __aexit__(self, *exc: Any) -> None:
