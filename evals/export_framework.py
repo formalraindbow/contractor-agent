@@ -17,7 +17,7 @@ from contractor_agent.data.loader import load_snapshot, normalize_name, strip_le
 from contractor_agent.mcp_server.tools import Tools
 from evals.gold import GOLD_PATH, load_gold
 
-POLICY = "contractor-reference-v3-high"
+POLICY = "contractor-reference-v4-high"
 
 
 def expected_calls(question, fallback, known, *, names, spec=None):
@@ -161,7 +161,8 @@ def export(out: Path):
         reference = [
             {
                 "role": "system",
-                "content": "Контекст источника: инструменты предоставляют сведения из отчётов банка "
+                "content": "Контекст источника: инструменты предоставляют сведения "
+                "из отчётов банка "
                 "о контрагентах. Поля labels.svetofor и labels.zsk — оценки банка «Светофор» "
                 "и «ЗСК» соответственно. Дата отчёта — дата источника, а не обещание свежих "
                 "данных. Рекомендация помощника — его обоснованная позиция по запросу "
@@ -172,7 +173,7 @@ def export(out: Path):
             reference.append({"role": "user", "content": query})
             calls, selected = (
                 ([], known)
-                if q.type == "guard" or q.expect_tools is False
+                if turn == len(queries) - 1 and (q.type == "guard" or q.expect_tools is False)
                 else expected_calls(
                     query,
                     q.inn,
