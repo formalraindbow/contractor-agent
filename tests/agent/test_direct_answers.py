@@ -70,6 +70,35 @@ async def test_recommendation_is_model_composed_and_keeps_checked_evidence(snaps
     assert "Пробел" not in answer.text_md and "Критический факт" not in answer.text_md
 
 
+async def test_interpretation_repair_receives_failed_answer_and_specific_error(snapshot, tmp_path):
+    wrong = "Отсутствие строки прибыли может быть связано с особенностями учёта."
+    corrected = "Значение прибыли в отчёте неизвестно; отсутствие строки не доказывает убыток."
+    question = "ТЕХПРОФ 1684017097: объясни, почему отсутствие прибыли не равно убытку?"
+    model = scripted_llm(
+        [
+            tool_call("get_financials", "finance", inn="1684017097"),
+            AIMessage(content="Данные получены."),
+            InterpretationPlan(answer=wrong, evidence_ids=["E3"]),
+            AIMessage(content="Исправляю объяснение."),
+            InterpretationPlan(answer=corrected, evidence_ids=["E3"]),
+        ]
+    )
+    async with AgentRuntime(
+        Settings(runs_dir=tmp_path, session_store="memory"), source=snapshot, llm=model
+    ) as rt:
+        answer = await rt.ask(question, "repair-meaning")
+    assert answer.kind == "answer" and answer.text_md.startswith(corrected)
+    final_messages = model.models[0].seen[-1]
+    feedback = [m for m in final_messages if m.additional_kwargs.get("repair")]
+    assert len(feedback) == 1
+    assert wrong in feedback[0].content
+    assert "Причина отсутствия финансовой строки" in feedback[0].content
+    question_index = next(
+        i for i, m in enumerate(final_messages) if "Текущий вопрос:" in str(m.content)
+    )
+    assert final_messages.index(feedback[0]) > question_index
+
+
 def test_fewer_signals_do_not_justify_recommending_a_critical_company(snapshot):
     cards = [build_card(Tools(snapshot), inn) for inn in ["5032257375", "6165169320", "2311304742"]]
     answer = Answer(
