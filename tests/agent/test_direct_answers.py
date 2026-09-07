@@ -184,6 +184,7 @@ def test_known_evidence_markers_are_removed_without_hiding_unknown_sources(snaps
     [
         ("Отсутствие дел подтверждает отсутствие текущих юридических рисков.", True),
         ("Компания не имеет негативных судебных или репутационных рисков.", True),
+        ("Отсутствие записей не означает, что компания не имеет рисков.", False),
         ("Зелёные метки не подтверждают отсутствие текущих юридических рисков.", False),
         (
             "Зелёные метки не подтверждают безопасность. Отсутствие дел гарантирует надёжность.",
@@ -311,6 +312,21 @@ def test_recommendation_preserves_scope_of_missing_records(snapshot, opening, pr
 def test_address_mark_does_not_establish_probability_of_absence(opening, problem):
     answer = Answer(kind="answer", text_md=opening)
     assert bool(interpretation_problem(answer, "Недостоверный адрес: что это значит?")) == problem
+
+
+@pytest.mark.parametrize(
+    "text,bad",
+    [
+        ("По адресу может не существовать физического объекта.", True),
+        ("Регистрационные сведения и учредительные документы могут быть неверными.", True),
+        ("Это затрудняет подтверждение юридической личности и правовой чистоты.", True),
+        ("Отметка не означает, что учредительные документы недействительны.", False),
+        ("Компанию может быть труднее найти по указанному адресу.", False),
+    ],
+)
+def test_address_explanation_preserves_subject_of_the_record(text, bad):
+    answer = Answer(kind="answer", text_md=text)
+    assert bool(interpretation_problem(answer, "Недостоверные данные ЕГРЮЛ: объясни")) == bad
 
 
 def test_missing_profit_is_not_repeated_after_aggregate_years(snapshot):

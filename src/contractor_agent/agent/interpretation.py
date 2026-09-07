@@ -215,6 +215,10 @@ prohibit incoming payments. Cause, amount and whether it is lifted today are unk
 the company or checking details can be harder. It does not establish fraud, fictitious business,
 hidden ownership, invalid contracts or the reason for the mark. It does not establish how likely
 the company is to be absent: say «может не быть», never «скорее всего нет» or «точно нет».
+It says nothing about whether a building exists or whether founding documents are valid.
+Do not replace registration details with founding documents, a physical object, or vague
+notions such as «правовая чистота» / «юридическая личность». Explain the specific record
+and practical difficulty of locating the company or confirming its details in plain language.
 - Lawsuits require attention to the role and status: the defendant faces claims, the plaintiff
 makes claims. Finished cases are historical, not current debt. Count alone does not prove losing
 cases or unpaid obligations. Open claims can require money/resources, but outcome is unknown.
@@ -457,8 +461,31 @@ def interpretation_problem(answer: Answer, question: str, cards: Sequence[Card] 
             "Компании может не быть по этому адресу, но вероятность и факт её "
             "отсутствия не установлены. Не усиливай предположение до уверенного вывода."
         )
+    if re.search(r"адрес|недостовер|недостовр|егрюл", q, re.I):
+        for sentence in re.split(r"[.!?\n]", introduction):
+            if re.search(
+                r"не означает|не доказыва|не подтвержда|неизвест|нельзя.*вывод", sentence, re.I
+            ):
+                continue
+            if re.search(
+                r"учредительн\w*\s+документ|физическ\w*\s+объект|"
+                r"(?:существовани|отсутстви)\w*\s+здани|правов\w*\s+чистот|юридическ\w*\s+личност",
+                sentence,
+                re.I,
+            ):
+                return (
+                    "Отметка касается регистрационных сведений, а не существования здания "
+                    "или действительности учредительных документов. Не приписывай ей эти "
+                    "последствия. Простыми словами объясни трудность найти компанию или "
+                    "подтвердить её реквизиты; избегай выражений «правовая чистота» и "
+                    "«юридическая личность»."
+                )
     for sentence in re.split(r"[.!?\n]", introduction):
-        if re.search(r"не имеет[^.]{0,55}рисков|без\s+(?:\w+\s+){0,3}рисков", sentence, re.I):
+        if re.search(
+            r"не имеет[^.]{0,55}рисков|без\s+(?:\w+\s+){0,3}рисков", sentence, re.I
+        ) and not re.search(
+            r"не означает|не доказыва|не подтвержда|нельзя\s+утверждать", sentence, re.I
+        ):
             return (
                 "Нельзя утверждать, что компания не имеет рисков. В доступном отчёте "
                 "могут быть не выявлены конкретные факторы; это основание для выбора, "
