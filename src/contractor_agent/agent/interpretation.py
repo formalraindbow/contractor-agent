@@ -268,6 +268,26 @@ def plan_draft(
         r"\b\d+\s*(?:дней|дня|день|недел[ьи]|недель|месяц(?:а|ев)?)\b", question, re.I
     ):
         without_identity = re.sub(re.escape(term), "", without_identity, flags=re.I)
+    if (
+        re.search(r"\d", without_identity)
+        and recommendation_requested(question)
+        and len(cards) == 1
+        and cards[0].verdict != Verdict.OK
+    ):
+        # A number in the model's explanation must not make us lose an otherwise
+        # valid negative decision. Keep its exact qualitative position and let
+        # the checked citations below carry all figures, roles and periods.
+        position = re.split(
+            r"\s*[,;:]\s*|\s+(?:поскольку|потому что|так как)\s+", opening, maxsplit=1
+        )[0].strip()
+        without_inn = position.replace(cards[0].inn, "")
+        if (
+            position != opening
+            and not re.search(r"\d", without_inn)
+            and re.search(r"не рекомендую|не советую|не стал бы|не начинал бы", position, re.I)
+        ):
+            opening = position.rstrip(". ") + "."
+            without_identity = without_inn
     if re.search(r"\d", without_identity):
         raise ValueError(
             "Remove these numbers from answer (including financial years): "

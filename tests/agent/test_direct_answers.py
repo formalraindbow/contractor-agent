@@ -433,6 +433,28 @@ def test_missing_profit_is_not_repeated_after_aggregate_years(snapshot):
     assert "2024–2025" in " ".join(draft.lines)
 
 
+def test_numeric_explanation_does_not_erase_valid_negative_decision(snapshot):
+    cards = [build_card(Tools(snapshot), "5032257375")]
+    q = "Стоит с ними иметь дело?"
+    _, sources = evidence_context(cards, q)
+    plan = InterpretationPlan(
+        answer="Я не рекомендую сотрудничать с МАКСМАРКЕТ, поскольку у неё 999 производств.",
+        evidence_ids=["E3"],
+    )
+    draft = plan_draft(plan, sources, cards, q)
+    assert draft.lines[0] == "Я не рекомендую сотрудничать с МАКСМАРКЕТ."
+    assert "999" not in draft.text_md
+    assert "открыто конкурсное производство" in draft.text_md
+    # Never convert an unsupported positive decision into a negative one.
+    with pytest.raises(ValueError, match="Remove these numbers"):
+        plan_draft(
+            plan.model_copy(update={"answer": "Я рекомендую МАКСМАРКЕТ, у неё 999 производств."}),
+            sources,
+            cards,
+            q,
+        )
+
+
 async def test_choice_keeps_both_companies_even_when_model_fetches_only_first(snapshot, tmp_path):
     llm = scripted_llm(
         [
