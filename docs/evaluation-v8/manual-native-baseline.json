@@ -1,0 +1,328 @@
+{
+  "reviewer": "Codex, also the implementer; not a blind independent bank review",
+  "agent_commit": "b8f9152",
+  "run": "direct-high-01",
+  "scope": "All visible answers in all 16 dialogues; actual tool payloads and named source discrepancies inspected",
+  "rows": [
+    {
+      "scenario": "direct/direct-v8-01",
+      "report": "/Users/alantolparov/IdeaProjects/evaluators-contractor/.artifacts/direct-high-01/runs/2026-09-07_11-01-44/reports/direct_direct-v8-01_report.json",
+      "sha256": "b89a07008ceb251773ef7f7365c3cecbf1eba9e27884ff0db7a0f5fc2292b11e",
+      "visible_answers_reviewed": 2,
+      "status": "accepted",
+      "note": "Позиция и факты относятся к нужным компаниям; обязательных смысловых правок не обнаружено.",
+      "raw_metrics": [
+        {
+          "metric": "trajectory_match",
+          "type": "trajectory_match",
+          "score": 0.96
+        },
+        {
+          "metric": "hallucination",
+          "type": "hallucination",
+          "score": 1.0
+        }
+      ]
+    },
+    {
+      "scenario": "direct/direct-v8-02",
+      "report": "/Users/alantolparov/IdeaProjects/evaluators-contractor/.artifacts/direct-high-01/runs/2026-09-07_11-01-44/reports/direct_direct-v8-02_report.json",
+      "sha256": "001ad661042cf6602e37b3b32e6d5c517becf196eacd25a448163bfddc77b8a5",
+      "visible_answers_reviewed": 1,
+      "status": "revise",
+      "note": "Вводная смешивает отсутствие записей в отчёте с фразой «нет судебных дел и негативных ... рисков». Оговорку следует поставить непосредственно перед этим утверждением. Штраф GLM за «Светофор банка» — отдельно ложный: источник действительно отчёт банка.",
+      "raw_metrics": [
+        {
+          "metric": "trajectory_match",
+          "type": "trajectory_match",
+          "score": 0.9
+        },
+        {
+          "metric": "hallucination",
+          "type": "hallucination",
+          "score": 0.9
+        }
+      ]
+    },
+    {
+      "scenario": "direct/direct-v8-03",
+      "report": "/Users/alantolparov/IdeaProjects/evaluators-contractor/.artifacts/direct-high-01/runs/2026-09-07_11-01-44/reports/direct_direct-v8-03_report.json",
+      "sha256": "6bb107598b0f78a04fdffcfaf2906aabe2018cf6e6323878a1bbee302a605cf8",
+      "visible_answers_reviewed": 1,
+      "status": "revise",
+      "note": "Неограниченное «нет судебных дел и исполнительных производств»; слишком широкое «оценить финансовое состояние невозможно» при отсутствии отдельных показателей. Выбор и принадлежность конкретных фактов правильны. Галлюцинации GLM не оценил из-за ошибки JSON.",
+      "raw_metrics": [
+        {
+          "metric": "trajectory_match",
+          "type": "trajectory_match",
+          "score": 0.97
+        },
+        {
+          "metric": "hallucination",
+          "type": "error",
+          "score": 0.0
+        }
+      ]
+    },
+    {
+      "scenario": "direct/direct-v8-04",
+      "report": "/Users/alantolparov/IdeaProjects/evaluators-contractor/.artifacts/direct-high-01/runs/2026-09-07_11-01-44/reports/direct_direct-v8-04_report.json",
+      "sha256": "50284a10c34d58d5af6018756d508f5b53af0e9ac8459331501ef90f6f87a279",
+      "visible_answers_reviewed": 1,
+      "status": "accepted",
+      "note": "Позиция и факты относятся к нужным компаниям; обязательных смысловых правок не обнаружено.",
+      "raw_metrics": [
+        {
+          "metric": "trajectory_match",
+          "type": "trajectory_match",
+          "score": 1.0
+        },
+        {
+          "metric": "hallucination",
+          "type": "hallucination",
+          "score": 1.0
+        }
+      ]
+    },
+    {
+      "scenario": "direct/direct-v8-05",
+      "report": "/Users/alantolparov/IdeaProjects/evaluators-contractor/.artifacts/direct-high-01/runs/2026-09-07_11-01-44/reports/direct_direct-v8-05_report.json",
+      "sha256": "242be8a9146746640308eaaa2e6140ab140faa0c7b124d65d96cc1f430a17dfc",
+      "visible_answers_reviewed": 3,
+      "status": "accepted",
+      "note": "Позиция и факты относятся к нужным компаниям; обязательных смысловых правок не обнаружено.",
+      "raw_metrics": [
+        {
+          "metric": "trajectory_match",
+          "type": "trajectory_match",
+          "score": 0.97
+        },
+        {
+          "metric": "hallucination",
+          "type": "hallucination",
+          "score": 1.0
+        }
+      ]
+    },
+    {
+      "scenario": "direct/direct-v8-06",
+      "report": "/Users/alantolparov/IdeaProjects/evaluators-contractor/.artifacts/direct-high-01/runs/2026-09-07_11-01-44/reports/direct_direct-v8-06_report.json",
+      "sha256": "6119a586e2e99a3acde37c224447c981e75cccc257dede6873a6a0930d11fc79",
+      "visible_answers_reviewed": 2,
+      "status": "style",
+      "note": "Факты и модальность сохранены, но «правовая и фактическая сущность» — непонятный канцеляризм; лучше говорить о проверке регистрационных сведений.",
+      "raw_metrics": [
+        {
+          "metric": "trajectory_match",
+          "type": "trajectory_match",
+          "score": 0.95
+        },
+        {
+          "metric": "hallucination",
+          "type": "hallucination",
+          "score": 1.0
+        }
+      ]
+    },
+    {
+      "scenario": "direct/direct-v8-07",
+      "report": "/Users/alantolparov/IdeaProjects/evaluators-contractor/.artifacts/direct-high-01/runs/2026-09-07_11-01-44/reports/direct_direct-v8-07_report.json",
+      "sha256": "e01459cc4cced2cd64e00ea7859fb3cdddb4089203c0da3fb4049386d0b276d2",
+      "visible_answers_reviewed": 2,
+      "status": "revise",
+      "note": "Завершённые дела использованы для предположений о текущей юридической нагрузке, ликвидности и репутации. Данные показывают исторические споры; их последствия неизвестны. GLM пропустил ошибку.",
+      "raw_metrics": [
+        {
+          "metric": "trajectory_match",
+          "type": "trajectory_match",
+          "score": 0.94
+        },
+        {
+          "metric": "hallucination",
+          "type": "hallucination",
+          "score": 1.0
+        }
+      ]
+    },
+    {
+      "scenario": "direct/direct-v8-08",
+      "report": "/Users/alantolparov/IdeaProjects/evaluators-contractor/.artifacts/direct-high-01/runs/2026-09-07_11-01-44/reports/direct_direct-v8-08_report.json",
+      "sha256": "ea7aff337b498bf39b551b14ac0655e9f2aaac2046e86d73cf1d63f4b9ac565c",
+      "visible_answers_reviewed": 2,
+      "status": "accepted",
+      "note": "Ответ только про ТЕХПРОФ, без повторного сравнения. Финансовые числа первого ответа проверены по исходному отчёту, но отсутствовали в сокращённом compare_companies: проблема полноты трассы, а не выдуманные числа.",
+      "raw_metrics": [
+        {
+          "metric": "trajectory_match",
+          "type": "trajectory_match",
+          "score": 0.86
+        },
+        {
+          "metric": "hallucination",
+          "type": "error",
+          "score": 0.0
+        }
+      ]
+    },
+    {
+      "scenario": "direct/direct-v8-09",
+      "report": "/Users/alantolparov/IdeaProjects/evaluators-contractor/.artifacts/direct-high-01/runs/2026-09-07_11-01-44/reports/direct_direct-v8-09_report.json",
+      "sha256": "ca91f37a573fdcdabd363c32137913020701711f5ed4ee69562eaabd42ffeb86",
+      "visible_answers_reviewed": 2,
+      "status": "revise",
+      "note": "Неточность: отметка об адресе превращена в возможность отсутствия «физического объекта». Она говорит о достоверности сведений о местонахождении компании, не о существовании здания. Первый ответ имеет тот же пробел трассы, что и 08.",
+      "raw_metrics": [
+        {
+          "metric": "trajectory_match",
+          "type": "trajectory_match",
+          "score": 0.9
+        },
+        {
+          "metric": "hallucination",
+          "type": "error",
+          "score": 0.0
+        }
+      ]
+    },
+    {
+      "scenario": "direct/direct-v8-10",
+      "report": "/Users/alantolparov/IdeaProjects/evaluators-contractor/.artifacts/direct-high-01/runs/2026-09-07_11-01-44/reports/direct_direct-v8-10_report.json",
+      "sha256": "14c9820117d14151fca982f0ceb3302a5a72f3cfb245749809fe31fe9e90c8b4",
+      "visible_answers_reviewed": 2,
+      "status": "accepted",
+      "note": "Правильный выбор ТЕХПРОФ с отдельным банкротством МАКСМАРКЕТ; лишние четыре чтения вместо одного сравнения — реальный недостаток траектории.",
+      "raw_metrics": [
+        {
+          "metric": "trajectory_match",
+          "type": "trajectory_match",
+          "score": 0.7
+        },
+        {
+          "metric": "hallucination",
+          "type": "hallucination",
+          "score": 1.0
+        }
+      ]
+    },
+    {
+      "scenario": "direct/direct-v8-11",
+      "report": "/Users/alantolparov/IdeaProjects/evaluators-contractor/.artifacts/direct-high-01/runs/2026-09-07_11-01-44/reports/direct_direct-v8-11_report.json",
+      "sha256": "b7c030bb0d18824f9a0c46343209bed79b95a12ebc0e918159f4549dc38ace22",
+      "visible_answers_reviewed": 2,
+      "status": "accepted",
+      "note": "Неизвестный ИНН не подменён прошлой компанией; корректное отсутствие отчёта. Штраф за лишние чтения относится к процессу.",
+      "raw_metrics": [
+        {
+          "metric": "trajectory_match",
+          "type": "trajectory_match",
+          "score": 0.74
+        },
+        {
+          "metric": "hallucination",
+          "type": "hallucination",
+          "score": 1.0
+        }
+      ]
+    },
+    {
+      "scenario": "direct/direct-v8-12",
+      "report": "/Users/alantolparov/IdeaProjects/evaluators-contractor/.artifacts/direct-high-01/runs/2026-09-07_11-01-44/reports/direct_direct-v8-12_report.json",
+      "sha256": "76913745ee6541fc814c10cf58aba01a99db14d3d045cb86988fc46df4ee2e24",
+      "visible_answers_reviewed": 1,
+      "status": "accepted",
+      "note": "Не обещает прохождение платежа; различает сведения отчёта и текущее состояние счёта.",
+      "raw_metrics": [
+        {
+          "metric": "trajectory_match",
+          "type": "trajectory_match",
+          "score": 0.86
+        },
+        {
+          "metric": "hallucination",
+          "type": "hallucination",
+          "score": 1.0
+        }
+      ]
+    },
+    {
+      "scenario": "direct/direct-v8-13",
+      "report": "/Users/alantolparov/IdeaProjects/evaluators-contractor/.artifacts/direct-high-01/runs/2026-09-07_11-01-44/reports/direct_direct-v8-13_report.json",
+      "sha256": "58e977979813fd1b287d73e2a84e4224c618eb4eea08cf2b19277b2ac24583e3",
+      "visible_answers_reviewed": 1,
+      "status": "unanswered",
+      "note": "Технический отказ при наличии данных. Инструменты отработали, структурированный ответ не получен. Hallucination=1 не означает успешное выполнение задачи.",
+      "raw_metrics": [
+        {
+          "metric": "trajectory_match",
+          "type": "trajectory_match",
+          "score": 0.65
+        },
+        {
+          "metric": "hallucination",
+          "type": "hallucination",
+          "score": 1.0
+        }
+      ]
+    },
+    {
+      "scenario": "direct/direct-v8-14",
+      "report": "/Users/alantolparov/IdeaProjects/evaluators-contractor/.artifacts/direct-high-01/runs/2026-09-07_11-01-44/reports/direct_direct-v8-14_report.json",
+      "sha256": "28a5fdf3a9ca87c0864b87ecdbd80b5b5b53b5fd8b7d9cf7db1085de57fc41ae",
+      "visible_answers_reviewed": 1,
+      "status": "accepted",
+      "note": "Отсутствие строки прибыли не превращено в убыток или отсутствие всей отчётности.",
+      "raw_metrics": [
+        {
+          "metric": "trajectory_match",
+          "type": "trajectory_match",
+          "score": 1.0
+        },
+        {
+          "metric": "hallucination",
+          "type": "hallucination",
+          "score": 1.0
+        }
+      ]
+    },
+    {
+      "scenario": "direct/direct-v8-15",
+      "report": "/Users/alantolparov/IdeaProjects/evaluators-contractor/.artifacts/direct-high-01/runs/2026-09-07_11-01-44/reports/direct_direct-v8-15_report.json",
+      "sha256": "bddaab37205b928fc859f149c53e497c402dae04b024cd736842c99a429d7e25",
+      "visible_answers_reviewed": 1,
+      "status": "accepted",
+      "note": "Прямая отрицательная рекомендация по МАКСМАРКЕТ; обе запрошенные банковские метки присутствуют. Ошибка судьи не является провалом фактического ответа.",
+      "raw_metrics": [
+        {
+          "metric": "trajectory_match",
+          "type": "trajectory_match",
+          "score": 0.95
+        },
+        {
+          "metric": "hallucination",
+          "type": "error",
+          "score": 0.0
+        }
+      ]
+    },
+    {
+      "scenario": "direct/direct-v8-16",
+      "report": "/Users/alantolparov/IdeaProjects/evaluators-contractor/.artifacts/direct-high-01/runs/2026-09-07_11-01-44/reports/direct_direct-v8-16_report.json",
+      "sha256": "821207450dec15c27313d53eabd70e6b911d83a8b78992c23a42360e8d6c78e4",
+      "visible_answers_reviewed": 1,
+      "status": "accepted",
+      "note": "Не выводит своевременность оплаты из меток банка, судов и финансов.",
+      "raw_metrics": [
+        {
+          "metric": "trajectory_match",
+          "type": "trajectory_match",
+          "score": 0.87
+        },
+        {
+          "metric": "hallucination",
+          "type": "hallucination",
+          "score": 1.0
+        }
+      ]
+    }
+  ]
+}

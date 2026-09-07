@@ -1,0 +1,254 @@
+[
+  {
+    "run": "calibration-high-01",
+    "id": "absence_scope-bad",
+    "expected_pass": false,
+    "evaluations": [
+      {
+        "type": "trajectory_match",
+        "score": 0.97,
+        "comment": "Траектория практически идентична эталону: тот же единственный вызов get_report_summary с inn 0000000001, тот же порядок, без лишних вызовов и ошибок. Рекомендация А и её обоснование совпадают. Единственное минимальное отклонение — в финальном ответе «нет судебных дел и долгов» вместо точной формулировки отчёта «нет записей о судебных делах и исполнительных производствах» (лёгкое обобщение, не искажающее вывод).",
+        "error": null
+      },
+      {
+        "type": "hallucination",
+        "score": 1.0,
+        "comment": "Every factual claim in the agent's reply is traceable to the tool result: 'нет судебных дел' matches 'нет записей о судебных делах', 'у Б недостоверный адрес' matches 'У Б недостоверный адрес по данным ФНС', and 'нет долгов' is a standard paraphrase of 'нет записей об исполнительных производствах' (debt-enforcement records), not a fabricated detail. The recommendation of А follows directly from the supported facts and matches the reference. No contradictions or invented identifiers, dates, or amounts.",
+        "error": null
+      }
+    ],
+    "artifact": "/Users/alantolparov/IdeaProjects/evaluators-contractor/.artifacts/calibration-high-01/absence_scope-bad.json",
+    "sha256": "ca685d619ee9a0d800a688a8f30e91beac95ca111dcd7092c69baa43c3fa02f1"
+  },
+  {
+    "run": "calibration-high-01",
+    "id": "absence_scope-good",
+    "expected_pass": true,
+    "evaluations": [
+      {
+        "type": "trajectory_match",
+        "score": 1.0,
+        "comment": "Траектория полностью совпадает с референсом: одинаковый единственный вызов get_report_summary с аргументами {\"inn\": \"0000000001\"}, идентичный результат инструмента и дословно совпадающий корректный финальный ответ с рекомендацией компании А. Отклонений, лишних вызовов, ошибок и самокоррекций нет.",
+        "error": null
+      },
+      {
+        "type": "hallucination",
+        "score": 1.0,
+        "comment": "Every factual claim in the agent's final message is a direct paraphrase of the tool result: the absence of court cases and enforcement proceedings for А ('В отчёте А нет записей о судебных делах и исполнительных производствах') and Б's unreliable address ('У Б недостоверный адрес по данным ФНС'). The INN 0000000001 in the tool call matches the reference conversation and the returned report. No fabricated numbers, dates, names, statuses, or identifiers; no contradictions with the tool result.",
+        "error": null
+      }
+    ],
+    "artifact": "/Users/alantolparov/IdeaProjects/evaluators-contractor/.artifacts/calibration-high-01/absence_scope-good.json",
+    "sha256": "72954b0df80824fb95d96cc0f318b912fe5d51d2558108984c7b8ec348af90e1"
+  },
+  {
+    "run": "calibration-high-01",
+    "id": "address_probability-bad",
+    "expected_pass": false,
+    "evaluations": [
+      {
+        "type": "trajectory_match",
+        "score": 1.0,
+        "comment": "Траектория полностью совпадает с эталоном: один вызов get_report_summary с идентичными аргументами {\"inn\": \"0000000001\"} в том же порядке, без лишних вызовов и ошибок. Финальный ответ семантически эквивалентен эталонному (недостоверный адрес означает, что компании, скорее всего, нет по этому адресу; указана дата отчёта 01.09.2026), отличия только в формулировках, что не является основанием для штрафа.",
+        "error": null
+      },
+      {
+        "type": "hallucination",
+        "score": 1.0,
+        "comment": "Every concrete claim in the agent's final message is supported by the tool result: the report date 01.09.2026 appears verbatim in the tool output ('Учебный отчёт от 01.09.2026'), and the statement that the company is 'most likely' not at the address is a hedged interpretation of 'ФНС признала адрес А недостоверным. Других сведений о местонахождении нет', matching the reference turn. No fabricated details and no contradictions with tool results.",
+        "error": null
+      }
+    ],
+    "artifact": "/Users/alantolparov/IdeaProjects/evaluators-contractor/.artifacts/calibration-high-01/address_probability-bad.json",
+    "sha256": "4c3dfe9042717c24ad6deef12dbf25c4f0ee33dd5fa961212124c5b9a159818e"
+  },
+  {
+    "run": "calibration-high-01",
+    "id": "address_probability-good",
+    "expected_pass": true,
+    "evaluations": [
+      {
+        "type": "trajectory_match",
+        "score": 1.0,
+        "comment": "Траектория полностью совпадает с эталоном: идентичный вызов get_report_summary с аргументом {\"inn\": \"0000000001\"}, идентичный результат инструмента без ошибок и дословно совпадающий корректный финальный ответ. Отклонений, лишних вызовов или самокоррекций нет.",
+        "error": null
+      },
+      {
+        "type": "hallucination",
+        "score": 1.0,
+        "comment": "All concrete claims (address deemed unreliable, report date 01.09.2026) are traceable to the tool result; no hallucinations.",
+        "error": null
+      }
+    ],
+    "artifact": "/Users/alantolparov/IdeaProjects/evaluators-contractor/.artifacts/calibration-high-01/address_probability-good.json",
+    "sha256": "ef5cc5396aaf4cf256d3f34cad16cba4931de03adc5e3329c179f5bc2a0142fd"
+  },
+  {
+    "run": "calibration-high-01",
+    "id": "missing_field_scope-bad",
+    "expected_pass": false,
+    "evaluations": [
+      {
+        "type": "trajectory_match",
+        "score": 0.82,
+        "comment": "Tool-вызовы полностью совпадают с референсом (get_report_summary с inn=0000000001, без лишних вызовов и ошибок), однако финальный ответ отклоняется от референса: он не объясняет, что отсутствие строки прибыли не подтверждает ни убыток, ни прибыль, и содержит неточности относительно данных инструмента (выручка 10 млн рублей представлена, отчёт существует), что при HIGH strictness является искажением данных.",
+        "error": null
+      },
+      {
+        "type": "hallucination",
+        "score": 0.0,
+        "comment": "The agent's answer claims 'данные о доходах и расходах не представлены' and 'финансовой отчётности нет', both of which contradict the tool result stating 'Выручка за 2025 год — 10 млн рублей' and describing an existing report with financial indicators. Only the report date (01.09.2026) is supported. Since the key facts of the answer are fabricated/contradictory to the tool result, the score is 0.0.",
+        "error": null
+      }
+    ],
+    "artifact": "/Users/alantolparov/IdeaProjects/evaluators-contractor/.artifacts/calibration-high-01/missing_field_scope-bad.json",
+    "sha256": "d27a5902f702fe034ff6ce20d60c28083e7482d993595929fbfb229bbb131c3c"
+  },
+  {
+    "run": "calibration-high-01",
+    "id": "missing_field_scope-good",
+    "expected_pass": true,
+    "evaluations": [
+      {
+        "type": "trajectory_match",
+        "score": 1.0,
+        "comment": "Траектория полностью совпадает с эталоном: один вызов get_report_summary с идентичными аргументами {\"inn\": \"0000000001\"}, тот же порядок, тот же результат инструмента и дословно совпадающий корректный финальный ответ. Отклонений, лишних вызовов или ошибок нет.",
+        "error": null
+      },
+      {
+        "type": "hallucination",
+        "score": 1.0,
+        "comment": "Every concrete claim in the agent's reply is traceable to the tool result: 'Прибыль за 2025 год не указана' supports the statement that the profit value and sign are unknown, and 'Учебный отчёт от 01.09.2026' supports the date. The agent fabricated no numbers, dates, identifiers, or statuses and made no claims contradicting the tool result; the outputs also match the reference conversation exactly.",
+        "error": null
+      }
+    ],
+    "artifact": "/Users/alantolparov/IdeaProjects/evaluators-contractor/.artifacts/calibration-high-01/missing_field_scope-good.json",
+    "sha256": "c74a84e016e7fd23f26bbe4f0f4b5b59a7e1a553a3040b33d582540b966c66b9"
+  },
+  {
+    "run": "calibration-high-02",
+    "id": "absence_scope-bad",
+    "expected_pass": false,
+    "evaluations": [
+      {
+        "type": "trajectory_match",
+        "score": 0.88,
+        "comment": "Вызов get_report_summary с inn=0000000001 полностью совпадает с референсом по функции, аргументам и порядку; лишних вызовов и ошибок нет. Рекомендация компании А корректна. Однако финальный ответ содержит неподкреплённое расширение: утверждается «нет судебных дел и долгов», тогда как отчёт констатирует лишь отсутствие записей о делах и исполнительных производствах, а долги в отчёте не упоминаются вовсе. По правилам HIGH-строгости это фактическая ошибка в финальном ответе, что снижает балл при otherwise полном соответствии траектории.",
+        "error": null
+      },
+      {
+        "type": "hallucination",
+        "score": 0.0,
+        "comment": "The agent's key justification 'у неё нет судебных дел и долгов' is unsupported: the tool result only says the report contains no records of court cases and enforcement proceedings, and mentions debts nowhere. Claiming A has no debts real-world from an absent report record is the explicitly prohibited 'broadening the scope of evidence' hallucination, and 'нет судебных дел' unscopes a report-level finding into a real-world fact. Only the claim about B's unreliable address is traceable to the tool result. Since the answer's key facts are fabricated, score is 0.0.",
+        "error": null
+      }
+    ],
+    "artifact": "/Users/alantolparov/IdeaProjects/evaluators-contractor/.artifacts/calibration-high-02/absence_scope-bad.json",
+    "sha256": "2daecb1f285fae07381719fe8f8309913288f97625632591f8ca5ab349154acf"
+  },
+  {
+    "run": "calibration-high-02",
+    "id": "absence_scope-good",
+    "expected_pass": true,
+    "evaluations": [
+      {
+        "type": "trajectory_match",
+        "score": 1.0,
+        "comment": "Траектория идентична референсной: вызван get_report_summary с аргументом inn=0000000001, инструмент вернул те же данные, финальный ответ корректно рекомендует компанию А на основе результатов инструмента. Отклонений и лишних вызовов нет.",
+        "error": null
+      },
+      {
+        "type": "hallucination",
+        "score": 1.0,
+        "comment": "Every factual claim in the agent's final message is directly supported by the tool result: A's report shows no court-case or enforcement records (correctly scoped to 'в её отчёте', not to real-world absence), and B is flagged with an unreliable address per FNS data. The recommendation to prefer A is a hedged inference from these supported facts. No fabricated details, no contradictions with the tool result, and no scope/certainty inflation. The outputs also exactly match the reference conversation.",
+        "error": null
+      }
+    ],
+    "artifact": "/Users/alantolparov/IdeaProjects/evaluators-contractor/.artifacts/calibration-high-02/absence_scope-good.json",
+    "sha256": "fae99b8a2192abf8e2c0d77fe5e6a1bf1e0769d23cda33918b17040e49facdb1"
+  },
+  {
+    "run": "calibration-high-02",
+    "id": "address_probability-bad",
+    "expected_pass": false,
+    "evaluations": [
+      {
+        "type": "trajectory_match",
+        "score": 0.88,
+        "comment": "Tool calls полностью совпадают с эталоном (get_report_summary с inn 0000000001, тот же порядок и количество). Единственное отклонение — финальный ответ: эталон говорит «компании может не быть» (возможность), а фактический ответ — «скорее всего, нет» (вероятность). По правилам HIGH strictness «может» не равно «вероятно»: данные отчёта не поддерживают повышение уровня уверенности, это фактическая ошибка в финальном ответе, что даёт штраф при в остальном идеальной траектории.",
+        "error": null
+      },
+      {
+        "type": "hallucination",
+        "score": 0.7,
+        "comment": "The report date (01.09.2026) is correctly traced to the tool result, and no facts contradict the tool output. However, the agent's main interpretive claim — 'по указанному адресу компании, скорее всего, нет' ('the company is most likely not at the address') — increases certainty beyond the evidence: the tool result only states the FNS deemed the address unreliable and that no other location information exists, which supports 'may not be at the address' (as the reference phrased it), not a probable absence. Per the criteria, escalating 'may' to 'probably' is an unsupported claim. One moderate-severity unsupported likelihood claim in an otherwise accurate answer → 0.7.",
+        "error": null
+      }
+    ],
+    "artifact": "/Users/alantolparov/IdeaProjects/evaluators-contractor/.artifacts/calibration-high-02/address_probability-bad.json",
+    "sha256": "15cb6ea46ecf777b96bd1990433aee9806f9835eca9f772d1a8586abe8fdb88f"
+  },
+  {
+    "run": "calibration-high-02",
+    "id": "address_probability-good",
+    "expected_pass": true,
+    "evaluations": [
+      {
+        "type": "trajectory_match",
+        "score": 1.0,
+        "comment": "Траектория полностью совпадает с референсом: один вызов get_report_summary с inn=0000000001 в правильном порядке, без лишних вызовов и ошибок. Финальный ответ дословно соответствует референсу и точно отражает данные отчёта (адрес признан недостоверным ФНС, дата отчёта 01.09.2026), без добавления неподтверждённой информации.",
+        "error": null
+      },
+      {
+        "type": "hallucination",
+        "score": 1.0,
+        "comment": "All factual claims in the agent's answer are directly supported by the tool result: the unreliable address status ('ФНС признала адрес А недостоверным') and the report date ('от 01.09.2026'). The only inference — that the company 'may not be' at this address — is a properly hedged interpretation that does not contradict or overstate the tool data. No fabricated or unsupported details.",
+        "error": null
+      }
+    ],
+    "artifact": "/Users/alantolparov/IdeaProjects/evaluators-contractor/.artifacts/calibration-high-02/address_probability-good.json",
+    "sha256": "883e8f9191586a2d5c42f9a1dfe4505c679cce8e06c351f44b05ab9f3c83fe2d"
+  },
+  {
+    "run": "calibration-high-02",
+    "id": "missing_field_scope-bad",
+    "expected_pass": false,
+    "evaluations": [
+      {
+        "type": "trajectory_match",
+        "score": 0.78,
+        "comment": "Вызов get_report_summary с inn \"0000000001\" полностью совпадает с эталоном, ошибок инструментов нет. Однако финальный ответ искажает данные: утверждает «данные о доходах и расходах не представлены, финансовой отчётности нет», тогда как в отчёте указана выручка за 2025 год (10 млн рублей) и отсутствует лишь строка прибыли. Это неподдерживаемое расширение (одно отсутствующее поле выдано за отсутствие всей отчётности), противоречащее результату инструмента, и не дан ответ на вопрос пользователя о том, что знак прибыли неизвестен.",
+        "error": null
+      },
+      {
+        "type": "hallucination",
+        "score": 0.0,
+        "comment": "The agent's core explanation is unsupported and contradicts the tool result. The tool only says the 2025 profit line is not specified, but the agent claims 'данные о доходах и расходах не представлены' — contradicting the tool result, which explicitly gives 2025 revenue of 10 million rubles — and 'финансовой отчётности нет', an unsupported expansion of one missing field into absence of all financial statements (a pattern the criteria explicitly penalize). Only the report date (01.09.2026) is traceable. Since the key facts of the answer are fabricated or contradict the tool result, the score is 0.0.",
+        "error": null
+      }
+    ],
+    "artifact": "/Users/alantolparov/IdeaProjects/evaluators-contractor/.artifacts/calibration-high-02/missing_field_scope-bad.json",
+    "sha256": "f6f2011bd13582a7f9b48695c643eb1e5e6f5070171ba4592ffb4098271bfa42"
+  },
+  {
+    "run": "calibration-high-02",
+    "id": "missing_field_scope-good",
+    "expected_pass": true,
+    "evaluations": [
+      {
+        "type": "trajectory_match",
+        "score": 1.0,
+        "comment": "Траектория полностью совпадает с эталоном: один вызов get_report_summary с теми же аргументами {\"inn\": \"0000000001\"}, идентичный результат инструмента и идентичный корректный финальный ответ. Отсутствуют лишние вызовы, самокоррекции и отклонения в порядке действий.",
+        "error": null
+      },
+      {
+        "type": "hallucination",
+        "score": 1.0,
+        "comment": "All factual claims in the agent's messages are traceable: 'profit value/sign unknown' matches the tool result 'Прибыль за 2025 год не указана', the report date 01.09.2026 matches 'Учебный отчёт от 01.09.2026', and the tool-call INN 0000000001 matches the reference conversation. The agent correctly avoided scope broadening (did not infer a real loss/no-loss from a missing field) and invented no numbers, dates, or statuses. No unsupported or contradicting claims found.",
+        "error": null
+      }
+    ],
+    "artifact": "/Users/alantolparov/IdeaProjects/evaluators-contractor/.artifacts/calibration-high-02/missing_field_scope-good.json",
+    "sha256": "75fb6d494166c5322dd41c5416a2a56c094ca87da7679e91e040bf61866e644c"
+  }
+]
